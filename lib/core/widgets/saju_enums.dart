@@ -111,6 +111,20 @@ enum SajuColor {
   /// 수(水) — 쪽빛 하늘
   water;
 
+  /// 오행 문자열('wood', 'fire' 등)에서 SajuColor로 변환
+  ///
+  /// 매칭/채팅 등에서 서버 데이터의 element 문자열을 디자인 토큰으로 변환할 때 사용.
+  static SajuColor fromElement(String? element) {
+    return switch (element) {
+      'wood' => SajuColor.wood,
+      'fire' => SajuColor.fire,
+      'earth' => SajuColor.earth,
+      'metal' => SajuColor.metal,
+      'water' => SajuColor.water,
+      _ => SajuColor.primary,
+    };
+  }
+
   /// 현재 테마에 맞는 메인 컬러를 반환한다.
   ///
   /// - primary/secondary: [ColorScheme]의 primary/secondary 사용

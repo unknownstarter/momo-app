@@ -5,10 +5,13 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../core/constants/app_constants.dart';
 import '../../core/network/supabase_client.dart';
+import '../providers/notification_badge_provider.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/onboarding_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/matching/presentation/pages/matching_page.dart';
+import '../../features/chat/presentation/pages/chat_list_page.dart';
+import '../../features/chat/presentation/pages/chat_room_page.dart';
 import '../../features/saju/presentation/pages/saju_analysis_page.dart';
 import '../../features/saju/presentation/pages/saju_result_page.dart';
 import '../../features/saju/presentation/providers/saju_provider.dart';
@@ -159,7 +162,7 @@ GoRouter appRouter(Ref ref) {
                 path: RoutePaths.chat,
                 name: RouteNames.chat,
                 builder: (context, state) =>
-                    const _PlaceholderPage(title: 'Chat'),
+                    const ChatListPage(),
                 routes: [
                   // 채팅방
                   GoRoute(
@@ -167,8 +170,7 @@ GoRouter appRouter(Ref ref) {
                     name: RouteNames.chatRoom,
                     builder: (context, state) {
                       final roomId = state.pathParameters['roomId']!;
-                      return _PlaceholderPage(
-                          title: 'Chat Room: $roomId');
+                      return ChatRoomPage(roomId: roomId);
                     },
                   ),
                 ],
@@ -276,13 +278,18 @@ GoRouter appRouter(Ref ref) {
 ///
 /// StatefulShellRoute.indexedStack과 함께 사용하여
 /// 각 탭의 상태를 유지합니다. (탭 전환 시 스크롤 위치 등 보존)
-class _MainScaffold extends StatelessWidget {
+///
+/// ConsumerWidget으로 알림 뱃지 카운트를 실시간 반영합니다.
+class _MainScaffold extends ConsumerWidget {
   const _MainScaffold({required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final chatBadge = ref.watch(chatBadgeCountProvider);
+    final matchingBadge = ref.watch(matchingBadgeCountProvider);
+
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: NavigationBar(
@@ -294,23 +301,46 @@ class _MainScaffold extends StatelessWidget {
             initialLocation: index == navigationShell.currentIndex,
           );
         },
-        destinations: const [
-          NavigationDestination(
+        destinations: [
+          // 탭 1: 홈
+          const NavigationDestination(
             icon: Icon(Icons.home_outlined),
             selectedIcon: Icon(Icons.home),
             label: '홈',
           ),
+
+          // 탭 2: 매칭 (받은 좋아요 뱃지)
           NavigationDestination(
-            icon: Icon(Icons.favorite_outline),
-            selectedIcon: Icon(Icons.favorite),
+            icon: Badge(
+              label: Text(_badgeLabel(matchingBadge)),
+              isLabelVisible: matchingBadge > 0,
+              child: const Icon(Icons.favorite_outline),
+            ),
+            selectedIcon: Badge(
+              label: Text(_badgeLabel(matchingBadge)),
+              isLabelVisible: matchingBadge > 0,
+              child: const Icon(Icons.favorite),
+            ),
             label: '매칭',
           ),
+
+          // 탭 3: 채팅 (안읽은 메시지 뱃지)
           NavigationDestination(
-            icon: Icon(Icons.chat_bubble_outline),
-            selectedIcon: Icon(Icons.chat_bubble),
+            icon: Badge(
+              label: Text(_badgeLabel(chatBadge)),
+              isLabelVisible: chatBadge > 0,
+              child: const Icon(Icons.chat_bubble_outline),
+            ),
+            selectedIcon: Badge(
+              label: Text(_badgeLabel(chatBadge)),
+              isLabelVisible: chatBadge > 0,
+              child: const Icon(Icons.chat_bubble),
+            ),
             label: '채팅',
           ),
-          NavigationDestination(
+
+          // 탭 4: 프로필
+          const NavigationDestination(
             icon: Icon(Icons.person_outline),
             selectedIcon: Icon(Icons.person),
             label: '프로필',
@@ -318,6 +348,12 @@ class _MainScaffold extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// 뱃지 숫자 포맷 (99 초과 시 99+)
+  static String _badgeLabel(int count) {
+    if (count > 99) return '99+';
+    return '$count';
   }
 }
 
