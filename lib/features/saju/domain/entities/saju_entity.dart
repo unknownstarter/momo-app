@@ -289,7 +289,7 @@ class SajuProfile {
         yearPillar,
         monthPillar,
         dayPillar,
-        if (hourPillar != null) hourPillar!,
+        ?hourPillar,
       ];
 
   /// 띠 (연주 지지의 동물)

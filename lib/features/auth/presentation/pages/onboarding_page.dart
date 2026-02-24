@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/widgets.dart';
+import '../providers/onboarding_provider.dart';
 import 'onboarding_form_page.dart';
 
 /// OnboardingPage -- 온보딩 메인 컨테이너
@@ -13,14 +15,14 @@ import 'onboarding_form_page.dart';
 ///
 /// 인트로 → 폼 전환은 내부 state로 관리하며,
 /// 폼 완료 시 사주 분석 페이지([RoutePaths.sajuAnalysis])로 이동한다.
-class OnboardingPage extends StatefulWidget {
+class OnboardingPage extends ConsumerStatefulWidget {
   const OnboardingPage({super.key});
 
   @override
-  State<OnboardingPage> createState() => _OnboardingPageState();
+  ConsumerState<OnboardingPage> createState() => _OnboardingPageState();
 }
 
-class _OnboardingPageState extends State<OnboardingPage>
+class _OnboardingPageState extends ConsumerState<OnboardingPage>
     with SingleTickerProviderStateMixin {
   bool _showForm = false;
   late final AnimationController _fadeController;
@@ -79,9 +81,22 @@ class _OnboardingPageState extends State<OnboardingPage>
     _fadeController.forward();
   }
 
-  void _onFormComplete(Map<String, dynamic> formData) {
-    // TODO: formData를 프로필 생성 로직에 전달
-    context.go(RoutePaths.sajuAnalysis);
+  Future<void> _onFormComplete(Map<String, dynamic> formData) async {
+    try {
+      await ref
+          .read(onboardingNotifierProvider.notifier)
+          .saveOnboardingData(formData);
+      if (mounted) context.go(RoutePaths.sajuAnalysis);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('프로필 저장에 실패했어요. 다시 시도해주세요.'),
+            backgroundColor: AppTheme.fireColor,
+          ),
+        );
+      }
+    }
   }
 
   @override

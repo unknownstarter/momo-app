@@ -16,8 +16,8 @@ part 'app_router.g.dart';
 
 /// go_router가 인증 상태 변경 시 자동으로 리다이렉트하도록
 /// Listenable을 구현한 인증 상태 노티파이어
-class AuthNotifier extends ChangeNotifier {
-  AuthNotifier(this._ref) {
+class RouterAuthNotifier extends ChangeNotifier {
+  RouterAuthNotifier(this._ref) {
     // Supabase 인증 상태 스트림을 구독
     _ref.listen(authStateProvider, (previous, next) {
       notifyListeners();
@@ -37,11 +37,11 @@ class AuthNotifier extends ChangeNotifier {
 /// redirect 로직이 재평가됩니다.
 @riverpod
 GoRouter appRouter(Ref ref) {
-  final authNotifier = AuthNotifier(ref);
+  final authNotifier = RouterAuthNotifier(ref);
 
   return GoRouter(
     initialLocation: RoutePaths.splash,
-    debugLogDiagnostics: true, // TODO: 프로덕션에서는 false로 변경
+    debugLogDiagnostics: false,
 
     // 인증 상태 변경 시 리다이렉트 재평가
     refreshListenable: authNotifier,

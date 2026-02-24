@@ -63,7 +63,7 @@ class SajuCharacterBubble extends StatelessWidget {
     );
   }
 
-  /// 캐릭터 원: 파스텔 배경 + 2px 컬러 border (alpha 0.3) + 이름 첫 글자
+  /// 캐릭터 원: 에셋 이미지 또는 이름 첫 글자 fallback
   Widget _buildCharacterCircle(Color color, Color pastelColor) {
     final dimension = size.height;
     final firstChar = characterName.characters.first;
@@ -79,14 +79,30 @@ class SajuCharacterBubble extends StatelessWidget {
           width: 2,
         ),
       ),
-      child: Center(
-        child: Text(
-          firstChar,
-          style: TextStyle(
-            fontSize: size.fontSize,
-            fontWeight: FontWeight.w600,
-            color: color,
-          ),
+      child: ClipOval(
+        child: characterAssetPath != null
+            ? Image.asset(
+                characterAssetPath!,
+                width: dimension,
+                height: dimension,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => _buildFallbackText(
+                  firstChar, color,
+                ),
+              )
+            : _buildFallbackText(firstChar, color),
+      ),
+    );
+  }
+
+  Widget _buildFallbackText(String char, Color color) {
+    return Center(
+      child: Text(
+        char,
+        style: TextStyle(
+          fontSize: size.fontSize,
+          fontWeight: FontWeight.w600,
+          color: color,
         ),
       ),
     );

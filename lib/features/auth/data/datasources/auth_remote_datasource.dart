@@ -81,16 +81,14 @@ class AuthRemoteDatasource {
   }
 
   /// profiles 테이블에서 현재 유저 프로필 조회
+  ///
+  /// 프로필이 없으면 null 반환. 네트워크/서버 에러는 throw.
   Future<Map<String, dynamic>?> fetchProfile(String authId) async {
-    try {
-      return await _client
-          .from(SupabaseTables.profiles)
-          .select()
-          .eq('auth_id', authId)
-          .maybeSingle();
-    } catch (e) {
-      return null;
-    }
+    return await _client
+        .from(SupabaseTables.profiles)
+        .select()
+        .eq('auth_id', authId)
+        .maybeSingle();
   }
 
   /// 현재 세션의 auth user

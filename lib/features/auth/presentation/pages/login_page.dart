@@ -230,19 +230,61 @@ class _LoginPageState extends ConsumerState<LoginPage>
     );
   }
 
-  /// 중앙 캐릭터 영역 (플레이스홀더)
+  /// 중앙 캐릭터 영역 — 오행이 5종 가로 배치
   Widget _buildCharacterSection() {
+    const characters = [
+      ('assets/images/characters/namuri_wood_default.png', AppTheme.woodColor),
+      ('assets/images/characters/bulkkori_fire_default.png', AppTheme.fireColor),
+      ('assets/images/characters/heuksuni_earth_default.png', AppTheme.earthColor),
+      ('assets/images/characters/soedongi_metal_default.png', AppTheme.metalColor),
+      ('assets/images/characters/mulgyeori_water_default.png', AppTheme.waterColor),
+    ];
+
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // 캐릭터 5종 이미지 플레이스홀더
-          // TODO: 오행이 캐릭터 5종 이미지 배치
-          const SizedBox(height: 120),
+          // 캐릭터 5종 가로 배치
+          SizedBox(
+            height: 80,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                for (final (path, color) in characters) ...[
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: color.withValues(alpha: 0.15),
+                      border: Border.all(
+                        color: color.withValues(alpha: 0.3),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: ClipOval(
+                      child: Image.asset(
+                        path,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => Icon(
+                          Icons.auto_awesome,
+                          color: color.withValues(alpha: 0.5),
+                          size: 24,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+              ],
+            ),
+          ),
+
+          const SizedBox(height: AppTheme.spacingMd),
 
           // 은은한 장식선
           Container(
-            width: 40,
+            width: 60,
             height: 1,
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -470,7 +512,7 @@ class _GoogleSignInButton extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF4285F4),
+                        color: Color(0xFF6B7280),
                         height: 1,
                       ),
                     ),

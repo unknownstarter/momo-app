@@ -110,7 +110,7 @@ class SajuAvatar extends StatelessWidget {
         width: dimension,
         height: dimension,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _buildInitials(context, dimension),
+        errorBuilder: (_, _, _) => _buildInitials(context, dimension),
       );
     }
 
@@ -120,7 +120,7 @@ class SajuAvatar extends StatelessWidget {
         width: dimension,
         height: dimension,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _buildInitials(context, dimension),
+        errorBuilder: (_, _, _) => _buildInitials(context, dimension),
       );
     }
 
