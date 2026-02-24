@@ -117,6 +117,12 @@ feature/
 - **presentation**: domain에만 의존 (usecase 호출, UI 렌더링)
 - **절대** presentation → data 직접 참조 금지
 
+### 중앙 DI 레이어 (2026-02-24 도입)
+- **`lib/core/di/providers.dart`**: 모든 Repository/Datasource 인스턴스화를 이곳에서 관리
+- 새 feature 추가 시 **반드시** core/di/providers.dart에 DI Provider 등록
+- Presentation layer는 이 파일의 Provider만 참조하여 data layer에 직접 의존하지 않음
+- 의존성 흐름: `presentation → core/di → data → domain`
+
 ---
 
 ## Development Standards
@@ -138,6 +144,7 @@ feature/
 - 선언적 라우팅 + 딥링크 지원
 - 인증 상태 기반 리다이렉트 (GoRouter.redirect)
 - 경로 상수는 `app/routes/`에 정의
+- **[규칙 2026-02-24]** 라우트 추가/변경 시 `app_constants.dart`의 RoutePaths와 `app_router.dart`의 GoRoute를 **반드시 동시에 검증**할 것. 서브라우트의 경우 부모 경로가 합쳐져서 최종 경로가 달라질 수 있음
 
 ### Error Handling
 - `core/errors/`에 커스텀 Exception/Failure 정의
@@ -149,6 +156,18 @@ feature/
 - 위젯 테스트: 주요 화면
 - E2E: `integration_test` (핵심 플로우)
 - 도메인 레이어 테스트 커버리지 80%+ 목표
+
+### 에셋 관리 (2026-02-24 추가)
+- 캐릭터 에셋: `assets/images/characters/` 디렉토리
+- 네이밍 컨벤션: `{romanized_name}_{variant}.png` (예: `namuri_wood_default.png`)
+- variant 종류: `default`, `expressions`, `poses`, `turnaround`
+- **[규칙]** 에셋 경로를 코드에 하드코딩할 때 반드시 실제 파일 목록과 대조 검증
+- **[규칙]** 새 캐릭터 이미지 추가 시: 배경 제거(누끼) → 네이밍 컨벤션 적용 → Mock 데이터 반영
+
+### UI 디자인 원칙 (2026-02-24 추가)
+- 토스 스타일 미니멀: 타이포 위계, 넉넉한 여백(20-32px), 얇은 보더, 색 절제
+- **"미니멀 ≠ 휑함"**: 장식은 줄이되, 캐릭터는 적절한 크기(64-72px)로 핵심 위치에 배치
+- 듀얼 무드: 라이트(일상 탐색), 다크(사주/궁합/매칭 결과)
 
 ### Git Workflow
 - 브랜치: `feature/`, `fix/`, `experiment/`, `research/`
