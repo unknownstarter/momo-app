@@ -7,6 +7,9 @@ import '../../core/constants/app_constants.dart';
 import '../../core/network/supabase_client.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/onboarding_page.dart';
+import '../../features/saju/presentation/pages/saju_analysis_page.dart';
+import '../../features/saju/presentation/pages/saju_result_page.dart';
+import '../../features/saju/presentation/providers/saju_provider.dart';
 
 part 'app_router.g.dart';
 
@@ -187,20 +190,24 @@ GoRouter appRouter(Ref ref) {
 
       // --- 독립 페이지 (탭 밖) ---
 
-      // 사주 분석
+      // 사주 분석 (로딩 애니메이션)
       GoRoute(
         path: RoutePaths.sajuAnalysis,
         name: RouteNames.sajuAnalysis,
-        builder: (context, state) =>
-            const _PlaceholderPage(title: 'Saju Analysis'),
+        builder: (context, state) {
+          final data = state.extra as Map<String, dynamic>? ?? {};
+          return SajuAnalysisPage(analysisData: data);
+        },
       ),
 
       // 사주 결과
       GoRoute(
         path: RoutePaths.sajuResult,
         name: RouteNames.sajuResult,
-        builder: (context, state) =>
-            const _PlaceholderPage(title: 'Saju Result'),
+        builder: (context, state) {
+          final result = state.extra as SajuAnalysisResult?;
+          return SajuResultPage(result: result);
+        },
       ),
 
       // 프로필 편집
