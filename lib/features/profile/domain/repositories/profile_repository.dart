@@ -2,15 +2,27 @@ import '../../../auth/domain/entities/user_entity.dart';
 
 /// Profile repository interface
 abstract class ProfileRepository {
-  /// 프로필 생성 (온보딩 완료 시)
+  /// 프로필 생성 (Phase A 온보딩 완료 시 — 사주 기본 정보)
   Future<UserEntity> createProfile({
     required String name,
     required String gender,
     required DateTime birthDate,
     String? birthTime,
-    String? bio,
-    List<String> interests,
-    List<String> profileImageUrls,
+  });
+
+  /// 매칭 프로필 완성 (Phase B 온보딩 완료 시)
+  Future<UserEntity> completeMatchingProfile({
+    required List<String> profileImageUrls,
+    required int height,
+    required String occupation,
+    required String location,
+    required String bio,
+    required List<String> interests,
+    String? mbti,
+    DrinkingFrequency? drinking,
+    SmokingStatus? smoking,
+    String? datingStyle,
+    Religion? religion,
   });
 
   /// 프로필 업데이트

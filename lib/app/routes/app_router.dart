@@ -12,6 +12,7 @@ import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/matching/presentation/pages/matching_page.dart';
 import '../../features/chat/presentation/pages/chat_list_page.dart';
 import '../../features/chat/presentation/pages/chat_room_page.dart';
+import '../../features/profile/presentation/pages/matching_profile_page.dart';
 import '../../features/saju/presentation/pages/saju_analysis_page.dart';
 import '../../features/saju/presentation/pages/saju_result_page.dart';
 import '../../features/saju/presentation/providers/saju_provider.dart';
@@ -65,6 +66,9 @@ GoRouter appRouter(Ref ref) {
         RoutePaths.splash,
         RoutePaths.login,
         RoutePaths.onboarding,
+        RoutePaths.sajuAnalysis,
+        RoutePaths.sajuResult,
+        RoutePaths.matchingProfile,
       ];
       final isPublicPath = publicPaths.contains(currentPath);
 
@@ -212,6 +216,13 @@ GoRouter appRouter(Ref ref) {
           final result = state.extra as SajuAnalysisResult?;
           return SajuResultPage(result: result);
         },
+      ),
+
+      // 매칭 프로필 완성 (Phase B 온보딩)
+      GoRoute(
+        path: RoutePaths.matchingProfile,
+        name: RouteNames.matchingProfile,
+        builder: (context, state) => const MatchingProfilePage(),
       ),
 
       // 프로필 편집

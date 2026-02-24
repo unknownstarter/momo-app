@@ -18,6 +18,53 @@ enum Gender {
   final String label;
 }
 
+/// 음주 빈도
+enum DrinkingFrequency {
+  none('안 해요'),
+  sometimes('가끔'),
+  often('자주');
+
+  const DrinkingFrequency(this.label);
+  final String label;
+
+  static DrinkingFrequency? fromString(String? value) {
+    if (value == null) return null;
+    return DrinkingFrequency.values.where((e) => e.name == value).firstOrNull;
+  }
+}
+
+/// 흡연 여부
+enum SmokingStatus {
+  nonSmoker('비흡연'),
+  smoker('흡연'),
+  eCigarette('전자담배');
+
+  const SmokingStatus(this.label);
+  final String label;
+
+  static SmokingStatus? fromString(String? value) {
+    if (value == null) return null;
+    return SmokingStatus.values.where((e) => e.name == value).firstOrNull;
+  }
+}
+
+/// 종교
+enum Religion {
+  none('무교'),
+  christian('기독교'),
+  catholic('천주교'),
+  buddhist('불교'),
+  other('기타');
+
+  const Religion(this.label);
+  final String label;
+
+  static Religion? fromString(String? value) {
+    if (value == null) return null;
+    return Religion.values.where((e) => e.name == value).firstOrNull;
+  }
+}
+
 /// 사용자 프로필 완성도 상태
 enum ProfileCompletionStatus {
   /// 기본 정보만 입력 (소셜 로그인 직후)
@@ -56,6 +103,13 @@ class UserEntity {
     this.height,
     this.location,
     this.occupation,
+    this.mbti,
+    this.drinking,
+    this.smoking,
+    this.datingStyle,
+    this.religion,
+    this.isSelfieVerified = false,
+    this.isProfileComplete = false,
     this.isPremium = false,
     required this.createdAt,
     required this.lastActiveAt,
@@ -120,6 +174,27 @@ class UserEntity {
   /// 직업
   final String? occupation;
 
+  /// MBTI (예: 'ENFP', 'ISTJ' 등)
+  final String? mbti;
+
+  /// 음주 빈도
+  final DrinkingFrequency? drinking;
+
+  /// 흡연 여부
+  final SmokingStatus? smoking;
+
+  /// 연애 스타일 (사주 기반 AI 제안 + 사용자 확인/수정)
+  final String? datingStyle;
+
+  /// 종교
+  final Religion? religion;
+
+  /// 셀카 인증 완료 여부
+  final bool isSelfieVerified;
+
+  /// 매칭 프로필 완성 여부 (Phase B 온보딩 완료)
+  final bool isProfileComplete;
+
   // --- 구독 상태 ---
 
   /// 프리미엄 구독 여부
@@ -182,22 +257,47 @@ class UserEntity {
   }
 
   /// 프로필 완성도 퍼센트 (0~100)
+  ///
+  /// 매칭 프로필 기준 점수:
+  /// - 이름: 5%
+  /// - 전화번호: 10%
+  /// - 사주 분석: 25%
+  /// - 프로필 사진(2장+): 25%
+  /// - 키: 5%
+  /// - 직업: 5%
+  /// - 지역: 5%
+  /// - 자기소개: 8%
+  /// - 관심사: 5%
+  /// - MBTI: 2%
+  /// - 셀카 인증: 5%
   int get completionPercent {
     int score = 0;
-    if (name.isNotEmpty) score += 15;
+    if (name.isNotEmpty) score += 5;
     if (phone != null) score += 10;
     if (hasSajuProfile) score += 25;
-    if (profileImageUrls.isNotEmpty) score += 20;
-    if (bio != null && bio!.isNotEmpty) score += 15;
-    if (interests.isNotEmpty) score += 10;
-    if (location != null) score += 5;
+    if (profileImageUrls.length >= 2) {
+      score += 25;
+    } else if (profileImageUrls.isNotEmpty) {
+      score += 15;
+    }
+    if (height != null) score += 5;
+    if (occupation != null && occupation!.isNotEmpty) score += 5;
+    if (location != null && location!.isNotEmpty) score += 5;
+    if (bio != null && bio!.isNotEmpty) score += 8;
+    if (interests.isNotEmpty) score += 5;
+    if (mbti != null) score += 2;
+    if (isSelfieVerified) score += 5;
     return score.clamp(0, 100);
   }
 
-  /// 매칭 가능 여부 (프로필이 충분히 완성되었는지)
+  /// 매칭 가능 여부 (최소 60% — 사진 2장 + 키 + 직업 + 지역)
   bool get isMatchable =>
-      completionStatus == ProfileCompletionStatus.fullyCompleted &&
-      isActive;
+      isActive &&
+      isProfileComplete &&
+      profileImageUrls.length >= 2 &&
+      height != null &&
+      occupation != null &&
+      location != null;
 
   // ===========================================================================
   // copyWith
@@ -219,6 +319,13 @@ class UserEntity {
     int? height,
     String? location,
     String? occupation,
+    String? mbti,
+    DrinkingFrequency? drinking,
+    SmokingStatus? smoking,
+    String? datingStyle,
+    Religion? religion,
+    bool? isSelfieVerified,
+    bool? isProfileComplete,
     bool? isPremium,
     DateTime? createdAt,
     DateTime? lastActiveAt,
@@ -239,6 +346,13 @@ class UserEntity {
       height: height ?? this.height,
       location: location ?? this.location,
       occupation: occupation ?? this.occupation,
+      mbti: mbti ?? this.mbti,
+      drinking: drinking ?? this.drinking,
+      smoking: smoking ?? this.smoking,
+      datingStyle: datingStyle ?? this.datingStyle,
+      religion: religion ?? this.religion,
+      isSelfieVerified: isSelfieVerified ?? this.isSelfieVerified,
+      isProfileComplete: isProfileComplete ?? this.isProfileComplete,
       isPremium: isPremium ?? this.isPremium,
       createdAt: createdAt ?? this.createdAt,
       lastActiveAt: lastActiveAt ?? this.lastActiveAt,

@@ -413,6 +413,15 @@ class SajuResultPage extends ConsumerWidget {
     return Column(
       children: [
         SajuButton(
+          label: '운명의 인연 찾으러 가기',
+          onPressed: () => context.go(RoutePaths.matchingProfile),
+          variant: SajuVariant.filled,
+          color: elementColor,
+          size: SajuSize.lg,
+          leadingIcon: Icons.favorite,
+        ),
+        const SizedBox(height: AppTheme.spacingMd),
+        SajuButton(
           label: '내 사주 공유하기',
           onPressed: () {
             // TODO: 공유 기능 구현
@@ -425,13 +434,13 @@ class SajuResultPage extends ConsumerWidget {
           size: SajuSize.lg,
           leadingIcon: Icons.share_outlined,
         ),
-        const SizedBox(height: AppTheme.spacingMd),
+        const SizedBox(height: AppTheme.spacingSm),
         SajuButton(
-          label: '홈으로 시작하기',
+          label: '나중에 할게요',
           onPressed: () => context.go(RoutePaths.home),
-          variant: SajuVariant.filled,
-          color: elementColor,
-          size: SajuSize.lg,
+          variant: SajuVariant.ghost,
+          color: SajuColor.primary,
+          size: SajuSize.sm,
         ),
       ],
     );

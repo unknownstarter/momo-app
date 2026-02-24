@@ -25,6 +25,7 @@ abstract final class RoutePaths {
   // --- 서브 페이지 ---
   static const sajuAnalysis = '/saju-analysis';
   static const sajuResult = '/saju-result';
+  static const matchingProfile = '/matching-profile';
   static const matchDetail = '/matching/:matchId';
   static const chatRoom = '/chat/:roomId';
   static const settings = '/settings';
@@ -51,6 +52,7 @@ abstract final class RouteNames {
   static const profile = 'profile';
   static const sajuAnalysis = 'saju-analysis';
   static const sajuResult = 'saju-result';
+  static const matchingProfile = 'matching-profile';
   static const matchDetail = 'match-detail';
   static const chatRoom = 'chat-room';
   static const settings = 'settings';

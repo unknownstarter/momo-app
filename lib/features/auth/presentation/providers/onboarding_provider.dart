@@ -23,8 +23,6 @@ class OnboardingNotifier extends _$OnboardingNotifier {
         gender: formData['gender'] == '남성' ? 'male' : 'female',
         birthDate: DateTime.parse(formData['birthDate'] as String),
         birthTime: formData['birthHour'] as String?,
-        bio: formData['bio'] as String?,
-        interests: List<String>.from(formData['interests'] ?? []),
       );
       state = AsyncData(user);
       return user;

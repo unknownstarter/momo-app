@@ -4,17 +4,16 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/widgets.dart';
 
-/// OnboardingFormPage -- 4단계 캐릭터 가이드 온보딩 폼
+/// OnboardingFormPage -- 2단계 사주 정보 온보딩 폼 (Phase A)
 ///
-/// 각 단계마다 오행이 캐릭터가 말풍선으로 안내하며,
-/// 사용자 기본 정보를 수집한다.
+/// 사주 분석에 필요한 기본 정보만 수집한다.
+/// 매칭에 필요한 추가 정보(사진, 자기소개, 키, 직업 등)는
+/// 사주 결과 확인 후 Phase B(MatchingProfilePage)에서 수집한다.
 ///
 /// | Step | 캐릭터 | 내용 |
 /// |------|--------|------|
 /// | 1    | 물결이(水) | 이름, 성별, 생년월일 |
 /// | 2    | 쇠동이(金) | 생시(시진) 선택 |
-/// | 3    | 불꼬리(火) | 프로필 사진 |
-/// | 4    | 흙순이(土) | 자기소개, 관심사 |
 class OnboardingFormPage extends StatefulWidget {
   const OnboardingFormPage({
     super.key,
@@ -44,33 +43,6 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
   // Step 2: 생시(시진) 선택
   // ---------------------------------------------------------------------------
   int? _selectedSiJinIndex; // 0~11 (자시~해시), null = 모르겠어요
-
-  // ---------------------------------------------------------------------------
-  // Step 3: 프로필 사진
-  // ---------------------------------------------------------------------------
-  // 사진 슬롯 6개 — 실제 이미지 피커는 추후 구현
-  final List<bool> _photoSlots = List.filled(6, false);
-  bool _skipPhotos = false;
-
-  // ---------------------------------------------------------------------------
-  // Step 4: 자기소개 + 관심사
-  // ---------------------------------------------------------------------------
-  final _bioController = TextEditingController();
-  final Set<String> _selectedInterests = {};
-  final _customInterestController = TextEditingController();
-
-  static const _presetInterests = [
-    '여행',
-    '음악',
-    '영화',
-    '운동',
-    '독서',
-    '요리',
-    '사진',
-    '게임',
-    '반려동물',
-    '카페',
-  ];
 
   // ---------------------------------------------------------------------------
   // 12시진 데이터
@@ -104,24 +76,12 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
       asset: 'assets/images/characters/soedongi_metal_default.png',
       color: SajuColor.metal,
     ),
-    _StepCharacter(
-      name: '불꼬리',
-      asset: 'assets/images/characters/bulkkori_fire_default.png',
-      color: SajuColor.fire,
-    ),
-    _StepCharacter(
-      name: '흙순이',
-      asset: 'assets/images/characters/heuksuni_earth_default.png',
-      color: SajuColor.earth,
-    ),
   ];
 
   @override
   void dispose() {
     _pageController.dispose();
     _nameController.dispose();
-    _bioController.dispose();
-    _customInterestController.dispose();
     super.dispose();
   }
 
@@ -141,7 +101,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
   void _nextStep() {
     if (!_validateCurrentStep()) return;
 
-    if (_currentStep < 3) {
+    if (_currentStep < 1) {
       _goToStep(_currentStep + 1);
     } else {
       _submitForm();
@@ -177,14 +137,6 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
         // 시진은 "모르겠어요"도 허용하므로 항상 통과
         return true;
 
-      case 2:
-        // 사진도 건너뛸 수 있으므로 항상 통과
-        return true;
-
-      case 3:
-        // 자기소개는 필수 아님, 관심사도 선택사항
-        return true;
-
       default:
         return true;
     }
@@ -198,9 +150,6 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
       'birthHour': _selectedSiJinIndex != null
           ? _siJinList[_selectedSiJinIndex!].name
           : null,
-      'hasPhotos': _photoSlots.any((slot) => slot),
-      'bio': _bioController.text.trim(),
-      'interests': _selectedInterests.toList(),
     };
 
     widget.onComplete(formData);
@@ -311,8 +260,6 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
                 children: [
                   _buildStep1(),
                   _buildStep2(),
-                  _buildStep3(),
-                  _buildStep4(),
                 ],
               ),
             ),
@@ -365,7 +312,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
             const SizedBox(width: 40),
           const Spacer(),
           Text(
-            '${_currentStep + 1} / 4',
+            '${_currentStep + 1} / 2',
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
                   color: const Color(0xFF6B6B6B),
                 ),
@@ -385,7 +332,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingXl),
       child: Row(
-        children: List.generate(4, (index) {
+        children: List.generate(2, (index) {
           final character = _stepCharacters[index];
           final isCompleted = index < _currentStep;
           final isCurrent = index == _currentStep;
@@ -433,7 +380,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
                   ),
                 ),
                 // 연결선 (마지막 아이템 제외)
-                if (index < 3)
+                if (index < 1)
                   Expanded(
                     child: Container(
                       height: 2,
@@ -732,357 +679,11 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
   }
 
   // ---------------------------------------------------------------------------
-  // Step 3: 프로필 사진
-  // ---------------------------------------------------------------------------
-
-  Widget _buildStep3() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: AppTheme.spacingSm),
-
-          // 캐릭터 가이드 말풍선
-          SajuCharacterBubble(
-            characterName: '불꼬리',
-            message: '멋진 사진 보여줘!\n인연이 기다리고 있어~',
-            elementColor: SajuColor.fire,
-            size: SajuSize.md,
-          ),
-          const SizedBox(height: AppTheme.spacingLg),
-
-          // 사진 그리드 (6슬롯)
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 0.8,
-            ),
-            itemCount: 6,
-            itemBuilder: (context, index) {
-              final isFirst = index == 0;
-
-              return GestureDetector(
-                onTap: () {
-                  // TODO: 이미지 피커 연결
-                  setState(() {
-                    _photoSlots[index] = !_photoSlots[index];
-                    if (_photoSlots[index]) _skipPhotos = false;
-                  });
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: _photoSlots[index]
-                        ? AppTheme.firePastel.withValues(alpha: 0.5)
-                        : Colors.white,
-                    borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                    border: Border.all(
-                      color: _photoSlots[index]
-                          ? AppTheme.fireColor
-                          : const Color(0xFFD0CCC7),
-                      width: _photoSlots[index] ? 2 : 1,
-                      strokeAlign: BorderSide.strokeAlignInside,
-                    ),
-                  ),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      // 빈 슬롯 — 점선 + 아이콘
-                      if (!_photoSlots[index])
-                        CustomPaint(
-                          size: const Size(double.infinity, double.infinity),
-                          painter: _DashedBorderPainter(
-                            color: const Color(0xFFD0CCC7),
-                            radius: AppTheme.radiusMd,
-                          ),
-                        ),
-
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            _photoSlots[index]
-                                ? Icons.check_circle
-                                : Icons.add_a_photo_outlined,
-                            size: 28,
-                            color: _photoSlots[index]
-                                ? AppTheme.fireColor
-                                : const Color(0xFFA0A0A0),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _photoSlots[index]
-                                ? '추가됨'
-                                : isFirst
-                                    ? '대표 사진'
-                                    : '사진 ${index + 1}',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: _photoSlots[index]
-                                  ? AppTheme.fireColor
-                                  : const Color(0xFFA0A0A0),
-                              fontWeight: isFirst && !_photoSlots[index]
-                                  ? FontWeight.w600
-                                  : FontWeight.w400,
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      // "필수" 뱃지 (첫 번째 슬롯)
-                      if (isFirst && !_photoSlots[index])
-                        Positioned(
-                          top: 6,
-                          left: 6,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppTheme.fireColor.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              '필수',
-                              style: TextStyle(
-                                fontSize: 9,
-                                fontWeight: FontWeight.w600,
-                                color: AppTheme.fireColor,
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: AppTheme.spacingLg),
-
-          // "나중에 추가할게요" 옵션
-          Center(
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  _skipPhotos = true;
-                  for (int i = 0; i < _photoSlots.length; i++) {
-                    _photoSlots[i] = false;
-                  }
-                });
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppTheme.spacingMd,
-                  vertical: AppTheme.spacingSm,
-                ),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-                  border: Border.all(
-                    color: _skipPhotos
-                        ? AppTheme.fireColor.withValues(alpha: 0.5)
-                        : const Color(0xFFD0CCC7),
-                  ),
-                  color: _skipPhotos
-                      ? AppTheme.firePastel.withValues(alpha: 0.3)
-                      : Colors.transparent,
-                ),
-                child: Text(
-                  '사진은 나중에 추가할게요',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: _skipPhotos
-                        ? AppTheme.fireColor
-                        : const Color(0xFF6B6B6B),
-                    fontWeight: _skipPhotos ? FontWeight.w600 : FontWeight.w400,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: AppTheme.spacingXl),
-        ],
-      ),
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // Step 4: 자기소개 + 관심사
-  // ---------------------------------------------------------------------------
-
-  Widget _buildStep4() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: AppTheme.spacingSm),
-
-          // 캐릭터 가이드 말풍선
-          SajuCharacterBubble(
-            characterName: '흙순이',
-            message: '어떤 사람인지 한마디로!',
-            elementColor: SajuColor.earth,
-            size: SajuSize.md,
-          ),
-          const SizedBox(height: AppTheme.spacingLg),
-
-          // 자기소개
-          SajuInput(
-            label: '자기소개',
-            hint: '나를 한마디로 표현한다면?',
-            controller: _bioController,
-            maxLines: 4,
-            maxLength: 300,
-            size: SajuSize.lg,
-          ),
-          const SizedBox(height: AppTheme.spacingSm),
-          Align(
-            alignment: Alignment.centerRight,
-            child: ValueListenableBuilder<TextEditingValue>(
-              valueListenable: _bioController,
-              builder: (_, value, _) {
-                return Text(
-                  '${value.text.length}/300',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: value.text.length > 280
-                        ? AppTheme.fireColor
-                        : const Color(0xFFA0A0A0),
-                  ),
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: AppTheme.spacingLg),
-
-          // 관심사
-          Text(
-            '관심사',
-            style: TextStyle(
-              fontSize: SajuSize.lg.fontSize * 0.9,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: AppTheme.spacingSm),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: _presetInterests.map((interest) {
-              final isSelected = _selectedInterests.contains(interest);
-              return SajuChip(
-                label: interest,
-                color: SajuColor.earth,
-                isSelected: isSelected,
-                size: SajuSize.md,
-                onTap: () {
-                  setState(() {
-                    if (isSelected) {
-                      _selectedInterests.remove(interest);
-                    } else if (_selectedInterests.length < 10) {
-                      _selectedInterests.add(interest);
-                    } else {
-                      _showSnack('관심사는 최대 10개까지 선택 가능해요');
-                    }
-                  });
-                },
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: AppTheme.spacingMd),
-
-          // 커스텀 관심사 추가
-          Row(
-            children: [
-              Expanded(
-                child: SajuInput(
-                  label: '직접 입력',
-                  hint: '관심사를 입력해주세요',
-                  controller: _customInterestController,
-                  size: SajuSize.md,
-                  onSubmitted: (_) => _addCustomInterest(),
-                ),
-              ),
-              const SizedBox(width: AppTheme.spacingSm),
-              Padding(
-                padding: const EdgeInsets.only(top: 22),
-                child: SajuButton(
-                  label: '추가',
-                  onPressed: _addCustomInterest,
-                  color: SajuColor.earth,
-                  size: SajuSize.md,
-                  expand: false,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppTheme.spacingSm),
-
-          // 선택된 관심사 표시 (커스텀 포함)
-          if (_selectedInterests
-              .where((i) => !_presetInterests.contains(i))
-              .isNotEmpty) ...[
-            const SizedBox(height: AppTheme.spacingSm),
-            Text(
-              '내가 추가한 관심사',
-              style: TextStyle(
-                fontSize: 12,
-                color: const Color(0xFF6B6B6B),
-              ),
-            ),
-            const SizedBox(height: AppTheme.spacingXs),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _selectedInterests
-                  .where((i) => !_presetInterests.contains(i))
-                  .map((interest) {
-                return SajuChip(
-                  label: interest,
-                  color: SajuColor.earth,
-                  isSelected: true,
-                  size: SajuSize.sm,
-                  onDeleted: () {
-                    setState(() => _selectedInterests.remove(interest));
-                  },
-                );
-              }).toList(),
-            ),
-          ],
-          const SizedBox(height: AppTheme.spacingXxl),
-        ],
-      ),
-    );
-  }
-
-  void _addCustomInterest() {
-    final text = _customInterestController.text.trim();
-    if (text.isEmpty) return;
-    if (_selectedInterests.length >= 10) {
-      _showSnack('관심사는 최대 10개까지 선택 가능해요');
-      return;
-    }
-    if (_selectedInterests.contains(text)) {
-      _showSnack('이미 추가된 관심사예요');
-      return;
-    }
-    setState(() {
-      _selectedInterests.add(text);
-      _customInterestController.clear();
-    });
-  }
-
-  // ---------------------------------------------------------------------------
   // 하단 버튼
   // ---------------------------------------------------------------------------
 
   Widget _buildBottomButtons() {
-    final isLastStep = _currentStep == 3;
+    final isLastStep = _currentStep == 1;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(
@@ -1101,32 +702,12 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
           ),
         ],
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SajuButton(
-            label: isLastStep ? '완료! 사주 보러가기' : '다음',
-            onPressed: _nextStep,
-            color: _stepCharacters[_currentStep].color,
-            size: SajuSize.xl,
-            leadingIcon: isLastStep ? Icons.auto_awesome : null,
-          ),
-          if (_currentStep == 2 || _currentStep == 3) ...[
-            const SizedBox(height: AppTheme.spacingXs),
-            SajuButton(
-              label: _currentStep == 2 ? '나중에 할게요' : '건너뛰기',
-              onPressed: () {
-                if (_currentStep == 2) {
-                  setState(() => _skipPhotos = true);
-                }
-                _nextStep();
-              },
-              variant: SajuVariant.ghost,
-              color: SajuColor.primary,
-              size: SajuSize.sm,
-            ),
-          ],
-        ],
+      child: SajuButton(
+        label: isLastStep ? '사주 분석하기' : '다음',
+        onPressed: _nextStep,
+        color: _stepCharacters[_currentStep].color,
+        size: SajuSize.xl,
+        leadingIcon: isLastStep ? Icons.auto_awesome : null,
       ),
     );
   }
@@ -1162,52 +743,3 @@ class _StepCharacter {
   final SajuColor color;
 }
 
-// =============================================================================
-// 사진 슬롯 점선 테두리 페인터
-// =============================================================================
-
-class _DashedBorderPainter extends CustomPainter {
-  _DashedBorderPainter({
-    required this.color,
-    required this.radius,
-  });
-
-  final Color color;
-  final double radius;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 1.0
-      ..style = PaintingStyle.stroke;
-
-    final rect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(0, 0, size.width, size.height),
-      Radius.circular(radius),
-    );
-
-    // 단순화된 점선: path의 dash 효과
-    final path = Path()..addRRect(rect);
-    final dashWidth = 6.0;
-    final dashSpace = 4.0;
-
-    final metric = path.computeMetrics().first;
-    var distance = 0.0;
-
-    while (distance < metric.length) {
-      final end = distance + dashWidth;
-      final extractPath = metric.extractPath(
-        distance,
-        end > metric.length ? metric.length : end,
-      );
-      canvas.drawPath(extractPath, paint);
-      distance += dashWidth + dashSpace;
-    }
-  }
-
-  @override
-  bool shouldRepaint(_DashedBorderPainter old) {
-    return old.color != color || old.radius != radius;
-  }
-}
