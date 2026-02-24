@@ -199,11 +199,11 @@ class SupabaseHelper {
   /// 테이블 변경 사항 실시간 구독
   ///
   /// [table]: 테이블 이름
-  /// [filter]: 필터 조건 (예: 'room_id=eq.abc-123')
+  /// [filter]: PostgresChangeFilter 인스턴스 (예: PostgresChangeFilter(type: PostgresChangeFilterType.eq, column: 'room_id', value: 'abc-123'))
   /// [callback]: 변경 이벤트 콜백
   RealtimeChannel subscribeToTable(
     String table, {
-    String? filter,
+    PostgresChangeFilter? filter,
     required void Function(PostgresChangePayload payload) callback,
   }) {
     final channel = _client.channel('public:$table');
@@ -212,7 +212,7 @@ class SupabaseHelper {
       event: PostgresChangeEvent.all,
       schema: 'public',
       table: table,
-      filter: filter != null ? PostgresChangeFilter.fromString(filter) : null,
+      filter: filter,
       callback: callback,
     );
 

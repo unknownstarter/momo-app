@@ -5,6 +5,13 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../core/constants/app_constants.dart';
 import '../../core/network/supabase_client.dart';
+import '../../features/auth/presentation/pages/login_page.dart';
+import '../../features/auth/presentation/pages/onboarding_page.dart';
+import '../../features/home/presentation/pages/home_page.dart';
+import '../../features/matching/presentation/pages/matching_page.dart';
+import '../../features/saju/presentation/pages/saju_analysis_page.dart';
+import '../../features/saju/presentation/pages/saju_result_page.dart';
+import '../../features/saju/presentation/providers/saju_provider.dart';
 
 part 'app_router.g.dart';
 
@@ -14,8 +21,8 @@ part 'app_router.g.dart';
 
 /// go_router가 인증 상태 변경 시 자동으로 리다이렉트하도록
 /// Listenable을 구현한 인증 상태 노티파이어
-class AuthNotifier extends ChangeNotifier {
-  AuthNotifier(this._ref) {
+class RouterAuthNotifier extends ChangeNotifier {
+  RouterAuthNotifier(this._ref) {
     // Supabase 인증 상태 스트림을 구독
     _ref.listen(authStateProvider, (previous, next) {
       notifyListeners();
@@ -35,11 +42,11 @@ class AuthNotifier extends ChangeNotifier {
 /// redirect 로직이 재평가됩니다.
 @riverpod
 GoRouter appRouter(Ref ref) {
-  final authNotifier = AuthNotifier(ref);
+  final authNotifier = RouterAuthNotifier(ref);
 
   return GoRouter(
     initialLocation: RoutePaths.splash,
-    debugLogDiagnostics: true, // TODO: 프로덕션에서는 false로 변경
+    debugLogDiagnostics: false,
 
     // 인증 상태 변경 시 리다이렉트 재평가
     refreshListenable: authNotifier,
@@ -85,15 +92,14 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: RoutePaths.onboarding,
         name: RouteNames.onboarding,
-        builder: (context, state) =>
-            const _PlaceholderPage(title: 'Onboarding'),
+        builder: (context, state) => const OnboardingPage(),
       ),
 
       // 로그인
       GoRoute(
         path: RoutePaths.login,
         name: RouteNames.login,
-        builder: (context, state) => const _PlaceholderPage(title: 'Login'),
+        builder: (context, state) => const LoginPage(),
       ),
 
       // SMS 인증
@@ -117,7 +123,7 @@ GoRouter appRouter(Ref ref) {
                 path: RoutePaths.home,
                 name: RouteNames.home,
                 builder: (context, state) =>
-                    const _PlaceholderPage(title: 'Home'),
+                    const HomePage(),
               ),
             ],
           ),
@@ -129,7 +135,7 @@ GoRouter appRouter(Ref ref) {
                 path: RoutePaths.matching,
                 name: RouteNames.matching,
                 builder: (context, state) =>
-                    const _PlaceholderPage(title: 'Matching'),
+                    const MatchingPage(),
                 routes: [
                   // 매칭 상세
                   GoRoute(
@@ -186,20 +192,24 @@ GoRouter appRouter(Ref ref) {
 
       // --- 독립 페이지 (탭 밖) ---
 
-      // 사주 분석
+      // 사주 분석 (로딩 애니메이션)
       GoRoute(
         path: RoutePaths.sajuAnalysis,
         name: RouteNames.sajuAnalysis,
-        builder: (context, state) =>
-            const _PlaceholderPage(title: 'Saju Analysis'),
+        builder: (context, state) {
+          final data = state.extra as Map<String, dynamic>? ?? {};
+          return SajuAnalysisPage(analysisData: data);
+        },
       ),
 
       // 사주 결과
       GoRoute(
         path: RoutePaths.sajuResult,
         name: RouteNames.sajuResult,
-        builder: (context, state) =>
-            const _PlaceholderPage(title: 'Saju Result'),
+        builder: (context, state) {
+          final result = state.extra as SajuAnalysisResult?;
+          return SajuResultPage(result: result);
+        },
       ),
 
       // 프로필 편집

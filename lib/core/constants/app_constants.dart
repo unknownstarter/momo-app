@@ -25,7 +25,7 @@ abstract final class RoutePaths {
   // --- 서브 페이지 ---
   static const sajuAnalysis = '/saju-analysis';
   static const sajuResult = '/saju-result';
-  static const matchDetail = '/match/:matchId';
+  static const matchDetail = '/matching/:matchId';
   static const chatRoom = '/chat/:roomId';
   static const settings = '/settings';
   static const editProfile = '/profile/edit';
@@ -33,7 +33,7 @@ abstract final class RoutePaths {
   static const paymentSuccess = '/payment/success';
 
   /// matchDetail 경로에 실제 ID를 삽입
-  static String matchDetailPath(String matchId) => '/match/$matchId';
+  static String matchDetailPath(String matchId) => '/matching/$matchId';
 
   /// chatRoom 경로에 실제 ID를 삽입
   static String chatRoomPath(String roomId) => '/chat/$roomId';
@@ -78,6 +78,11 @@ abstract final class SupabaseTables {
   static const subscriptions = 'subscriptions';
   static const dailyRecommendations = 'daily_recommendations';
   static const sajuCompatibility = 'saju_compatibility';
+  static const userPoints = 'user_points';
+  static const pointTransactions = 'point_transactions';
+  static const dailyUsage = 'daily_usage';
+  static const characterItems = 'character_items';
+  static const purchases = 'purchases';
 }
 
 /// Supabase Storage 버킷명
@@ -95,6 +100,11 @@ abstract final class SupabaseFunctions {
   static const generateMatchStory = 'generate-match-story';
   static const sendSmsVerification = 'send-sms-verification';
   static const verifySmsCode = 'verify-sms-code';
+  static const sendLike = 'send-like';
+  static const acceptLike = 'accept-like';
+  static const purchasePoints = 'purchase-points';
+  static const getDailyMatches = 'get-daily-matches';
+  static const resetDailyUsage = 'reset-daily-usage';
 }
 
 // =============================================================================
@@ -232,6 +242,20 @@ abstract final class AppLimits {
 
   // --- 결제 ---
   static const trialPeriodDays = 7;
+
+  // --- 좋아요/수락 ---
+  static const dailyFreeLikeLimit = 3;
+  static const dailyFreeAcceptLimit = 3;
+
+  // --- 포인트 비용 ---
+  static const likeCost = 100;
+  static const premiumLikeCost = 300;
+  static const acceptCost = 100;
+  static const compatibilityReportCost = 500;
+  static const sajuDetailedReportCost = 500;
+  static const icebreakerCost = 100;
+  static const characterSkinMinCost = 200;
+  static const characterSkinMaxCost = 500;
 }
 
 /// RevenueCat 상품 ID
