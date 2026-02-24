@@ -65,6 +65,26 @@ const _mockProfiles = <MatchProfile>[
     elementType: 'metal',
     compatibilityScore: 45,
   ),
+  MatchProfile(
+    userId: 'mock-user-006',
+    name: '유진',
+    age: 25,
+    bio: '반짝이는 순간을 소중히 여기는 사람이에요',
+    characterName: '황금토끼',
+    characterAssetPath: 'assets/images/characters/gold_tokki_default.png',
+    elementType: 'metal',
+    compatibilityScore: 88,
+  ),
+  MatchProfile(
+    userId: 'mock-user-007',
+    name: '다은',
+    age: 26,
+    bio: '조용하지만 깊은 이야기를 나누고 싶어요',
+    characterName: '검은토끼',
+    characterAssetPath: 'assets/images/characters/black_tokki_default.png',
+    elementType: 'water',
+    compatibilityScore: 71,
+  ),
 ];
 
 /// 프로필별 Mock 궁합 강점 데이터
@@ -94,6 +114,16 @@ const _mockStrengths = <String, List<String>>{
     '서로의 원칙을 존중하며 신뢰를 쌓아가요',
     '명확한 소통으로 오해를 줄일 수 있어요',
   ],
+  'mock-user-006': [
+    '금(金) 기운의 빛나는 직관이 서로를 깊이 이해하게 해요',
+    '운명적 끌림이 강해 첫 만남부터 자연스러운 교감이 있어요',
+    '서로의 꿈을 비추는 거울 같은 존재가 될 수 있어요',
+  ],
+  'mock-user-007': [
+    '수(水) 기운의 신비로운 매력이 관계에 깊이를 더해요',
+    '말보다 마음으로 통하는 교감이 특별해요',
+    '서로의 내면을 존중하며 조용히 성장하는 관계예요',
+  ],
 };
 
 /// 프로필별 Mock 궁합 도전 과제 데이터
@@ -122,6 +152,16 @@ const _mockChallenges = <String, List<String>>{
     '고집이 강한 면이 만나면 타협이 어려울 수 있어요',
     '감정 표현에 서툴러 상대가 서운할 수 있어요',
     '목표 지향적 성향이 겹쳐 관계에 소홀할 수 있어요',
+  ],
+  'mock-user-006': [
+    '서로의 이상이 높아 현실과의 괴리를 느낄 수 있어요',
+    '완벽주의적 성향이 겹쳐 작은 것에 예민해질 수 있어요',
+    '빛나는 순간만 추구하다 일상의 소중함을 놓칠 수 있어요',
+  ],
+  'mock-user-007': [
+    '조용한 성격이 겹쳐 서로의 마음을 확인하기 어려울 수 있어요',
+    '내면으로 감정을 삭이면 오해가 쌓일 수 있어요',
+    '변화를 두려워해 관계가 정체될 수 있어요',
   ],
 };
 
