@@ -14,6 +14,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 // --- Data Layer (구현체) ---
 import '../../features/auth/data/datasources/auth_remote_datasource.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
+import '../../features/chat/data/datasources/chat_remote_datasource.dart';
+import '../../features/chat/data/repositories/mock_chat_repository.dart';
 import '../../features/matching/data/repositories/matching_repository_impl.dart';
 import '../../features/profile/data/repositories/profile_repository_impl.dart';
 import '../../features/saju/data/datasources/saju_remote_datasource.dart';
@@ -21,6 +23,7 @@ import '../../features/saju/data/repositories/saju_repository_impl.dart';
 
 // --- Domain Layer (인터페이스) ---
 import '../../features/auth/domain/repositories/auth_repository.dart';
+import '../../features/chat/domain/repositories/chat_repository.dart';
 import '../../features/matching/domain/repositories/matching_repository.dart';
 import '../../features/profile/domain/repositories/profile_repository.dart';
 import '../../features/saju/domain/repositories/saju_repository.dart';
@@ -83,4 +86,25 @@ MatchingRepository matchingRepository(Ref ref) {
 @riverpod
 ProfileRepository profileRepository(Ref ref) {
   return ProfileRepositoryImpl(ref.watch(supabaseClientProvider));
+}
+
+// =============================================================================
+// Chat
+// =============================================================================
+
+/// Chat 데이터소스 Provider
+@riverpod
+ChatRemoteDatasource chatRemoteDatasource(Ref ref) {
+  return ChatRemoteDatasource(ref.watch(supabaseClientProvider));
+}
+
+/// Chat Repository Provider
+///
+/// 현재는 Mock 구현체를 반환합니다.
+/// Supabase 연동 후 ChatRepositoryImpl로 교체합니다.
+@riverpod
+ChatRepository chatRepository(Ref ref) {
+  return MockChatRepository();
+  // TODO: Supabase 연동 시 아래로 교체
+  // return ChatRepositoryImpl(ref.watch(chatRemoteDatasourceProvider));
 }

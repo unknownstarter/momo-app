@@ -9,6 +9,8 @@ import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/onboarding_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/matching/presentation/pages/matching_page.dart';
+import '../../features/chat/presentation/pages/chat_list_page.dart';
+import '../../features/chat/presentation/pages/chat_room_page.dart';
 import '../../features/saju/presentation/pages/saju_analysis_page.dart';
 import '../../features/saju/presentation/pages/saju_result_page.dart';
 import '../../features/saju/presentation/providers/saju_provider.dart';
@@ -159,7 +161,7 @@ GoRouter appRouter(Ref ref) {
                 path: RoutePaths.chat,
                 name: RouteNames.chat,
                 builder: (context, state) =>
-                    const _PlaceholderPage(title: 'Chat'),
+                    const ChatListPage(),
                 routes: [
                   // 채팅방
                   GoRoute(
@@ -167,8 +169,7 @@ GoRouter appRouter(Ref ref) {
                     name: RouteNames.chatRoom,
                     builder: (context, state) {
                       final roomId = state.pathParameters['roomId']!;
-                      return _PlaceholderPage(
-                          title: 'Chat Room: $roomId');
+                      return ChatRoomPage(roomId: roomId);
                     },
                   ),
                 ],
