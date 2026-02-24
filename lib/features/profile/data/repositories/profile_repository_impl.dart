@@ -1,9 +1,11 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/domain/entities/user_entity.dart';
 import '../../../../core/errors/failures.dart';
+// NOTE: UserModel은 auth의 데이터 레이어 DTO입니다. data-to-data 크로스 피처
+// 참조이며, UserModel을 core로 추출하거나 profile 전용 모델을 만들 때 해소 예정.
 import '../../../auth/data/models/user_model.dart';
-import '../../../auth/domain/entities/user_entity.dart';
 import '../../domain/repositories/profile_repository.dart';
 
 class ProfileRepositoryImpl implements ProfileRepository {

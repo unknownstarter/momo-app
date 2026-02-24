@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/widgets.dart';
 
@@ -68,12 +69,12 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
   static const _stepCharacters = [
     _StepCharacter(
       name: '물결이',
-      asset: 'assets/images/characters/mulgyeori_water_default.png',
+      asset: CharacterAssets.mulgyeoriWaterDefault,
       color: SajuColor.water,
     ),
     _StepCharacter(
       name: '쇠동이',
-      asset: 'assets/images/characters/soedongi_metal_default.png',
+      asset: CharacterAssets.soedongiMetalDefault,
       color: SajuColor.metal,
     ),
   ];

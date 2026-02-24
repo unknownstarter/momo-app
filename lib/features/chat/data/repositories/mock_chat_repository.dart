@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import '../../../../core/constants/app_constants.dart';
 import '../../domain/entities/chat_message_entity.dart';
 import '../../domain/entities/chat_room_entity.dart';
 import '../../domain/repositories/chat_repository.dart';
@@ -154,8 +155,7 @@ final _mockRooms = [
     unreadCount: 2,
     partnerName: '하늘',
     partnerElementType: 'water',
-    partnerCharacterAsset:
-        'assets/images/characters/mulgyeori_water_default.png',
+    partnerCharacterAsset: CharacterAssets.mulgyeoriWaterDefault,
     compatibilityScore: 92,
   ),
   ChatRoom(
@@ -177,8 +177,7 @@ final _mockRooms = [
     unreadCount: 0,
     partnerName: '수아',
     partnerElementType: 'fire',
-    partnerCharacterAsset:
-        'assets/images/characters/bulkkori_fire_default.png',
+    partnerCharacterAsset: CharacterAssets.bulkkoriFireDefault,
     compatibilityScore: 78,
   ),
   ChatRoom(
@@ -200,8 +199,7 @@ final _mockRooms = [
     unreadCount: 0,
     partnerName: '유진',
     partnerElementType: 'metal',
-    partnerCharacterAsset:
-        'assets/images/characters/gold_tokki_default.png',
+    partnerCharacterAsset: CharacterAssets.goldTokkiDefault,
     compatibilityScore: 88,
   ),
 ];

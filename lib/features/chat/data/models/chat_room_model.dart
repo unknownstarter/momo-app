@@ -1,3 +1,4 @@
+import '../../../../core/constants/app_constants.dart';
 import '../../domain/entities/chat_room_entity.dart';
 import 'chat_message_model.dart';
 
@@ -101,11 +102,11 @@ class ChatRoomModel {
   static String? _characterAsset(String? characterType) {
     if (characterType == null) return null;
     const assetMap = {
-      'namuri': 'assets/images/characters/namuri_wood_default.png',
-      'bulkkori': 'assets/images/characters/bulkkori_fire_default.png',
-      'heuksuni': 'assets/images/characters/heuksuni_earth_default.png',
-      'soedongi': 'assets/images/characters/soedongi_metal_default.png',
-      'mulgyeori': 'assets/images/characters/mulgyeori_water_default.png',
+      'namuri': CharacterAssets.namuriWoodDefault,
+      'bulkkori': CharacterAssets.bulkkoriFireDefault,
+      'heuksuni': CharacterAssets.heuksuniEarthDefault,
+      'soedongi': CharacterAssets.soedongiMetalDefault,
+      'mulgyeori': CharacterAssets.mulgyeoriWaterDefault,
     };
     return assetMap[characterType];
   }

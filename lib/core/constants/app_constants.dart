@@ -260,6 +260,112 @@ abstract final class AppLimits {
   static const characterSkinMaxCost = 500;
 }
 
+// =============================================================================
+// 캐릭터 에셋 경로 상수
+// =============================================================================
+
+/// 오행 마스코트 캐릭터 에셋 경로
+///
+/// 모든 캐릭터 에셋은 이곳에서 관리합니다.
+/// 절대 presentation 레이어에서 직접 문자열로 참조하지 마세요.
+abstract final class CharacterAssets {
+  // --- 기본(default) 에셋 ---
+  static const namuriWoodDefault =
+      'assets/images/characters/namuri_wood_default.png';
+  static const bulkkoriFireDefault =
+      'assets/images/characters/bulkkori_fire_default.png';
+  static const heuksuniEarthDefault =
+      'assets/images/characters/heuksuni_earth_default.png';
+  static const soedongiMetalDefault =
+      'assets/images/characters/soedongi_metal_default.png';
+  static const mulgyeoriWaterDefault =
+      'assets/images/characters/mulgyeori_water_default.png';
+
+  // --- 표정(expressions) ---
+  static const namuriWoodExpressions =
+      'assets/images/characters/namuri_wood_expressions.png';
+  static const bulkkoriFireExpressions =
+      'assets/images/characters/bulkkori_fire_expressions.png';
+  static const heuksuniEarthExpressions =
+      'assets/images/characters/heuksuni_earth_expressions.png';
+  static const soedongiMetalExpressions =
+      'assets/images/characters/soedongi_metal_expressions.png';
+  static const mulgyeoriWaterExpressions =
+      'assets/images/characters/mulgyeori_water_expressions.png';
+
+  // --- 포즈(poses) ---
+  static const namuriWoodPoses =
+      'assets/images/characters/namuri_wood_poses.png';
+  static const bulkkoriFirePoses =
+      'assets/images/characters/bulkkori_fire_poses.png';
+  static const heuksuniEarthPoses =
+      'assets/images/characters/heuksuni_earth_poses.png';
+  static const soedongiMetalPoses =
+      'assets/images/characters/soedongi_metal_poses.png';
+  static const mulgyeoriWaterPoses =
+      'assets/images/characters/mulgyeori_water_poses.png';
+
+  // --- 턴어라운드(turnaround) ---
+  static const namuriWoodTurnaround =
+      'assets/images/characters/namuri_wood_turnaround.png';
+  static const bulkkoriFireTurnaround =
+      'assets/images/characters/bulkkori_fire_turnaround.png';
+  static const heuksuniEarthTurnaround =
+      'assets/images/characters/heuksuni_earth_turnaround.png';
+  static const soedongiMetalTurnaround =
+      'assets/images/characters/soedongi_metal_turnaround.png';
+  static const mulgyeoriWaterTurnaround =
+      'assets/images/characters/mulgyeori_water_turnaround.png';
+
+  // --- 보너스 캐릭터 ---
+  static const goldTokkiDefault =
+      'assets/images/characters/gold_tokki_default.png';
+  static const blackTokkiDefault =
+      'assets/images/characters/black_tokki_default.png';
+  static const namuriGirlfriendDefault =
+      'assets/images/characters/namuri_girlfriend_default.png';
+
+  // --- 오행별 기본 에셋 조회 ---
+
+  /// FiveElementType → 기본 에셋 경로
+  static String defaultFor(FiveElementType element) => switch (element) {
+        FiveElementType.wood => namuriWoodDefault,
+        FiveElementType.fire => bulkkoriFireDefault,
+        FiveElementType.earth => heuksuniEarthDefault,
+        FiveElementType.metal => soedongiMetalDefault,
+        FiveElementType.water => mulgyeoriWaterDefault,
+      };
+
+  /// FiveElementType → 캐릭터 이름
+  static String nameFor(FiveElementType element) => switch (element) {
+        FiveElementType.wood => '나무리',
+        FiveElementType.fire => '불꼬리',
+        FiveElementType.earth => '흙순이',
+        FiveElementType.metal => '쇠동이',
+        FiveElementType.water => '물결이',
+      };
+
+  /// 오행 문자열(wood/목/木) → 기본 에셋 경로
+  static String defaultForString(String element) => switch (element) {
+        '목' || '木' || 'wood' => namuriWoodDefault,
+        '화' || '火' || 'fire' => bulkkoriFireDefault,
+        '토' || '土' || 'earth' => heuksuniEarthDefault,
+        '금' || '金' || 'metal' => soedongiMetalDefault,
+        '수' || '水' || 'water' => mulgyeoriWaterDefault,
+        _ => namuriWoodDefault,
+      };
+
+  /// 오행 문자열(wood/목/木) → 캐릭터 이름
+  static String nameForString(String element) => switch (element) {
+        '목' || '木' || 'wood' => '나무리',
+        '화' || '火' || 'fire' => '불꼬리',
+        '토' || '土' || 'earth' => '흙순이',
+        '금' || '金' || 'metal' => '쇠동이',
+        '수' || '水' || 'water' => '물결이',
+        _ => '나무리',
+      };
+}
+
 /// RevenueCat 상품 ID
 abstract final class RevenueCatProducts {
   // TODO: RevenueCat 대시보드에서 설정한 실제 ID로 교체

@@ -69,27 +69,27 @@ class _CharacterInfo {
 const _characterMap = <FiveElementType, _CharacterInfo>{
   FiveElementType.wood: _CharacterInfo(
     name: '나무리',
-    assetPath: 'assets/images/characters/namuri_wood_default.png',
+    assetPath: CharacterAssets.namuriWoodDefault,
     defaultGreeting: '안녕! 나는 나무리야. 너의 성장하는 기운이 느껴져!',
   ),
   FiveElementType.fire: _CharacterInfo(
     name: '불꼬리',
-    assetPath: 'assets/images/characters/bulkkori_fire_default.png',
+    assetPath: CharacterAssets.bulkkoriFireDefault,
     defaultGreeting: '반가워! 나는 불꼬리야. 너의 열정이 활활 타오르고 있어!',
   ),
   FiveElementType.earth: _CharacterInfo(
     name: '흙순이',
-    assetPath: 'assets/images/characters/heuksuni_earth_default.png',
+    assetPath: CharacterAssets.heuksuniEarthDefault,
     defaultGreeting: '어서와! 나는 흙순이야. 너의 든든한 기운이 좋아!',
   ),
   FiveElementType.metal: _CharacterInfo(
     name: '쇠동이',
-    assetPath: 'assets/images/characters/soedongi_metal_default.png',
+    assetPath: CharacterAssets.soedongiMetalDefault,
     defaultGreeting: '안녕! 나는 쇠동이야. 너의 단단한 의지가 느껴져!',
   ),
   FiveElementType.water: _CharacterInfo(
     name: '물결이',
-    assetPath: 'assets/images/characters/mulgyeori_water_default.png',
+    assetPath: CharacterAssets.mulgyeoriWaterDefault,
     defaultGreeting: '반가워! 나는 물결이야. 너의 깊은 지혜가 느껴져!',
   ),
 };
@@ -97,7 +97,7 @@ const _characterMap = <FiveElementType, _CharacterInfo>{
 /// 기본 캐릭터 (오행을 판별할 수 없을 때)
 const _defaultCharacter = _CharacterInfo(
   name: '나무리',
-  assetPath: 'assets/images/characters/namuri_wood_default.png',
+  assetPath: CharacterAssets.namuriWoodDefault,
   defaultGreeting: '안녕! 나는 나무리야. 함께 너의 사주를 알아보자!',
 );
 

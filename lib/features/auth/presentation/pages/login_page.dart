@@ -233,11 +233,11 @@ class _LoginPageState extends ConsumerState<LoginPage>
   /// 중앙 캐릭터 영역 — 오행이 5종 가로 배치
   Widget _buildCharacterSection() {
     const characters = [
-      ('assets/images/characters/namuri_wood_default.png', AppTheme.woodColor),
-      ('assets/images/characters/bulkkori_fire_default.png', AppTheme.fireColor),
-      ('assets/images/characters/heuksuni_earth_default.png', AppTheme.earthColor),
-      ('assets/images/characters/soedongi_metal_default.png', AppTheme.metalColor),
-      ('assets/images/characters/mulgyeori_water_default.png', AppTheme.waterColor),
+      (CharacterAssets.namuriWoodDefault, AppTheme.woodColor),
+      (CharacterAssets.bulkkoriFireDefault, AppTheme.fireColor),
+      (CharacterAssets.heuksuniEarthDefault, AppTheme.earthColor),
+      (CharacterAssets.soedongiMetalDefault, AppTheme.metalColor),
+      (CharacterAssets.mulgyeoriWaterDefault, AppTheme.waterColor),
     ];
 
     return Center(

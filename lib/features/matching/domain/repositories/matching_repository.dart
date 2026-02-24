@@ -5,9 +5,9 @@
 /// 실제 구현은 data 레이어에서 제공합니다.
 library;
 
+import '../../../../core/domain/entities/compatibility_entity.dart';
 import '../entities/like_entity.dart';
 import '../entities/match_profile.dart';
-import '../../../saju/domain/entities/saju_entity.dart';
 
 abstract class MatchingRepository {
   /// 오늘의 매칭 추천 목록 조회

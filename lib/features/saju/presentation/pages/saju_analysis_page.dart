@@ -91,11 +91,11 @@ class _SajuAnalysisPageState extends ConsumerState<SajuAnalysisPage>
   // ---------------------------------------------------------------------------
 
   static const _characters = [
-    _CharacterData('나무리', 'assets/images/characters/namuri_wood_default.png', SajuColor.wood),
-    _CharacterData('불꼬리', 'assets/images/characters/bulkkori_fire_default.png', SajuColor.fire),
-    _CharacterData('흙순이', 'assets/images/characters/heuksuni_earth_default.png', SajuColor.earth),
-    _CharacterData('쇠동이', 'assets/images/characters/soedongi_metal_default.png', SajuColor.metal),
-    _CharacterData('물결이', 'assets/images/characters/mulgyeori_water_default.png', SajuColor.water),
+    _CharacterData('나무리', CharacterAssets.namuriWoodDefault, SajuColor.wood),
+    _CharacterData('불꼬리', CharacterAssets.bulkkoriFireDefault, SajuColor.fire),
+    _CharacterData('흙순이', CharacterAssets.heuksuniEarthDefault, SajuColor.earth),
+    _CharacterData('쇠동이', CharacterAssets.soedongiMetalDefault, SajuColor.metal),
+    _CharacterData('물결이', CharacterAssets.mulgyeoriWaterDefault, SajuColor.water),
   ];
 
   @override
@@ -300,7 +300,7 @@ class _SajuAnalysisPageState extends ConsumerState<SajuAnalysisPage>
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF1D1E23), // 먹색
+              AppTheme.inkBlack, // 먹색
               Color(0xFF15161A), // 짙은 먹
               Color(0xFF1A1B20), // 중간 먹
             ],
@@ -412,7 +412,7 @@ class _SajuAnalysisPageState extends ConsumerState<SajuAnalysisPage>
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
-                  color: const Color(0xFFE8E4DF),
+                  color: AppTheme.textLight,
                   height: 1.5,
                 ),
                 textAlign: TextAlign.center,
@@ -588,7 +588,7 @@ class _SajuAnalysisPageState extends ConsumerState<SajuAnalysisPage>
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
-                  color: const Color(0xFFE8E4DF),
+                  color: AppTheme.textLight,
                   height: 1.5,
                 ),
                 textAlign: TextAlign.center,
@@ -679,7 +679,7 @@ class _SajuAnalysisPageState extends ConsumerState<SajuAnalysisPage>
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
-                color: const Color(0xFFE8E4DF),
+                color: AppTheme.textLight,
               ),
               textAlign: TextAlign.center,
             ),
@@ -688,7 +688,7 @@ class _SajuAnalysisPageState extends ConsumerState<SajuAnalysisPage>
               '다시 한 번 시도해 볼까?',
               style: TextStyle(
                 fontSize: 14,
-                color: const Color(0xFFA09B94),
+                color: AppTheme.textSecondaryLight,
               ),
               textAlign: TextAlign.center,
             ),

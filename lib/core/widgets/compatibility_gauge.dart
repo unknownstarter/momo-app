@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../../features/saju/domain/entities/saju_entity.dart';
+import '../domain/entities/compatibility_entity.dart';
 import '../theme/app_theme.dart';
 
 /// CompatibilityGauge — 궁합 점수 원형 게이지 위젯

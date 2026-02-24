@@ -12,9 +12,9 @@ library;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/di/providers.dart';
+import '../../../../core/domain/entities/compatibility_entity.dart';
 import '../../domain/entities/like_entity.dart';
 import '../../domain/entities/match_profile.dart';
-import '../../../saju/domain/entities/saju_entity.dart';
 
 part 'matching_provider.g.dart';
 

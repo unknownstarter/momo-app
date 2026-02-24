@@ -4,10 +4,11 @@
 /// 실제 서비스에서는 [MatchingRepositoryImpl]로 교체됩니다.
 library;
 
+import '../../../../core/constants/app_constants.dart';
+import '../../../../core/domain/entities/compatibility_entity.dart';
 import '../../domain/entities/like_entity.dart';
 import '../../domain/entities/match_profile.dart';
 import '../../domain/repositories/matching_repository.dart';
-import '../../../saju/domain/entities/saju_entity.dart';
 
 // =============================================================================
 // Mock 매칭 프로필 데이터
@@ -21,7 +22,7 @@ const _mockProfiles = <MatchProfile>[
     age: 26,
     bio: '바다처럼 깊은 마음을 가진 사람이에요',
     characterName: '물결이',
-    characterAssetPath: 'assets/images/characters/mulgyeori_water_default.png',
+    characterAssetPath: CharacterAssets.mulgyeoriWaterDefault,
     elementType: 'water',
     compatibilityScore: 92,
   ),
@@ -31,7 +32,7 @@ const _mockProfiles = <MatchProfile>[
     age: 24,
     bio: '밝은 에너지로 주변을 환하게 해요',
     characterName: '불꼬리',
-    characterAssetPath: 'assets/images/characters/bulkkori_fire_default.png',
+    characterAssetPath: CharacterAssets.bulkkoriFireDefault,
     elementType: 'fire',
     compatibilityScore: 78,
   ),
@@ -41,7 +42,7 @@ const _mockProfiles = <MatchProfile>[
     age: 27,
     bio: '함께 성장하는 관계를 꿈꿔요',
     characterName: '나무리',
-    characterAssetPath: 'assets/images/characters/namuri_wood_default.png',
+    characterAssetPath: CharacterAssets.namuriWoodDefault,
     elementType: 'wood',
     compatibilityScore: 65,
   ),
@@ -51,7 +52,7 @@ const _mockProfiles = <MatchProfile>[
     age: 25,
     bio: '따뜻하고 안정적인 사람을 만나고 싶어요',
     characterName: '흙순이',
-    characterAssetPath: 'assets/images/characters/heuksuni_earth_default.png',
+    characterAssetPath: CharacterAssets.heuksuniEarthDefault,
     elementType: 'earth',
     compatibilityScore: 54,
   ),
@@ -61,7 +62,7 @@ const _mockProfiles = <MatchProfile>[
     age: 28,
     bio: '결단력 있고 목표가 뚜렷한 편이에요',
     characterName: '쇠동이',
-    characterAssetPath: 'assets/images/characters/soedongi_metal_default.png',
+    characterAssetPath: CharacterAssets.soedongiMetalDefault,
     elementType: 'metal',
     compatibilityScore: 45,
   ),
@@ -71,7 +72,7 @@ const _mockProfiles = <MatchProfile>[
     age: 25,
     bio: '반짝이는 순간을 소중히 여기는 사람이에요',
     characterName: '황금토끼',
-    characterAssetPath: 'assets/images/characters/gold_tokki_default.png',
+    characterAssetPath: CharacterAssets.goldTokkiDefault,
     elementType: 'metal',
     compatibilityScore: 88,
   ),
@@ -81,7 +82,7 @@ const _mockProfiles = <MatchProfile>[
     age: 26,
     bio: '조용하지만 깊은 이야기를 나누고 싶어요',
     characterName: '검은토끼',
-    characterAssetPath: 'assets/images/characters/black_tokki_default.png',
+    characterAssetPath: CharacterAssets.blackTokkiDefault,
     elementType: 'water',
     compatibilityScore: 71,
   ),

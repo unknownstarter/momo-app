@@ -13,6 +13,40 @@ import '../../domain/entities/chat_message_entity.dart';
 /// [showAvatar]: 그룹화된 메시지의 첫 번째만 아바타 표시
 /// [showTime]: 그룹의 마지막 메시지만 시간 표시
 class ChatMessageBubble extends StatelessWidget {
+  // ---------------------------------------------------------------------------
+  // Layout constants
+  // ---------------------------------------------------------------------------
+
+  /// 버블 반대편 여백 — 화면 폭 대비 메시지 최대 너비를 제한
+  static const _bubbleSidePadding = 60.0;
+
+  /// 아바타 미표시 시 좌측 들여쓰기 (아바타 크기 + 간격에 맞춤)
+  static const _avatarIndent = 36.0;
+
+  /// 그룹 내 메시지 사이 좁은 간격
+  static const _groupedMessageGap = 2.0;
+
+  /// 버블 꼬리 쪽 작은 라운딩
+  static const _bubbleTailRadius = 4.0;
+
+  /// 버블 내부 수평 패딩
+  static const _bubbleHorizontalPadding = 14.0;
+
+  /// 버블 내부 수직 패딩
+  static const _bubbleVerticalPadding = 10.0;
+
+  /// 상대 버블 테두리 두께
+  static const _bubbleBorderWidth = 0.5;
+
+  /// 이미지 버블 최대 너비
+  static const _imageMaxWidth = 220.0;
+
+  /// 이미지 로드 실패 시 플레이스홀더 높이
+  static const _imageErrorHeight = 160.0;
+
+  /// 읽음 확인 아이콘 크기
+  static const _readReceiptIconSize = 14.0;
+
   const ChatMessageBubble({
     super.key,
     required this.message,
@@ -102,15 +136,21 @@ class _TextBubble extends StatelessWidget {
     final borderRadius = BorderRadius.only(
       topLeft: const Radius.circular(AppTheme.radiusLg),
       topRight: const Radius.circular(AppTheme.radiusLg),
-      bottomLeft: Radius.circular(isMine ? AppTheme.radiusLg : 4),
-      bottomRight: Radius.circular(isMine ? 4 : AppTheme.radiusLg),
+      bottomLeft: Radius.circular(
+          isMine ? AppTheme.radiusLg : ChatMessageBubble._bubbleTailRadius),
+      bottomRight: Radius.circular(
+          isMine ? ChatMessageBubble._bubbleTailRadius : AppTheme.radiusLg),
     );
 
     return Padding(
       padding: EdgeInsets.only(
-        left: isMine ? 60 : (showAvatar ? 0 : 36),
-        right: isMine ? 0 : 60,
-        bottom: showTime ? AppTheme.spacingSm : 2,
+        left: isMine
+            ? ChatMessageBubble._bubbleSidePadding
+            : (showAvatar ? 0 : ChatMessageBubble._avatarIndent),
+        right: isMine ? 0 : ChatMessageBubble._bubbleSidePadding,
+        bottom: showTime
+            ? AppTheme.spacingSm
+            : ChatMessageBubble._groupedMessageGap,
       ),
       child: Row(
         mainAxisAlignment:
@@ -139,14 +179,17 @@ class _TextBubble extends StatelessWidget {
                 onLongPress?.call();
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: ChatMessageBubble._bubbleHorizontalPadding,
+                  vertical: ChatMessageBubble._bubbleVerticalPadding,
+                ),
                 decoration: BoxDecoration(
                   color: bubbleColor,
                   borderRadius: borderRadius,
                   border: !isMine && !isDark
                       ? Border.all(
                           color: theme.dividerColor,
-                          width: 0.5,
+                          width: ChatMessageBubble._bubbleBorderWidth,
                         )
                       : null,
                 ),
@@ -191,9 +234,13 @@ class _ImageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(
-        left: isMine ? 60 : 36,
-        right: isMine ? 0 : 60,
-        bottom: showTime ? AppTheme.spacingSm : 2,
+        left: isMine
+            ? ChatMessageBubble._bubbleSidePadding
+            : ChatMessageBubble._avatarIndent,
+        right: isMine ? 0 : ChatMessageBubble._bubbleSidePadding,
+        bottom: showTime
+            ? AppTheme.spacingSm
+            : ChatMessageBubble._groupedMessageGap,
       ),
       child: Row(
         mainAxisAlignment:
@@ -208,13 +255,14 @@ class _ImageBubble extends StatelessWidget {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 220),
+                  constraints: const BoxConstraints(
+                      maxWidth: ChatMessageBubble._imageMaxWidth),
                   child: Image.network(
                     message.content,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) => Container(
-                      width: 220,
-                      height: 160,
+                      width: ChatMessageBubble._imageMaxWidth,
+                      height: ChatMessageBubble._imageErrorHeight,
                       color: Theme.of(context).colorScheme.surfaceContainerHighest,
                       child: Icon(
                         Icons.broken_image,
@@ -249,8 +297,10 @@ class _DeletedBubble extends StatelessWidget {
 
     return Padding(
       padding: EdgeInsets.only(
-        left: isMine ? 60 : 36,
-        right: isMine ? 0 : 60,
+        left: isMine
+            ? ChatMessageBubble._bubbleSidePadding
+            : ChatMessageBubble._avatarIndent,
+        right: isMine ? 0 : ChatMessageBubble._bubbleSidePadding,
         bottom: AppTheme.spacingSm,
       ),
       child: Row(
@@ -258,13 +308,16 @@ class _DeletedBubble extends StatelessWidget {
             isMine ? MainAxisAlignment.end : MainAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            padding: const EdgeInsets.symmetric(
+              horizontal: ChatMessageBubble._bubbleHorizontalPadding,
+              vertical: ChatMessageBubble._bubbleVerticalPadding,
+            ),
             decoration: BoxDecoration(
               color: theme.colorScheme.outline.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(AppTheme.radiusLg),
               border: Border.all(
                 color: theme.colorScheme.outline.withValues(alpha: 0.2),
-                width: 0.5,
+                width: ChatMessageBubble._bubbleBorderWidth,
               ),
             ),
             child: Text(
@@ -303,13 +356,12 @@ class _TimeLabel extends StatelessWidget {
           if (isRead)
             Icon(
               Icons.done_all,
-              size: 14,
+              size: ChatMessageBubble._readReceiptIconSize,
               color: theme.colorScheme.primary,
             ),
           Text(
             DateFormatter.formatTime(time),
             style: theme.textTheme.labelSmall?.copyWith(
-              fontSize: 11,
               color: theme.colorScheme.outline,
             ),
           ),

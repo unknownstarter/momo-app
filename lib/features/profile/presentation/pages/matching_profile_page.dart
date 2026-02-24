@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/widgets.dart';
-import '../../../auth/domain/entities/user_entity.dart';
+import '../../../../core/domain/entities/user_entity.dart';
 import '../providers/matching_profile_provider.dart';
 
 /// Phase B 매칭 프로필 완성 온보딩 — 5스텝
@@ -109,27 +109,27 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
   static const _stepCharacters = [
     _StepInfo(
       name: '불꼬리',
-      asset: 'assets/images/characters/bulkkori_fire_default.png',
+      asset: CharacterAssets.bulkkoriFireDefault,
       color: SajuColor.fire,
     ),
     _StepInfo(
       name: '흙순이',
-      asset: 'assets/images/characters/heuksuni_earth_default.png',
+      asset: CharacterAssets.heuksuniEarthDefault,
       color: SajuColor.earth,
     ),
     _StepInfo(
       name: '물결이',
-      asset: 'assets/images/characters/mulgyeori_water_default.png',
+      asset: CharacterAssets.mulgyeoriWaterDefault,
       color: SajuColor.water,
     ),
     _StepInfo(
       name: '쇠동이',
-      asset: 'assets/images/characters/soedongi_metal_default.png',
+      asset: CharacterAssets.soedongiMetalDefault,
       color: SajuColor.metal,
     ),
     _StepInfo(
       name: '나무리',
-      asset: 'assets/images/characters/namuri_wood_default.png',
+      asset: CharacterAssets.namuriWoodDefault,
       color: SajuColor.wood,
     ),
   ];

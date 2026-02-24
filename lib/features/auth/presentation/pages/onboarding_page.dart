@@ -32,21 +32,21 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage>
   static const _introSlides = [
     _IntroSlide(
       characterName: '나무리',
-      characterAsset: 'assets/images/characters/namuri_wood_default.png',
+      characterAsset: CharacterAssets.namuriWoodDefault,
       elementColor: SajuColor.wood,
       title: '운명의 인연을 찾아서',
       subtitle: '사주팔자로 알아보는\n나와 꼭 맞는 사람',
     ),
     _IntroSlide(
       characterName: '물결이',
-      characterAsset: 'assets/images/characters/mulgyeori_water_default.png',
+      characterAsset: CharacterAssets.mulgyeoriWaterDefault,
       elementColor: SajuColor.water,
       title: '사주가 말해주는 궁합',
       subtitle: '수천 년 동양 지혜가\n당신의 인연을 이어줍니다',
     ),
     _IntroSlide(
       characterName: '불꼬리',
-      characterAsset: 'assets/images/characters/bulkkori_fire_default.png',
+      characterAsset: CharacterAssets.bulkkoriFireDefault,
       elementColor: SajuColor.fire,
       title: '스와이프는 그만!',
       subtitle: '운명이 정해준 만남,\n지금 시작해볼까요?',

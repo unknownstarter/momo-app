@@ -1,4 +1,4 @@
-import '../../../auth/domain/entities/user_entity.dart';
+import '../../../../core/domain/entities/user_entity.dart';
 
 /// Profile repository interface
 abstract class ProfileRepository {

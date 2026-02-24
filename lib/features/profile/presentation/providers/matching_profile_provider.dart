@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/di/providers.dart';
-import '../../../auth/domain/entities/user_entity.dart';
+import '../../../../core/domain/entities/user_entity.dart';
 
 /// Phase B 매칭 프로필 완성 상태
 class MatchingProfileNotifier extends StateNotifier<AsyncValue<void>> {

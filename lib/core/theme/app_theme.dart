@@ -46,6 +46,22 @@ abstract final class AppTheme {
   static const compatibilityNormal = Color(0xFFA8B0A0); // 50-69: 회녹색
   static const compatibilityLow = Color(0xFF959EA2); // 0-49: 구색
 
+  // 배경 / 서피스 (public — feature에서 참조 가능)
+  static const hanjiBg = _lightBackground; // 한지색 배경
+  static const hanjiSurface = _lightSurface; // 밝은 한지
+  static const hanjiElevated = _lightElevated; // 어두운 한지
+  static const inkBlack = _darkBackground; // 먹색 다크 배경
+  static const inkSurface = _darkSurface; // 짙은 먹
+  static const inkCard = _darkCard; // 밝은 먹 (카드)
+
+  // 텍스트 전용 시맨틱 컬러
+  static const textDark = Color(0xFF2D2D2D); // 라이트 모드 본문
+  static const textLight = Color(0xFFE8E4DF); // 다크 모드 본문
+  static const textSecondaryDark = Color(0xFF6B6B6B); // 라이트 모드 보조
+  static const textSecondaryLight = Color(0xFFA09B94); // 다크 모드 보조
+  static const textHint = Color(0xFFA0A0A0); // 힌트 텍스트
+  static const dividerLight = Color(0xFFE8E4DF); // 라이트 디바이더
+
   // 신비 모드 전용
   static const mysticGlow = Color(0xFFC8B68E); // 은은한 골드 글로우
   static const mysticAccent = Color(0xFFD4C9A8); // 밝은 황토

@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/constants/app_constants.dart';
+import '../../../../core/domain/entities/compatibility_entity.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/widgets.dart';
-import '../../../saju/domain/entities/saju_entity.dart';
+// NOTE: saju_provider 참조는 현재 유저의 오행 캐릭터 정보를 읽기 위한
+// presentation-level 크로스 피처 의존성입니다. 사주 분석 결과를
+// 공유 상태로 리팩토링할 때 해소 예정입니다.
+import '../../../saju/presentation/providers/saju_provider.dart';
 import '../../domain/entities/match_profile.dart';
 import '../providers/matching_provider.dart';
 
@@ -34,7 +39,7 @@ class CompatibilityPreviewPage extends ConsumerWidget {
 
           return Container(
             decoration: const BoxDecoration(
-              color: Color(0xFF1D1E23),
+              color: AppTheme.inkBlack,
               borderRadius: BorderRadius.vertical(
                 top: Radius.circular(20),
               ),
@@ -49,7 +54,7 @@ class CompatibilityPreviewPage extends ConsumerWidget {
                   const SizedBox(height: 28),
 
                   // --- 캐릭터 쌍 ---
-                  _buildCharacterPair(context, textTheme),
+                  _buildCharacterPair(context, textTheme, ref),
 
                   const SizedBox(height: 32),
 
@@ -120,21 +125,35 @@ class CompatibilityPreviewPage extends ConsumerWidget {
   }
 
   /// 캐릭터 쌍: 내 캐릭터 + 상대 캐릭터 (깔끔한 원형)
-  Widget _buildCharacterPair(BuildContext context, TextTheme textTheme) {
+  Widget _buildCharacterPair(
+    BuildContext context,
+    TextTheme textTheme,
+    WidgetRef ref,
+  ) {
     final partnerColor =
         AppTheme.fiveElementColor(partnerProfile.elementType);
     final partnerPastel =
         AppTheme.fiveElementPastel(partnerProfile.elementType);
+
+    // 현재 유저의 사주 분석 결과에서 오행 캐릭터 정보를 가져옴
+    final myAnalysis = ref.watch(sajuAnalysisNotifierProvider).valueOrNull;
+    final myElement = myAnalysis?.profile.dominantElement?.name ?? 'wood';
+    final myColor = AppTheme.fiveElementColor(myElement);
+    final myPastel = AppTheme.fiveElementPastel(myElement);
+    final myAssetPath =
+        myAnalysis?.characterAssetPath ?? CharacterAssets.defaultForString(myElement);
+    final myCharacterName =
+        myAnalysis?.characterName ?? CharacterAssets.nameForString(myElement);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         _CharacterAvatar(
           label: '나',
-          color: AppTheme.woodColor,
-          pastelColor: AppTheme.woodPastel,
-          assetPath: 'assets/images/characters/namuri_wood_default.png',
-          characterName: '나무리',
+          color: myColor,
+          pastelColor: myPastel,
+          assetPath: myAssetPath,
+          characterName: myCharacterName,
         ),
         const SizedBox(width: 24),
         // 연결 점
@@ -225,7 +244,7 @@ class CompatibilityPreviewPage extends ConsumerWidget {
             },
             style: FilledButton.styleFrom(
               backgroundColor: AppTheme.mysticGlow,
-              foregroundColor: const Color(0xFF1D1E23),
+              foregroundColor: AppTheme.inkBlack,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppTheme.radiusMd),
               ),

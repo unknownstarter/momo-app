@@ -52,7 +52,7 @@ class SajuResultPage extends ConsumerWidget {
     return Theme(
       data: AppTheme.light,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF7F3EE), // 한지색
+        backgroundColor: AppTheme.hanjiBg, // 한지색
         body: CustomScrollView(
           slivers: [
             // AppBar
@@ -397,7 +397,7 @@ class SajuResultPage extends ConsumerWidget {
             profile.aiInterpretation!,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               height: 1.7,
-              color: const Color(0xFF2D2D2D),
+              color: AppTheme.textDark,
             ),
           ),
         ),
@@ -454,7 +454,7 @@ class SajuResultPage extends ConsumerWidget {
     return Text(
       title,
       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-        color: const Color(0xFF2D2D2D),
+        color: AppTheme.textDark,
       ),
     );
   }
@@ -463,7 +463,7 @@ class SajuResultPage extends ConsumerWidget {
     return Theme(
       data: AppTheme.light,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF7F3EE),
+        backgroundColor: AppTheme.hanjiBg,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,

@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../matching/domain/entities/match_profile.dart';
@@ -59,7 +60,7 @@ class HomePage extends ConsumerWidget {
                     ),
                     // 나무리 캐릭터 — 은은하게
                     Image.asset(
-                      'assets/images/characters/namuri_wood_default.png',
+                      CharacterAssets.namuriWoodDefault,
                       width: 72,
                       height: 72,
                       fit: BoxFit.contain,
@@ -223,7 +224,7 @@ class _ReceivedLikesCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF2A2B32) : Colors.white,
+        color: isDark ? AppTheme.inkSurface : Colors.white,
         borderRadius: BorderRadius.circular(AppTheme.radiusLg),
         border: Border.all(
           color: isDark
@@ -296,7 +297,7 @@ class _FortuneCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF2A2B32) : Colors.white,
+        color: isDark ? AppTheme.inkSurface : Colors.white,
         borderRadius: BorderRadius.circular(AppTheme.radiusLg),
         border: Border.all(
           color: isDark
@@ -363,7 +364,7 @@ class _FortuneCard extends StatelessWidget {
     );
   }
 
-  String? get characterAssetPath => 'assets/images/characters/mulgyeori_water_default.png';
+  String? get characterAssetPath => CharacterAssets.mulgyeoriWaterDefault;
 }
 
 // =============================================================================
