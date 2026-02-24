@@ -6,8 +6,8 @@
 library;
 
 import '../entities/like_entity.dart';
+import '../entities/match_profile.dart';
 import '../../../saju/domain/entities/saju_entity.dart';
-import '../../data/models/match_profile_model.dart';
 
 abstract class MatchingRepository {
   /// 오늘의 매칭 추천 목록 조회

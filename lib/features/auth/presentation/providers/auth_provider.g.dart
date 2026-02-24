@@ -6,46 +6,6 @@ part of 'auth_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$authRemoteDatasourceHash() => r'authRemoteDatasource';
-
-/// AuthRemoteDatasource provider
-///
-/// Copied from [authRemoteDatasource].
-@ProviderFor(authRemoteDatasource)
-final authRemoteDatasourceProvider =
-    AutoDisposeProvider<AuthRemoteDatasource>.internal(
-  authRemoteDatasource,
-  name: r'authRemoteDatasourceProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$authRemoteDatasourceHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef AuthRemoteDatasourceRef
-    = AutoDisposeProviderRef<AuthRemoteDatasource>;
-String _$authRepositoryHash() => r'authRepository';
-
-/// AuthRepository provider
-///
-/// Copied from [authRepository].
-@ProviderFor(authRepository)
-final authRepositoryProvider = AutoDisposeProvider<AuthRepository>.internal(
-  authRepository,
-  name: r'authRepositoryProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$authRepositoryHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef AuthRepositoryRef = AutoDisposeProviderRef<AuthRepository>;
 String _$currentUserProfileHash() => r'currentUserProfile';
 
 /// 현재 로그인 유저의 프로필 (async)

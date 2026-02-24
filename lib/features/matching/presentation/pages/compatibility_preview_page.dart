@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../saju/domain/entities/saju_entity.dart';
-import '../../data/models/match_profile_model.dart';
+import '../../domain/entities/match_profile.dart';
 import '../providers/matching_provider.dart';
 
 /// CompatibilityPreviewPage — 궁합 프리뷰 바텀시트 (토스 스타일 미니멀)

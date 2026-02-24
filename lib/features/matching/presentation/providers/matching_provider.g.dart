@@ -6,26 +6,6 @@ part of 'matching_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$matchingRepositoryHash() => r'matchingRepository';
-
-/// 매칭 Repository Provider
-///
-/// Copied from [matchingRepository].
-@ProviderFor(matchingRepository)
-final matchingRepositoryProvider =
-    AutoDisposeProvider<MatchingRepository>.internal(
-  matchingRepository,
-  name: r'matchingRepositoryProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$matchingRepositoryHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef MatchingRepositoryRef = AutoDisposeProviderRef<MatchingRepository>;
 String _$dailyRecommendationsHash() => r'dailyRecommendations';
 
 /// 오늘의 매칭 추천 목록 상태 관리

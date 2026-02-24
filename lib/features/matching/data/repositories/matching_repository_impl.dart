@@ -5,9 +5,9 @@
 library;
 
 import '../../domain/entities/like_entity.dart';
+import '../../domain/entities/match_profile.dart';
 import '../../domain/repositories/matching_repository.dart';
 import '../../../saju/domain/entities/saju_entity.dart';
-import '../models/match_profile_model.dart';
 
 // =============================================================================
 // Mock 매칭 프로필 데이터

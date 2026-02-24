@@ -1,25 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../../core/di/providers.dart';
 import '../../../../core/network/supabase_client.dart';
-import '../../data/datasources/auth_remote_datasource.dart';
-import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/entities/user_entity.dart';
-import '../../domain/repositories/auth_repository.dart';
 
 part 'auth_provider.g.dart';
-
-/// AuthRemoteDatasource provider
-@riverpod
-AuthRemoteDatasource authRemoteDatasource(Ref ref) {
-  return AuthRemoteDatasource(ref.watch(supabaseClientProvider));
-}
-
-/// AuthRepository provider
-@riverpod
-AuthRepository authRepository(Ref ref) {
-  return AuthRepositoryImpl(ref.watch(authRemoteDatasourceProvider));
-}
 
 /// 현재 로그인 유저의 프로필 (async)
 @riverpod

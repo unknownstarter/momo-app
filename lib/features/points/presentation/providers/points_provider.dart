@@ -11,8 +11,8 @@ library;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/di/providers.dart';
 import '../../domain/entities/point_entity.dart';
-import '../../../matching/presentation/providers/matching_provider.dart';
 
 part 'points_provider.g.dart';
 

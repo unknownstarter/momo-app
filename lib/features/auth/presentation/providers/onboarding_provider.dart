@@ -1,20 +1,11 @@
 import 'dart:async';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../core/network/supabase_client.dart';
-import '../../../profile/data/repositories/profile_repository_impl.dart';
-import '../../../profile/domain/repositories/profile_repository.dart';
+import '../../../../core/di/providers.dart';
 import '../../domain/entities/user_entity.dart';
 
 part 'onboarding_provider.g.dart';
-
-/// ProfileRepository provider
-@riverpod
-ProfileRepository profileRepository(Ref ref) {
-  return ProfileRepositoryImpl(ref.watch(supabaseClientProvider));
-}
 
 /// 온보딩 데이터를 Supabase에 저장하는 노티파이어
 @riverpod

@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/widgets.dart';
-import '../../../matching/data/models/match_profile_model.dart';
+import '../../../matching/domain/entities/match_profile.dart';
 import '../../../matching/presentation/pages/compatibility_preview_page.dart';
 import '../../../matching/presentation/providers/matching_provider.dart';
 

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/widgets.dart';
-import '../../data/models/match_profile_model.dart';
+import '../../domain/entities/match_profile.dart';
 import '../providers/matching_provider.dart';
 import 'compatibility_preview_page.dart';
 

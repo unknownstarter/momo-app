@@ -1,22 +1,17 @@
 /// 사주 분석 Riverpod Providers
 ///
-/// 사주 분석 기능의 DI(의존성 주입)와 상태 관리를 담당합니다.
+/// 사주 분석 상태 관리를 담당합니다.
+/// DI(의존성 주입)는 core/di/providers.dart에서 처리합니다.
 ///
 /// Provider 구성:
-/// - [sajuRemoteDatasourceProvider]: 데이터소스 인스턴스
-/// - [sajuRepositoryProvider]: Repository 인스턴스
 /// - [SajuAnalysisNotifier]: 사주 분석 상태 관리 (AsyncNotifier)
 library;
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/constants/app_constants.dart';
-import '../../../../core/network/supabase_client.dart';
-import '../../data/datasources/saju_remote_datasource.dart';
-import '../../data/repositories/saju_repository_impl.dart';
+import '../../../../core/di/providers.dart';
 import '../../domain/entities/saju_entity.dart';
-import '../../domain/repositories/saju_repository.dart';
 
 part 'saju_provider.g.dart';
 
@@ -107,54 +102,18 @@ const _defaultCharacter = _CharacterInfo(
 );
 
 // =============================================================================
-// Providers
-// =============================================================================
-
-/// 사주 Remote 데이터소스 Provider
-@riverpod
-SajuRemoteDatasource sajuRemoteDatasource(Ref ref) {
-  final helper = ref.watch(supabaseHelperProvider);
-  return SajuRemoteDatasource(helper);
-}
-
-/// 사주 Repository Provider
-@riverpod
-SajuRepository sajuRepository(Ref ref) {
-  final datasource = ref.watch(sajuRemoteDatasourceProvider);
-  return SajuRepositoryImpl(datasource);
-}
-
-// =============================================================================
 // 사주 분석 상태 관리 (AsyncNotifier)
 // =============================================================================
 
 /// 사주 분석 상태 관리 Notifier
-///
-/// 사주 분석 전체 플로우를 관리합니다:
-/// 1. Repository를 통한 사주 계산 + AI 인사이트 생성
-/// 2. 결과에 캐릭터 정보 매핑
-/// 3. [SajuAnalysisResult]로 최종 결과 반환
-///
-/// 상태:
-/// - `AsyncLoading`: 분석 진행 중
-/// - `AsyncData(null)`: 아직 분석하지 않음
-/// - `AsyncData(result)`: 분석 완료
-/// - `AsyncError`: 분석 실패
 @riverpod
 class SajuAnalysisNotifier extends _$SajuAnalysisNotifier {
   @override
   FutureOr<SajuAnalysisResult?> build() {
-    // 초기 상태: 아직 분석하지 않음
     return null;
   }
 
   /// 사주 분석 실행
-  ///
-  /// [userId]: 분석 대상 사용자 ID
-  /// [birthDate]: ISO 8601 날짜 문자열 (예: "1995-03-15")
-  /// [birthTime]: 시:분 문자열 (예: "14:30"), 모르면 null
-  /// [isLunar]: 음력 날짜 여부
-  /// [userName]: 사용자 이름 (AI 개인화 해석에 사용)
   Future<void> analyze({
     required String userId,
     required String birthDate,
@@ -162,13 +121,11 @@ class SajuAnalysisNotifier extends _$SajuAnalysisNotifier {
     bool isLunar = false,
     String? userName,
   }) async {
-    // 로딩 상태로 전환
     state = const AsyncLoading();
 
     state = await AsyncValue.guard(() async {
       final repository = ref.read(sajuRepositoryProvider);
 
-      // Repository를 통한 사주 분석
       final profile = await repository.analyzeSaju(
         userId: userId,
         birthDate: birthDate,
@@ -177,7 +134,6 @@ class SajuAnalysisNotifier extends _$SajuAnalysisNotifier {
         userName: userName,
       );
 
-      // 주도적 오행에 따른 캐릭터 매핑
       final characterInfo = _resolveCharacter(profile.dominantElement);
 
       return SajuAnalysisResult(
