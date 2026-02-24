@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 270" width="240" height="270">
+  <!-- 물결이 (水) - 촉촉한 물방울 고양이 / 순하고 큰 눈 -->
+
+  <!-- 물방울 장식 (머리 위) -->
+  <path d="M120 22 C118 14 120 6 120 6 C120 6 122 14 120 22" fill="#89B0CB" opacity="0.6" stroke="#89B0CB" stroke-width="1"/>
+  <circle cx="120" cy="24" r="5" fill="#C8DBEA" stroke="#89B0CB" stroke-width="1.2"/>
+
+  <!-- 고양이 귀 -->
+  <path d="M72 64 C68 40 72 20 84 30 C88 34 86 50 84 64" fill="#E8F0F5" stroke="#4A4A4A" stroke-width="2.8" stroke-linejoin="round"/>
+  <path d="M76 56 C74 42 78 32 84 38 C86 40 84 50 82 56" fill="#C8DBEA" opacity="0.4"/>
+  <path d="M168 64 C172 40 168 20 156 30 C152 34 154 50 156 64" fill="#E8F0F5" stroke="#4A4A4A" stroke-width="2.8" stroke-linejoin="round"/>
+  <path d="M164 56 C166 42 162 32 156 38 C154 40 156 50 158 56" fill="#C8DBEA" opacity="0.4"/>
+
+  <!-- 몸 -->
+  <ellipse cx="120" cy="142" rx="62" ry="72" fill="#E8F0F5" stroke="#4A4A4A" stroke-width="2.8"/>
+
+  <!-- 배 -->
+  <ellipse cx="120" cy="158" rx="34" ry="30" fill="#FFFFFF" opacity="0.35"/>
+
+  <!-- 볼터치 -->
+  <circle cx="86" cy="146" r="16" fill="#F2D0D5" opacity="0.65"/>
+  <circle cx="154" cy="146" r="16" fill="#F2D0D5" opacity="0.65"/>
+
+  <!-- 눈썹 (순한 약간 처진) -->
+  <path d="M96 118 C103 115 110 119" fill="none" stroke="#4A4A4A" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M130 119 C137 115 144 118" fill="none" stroke="#4A4A4A" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- 눈 (크고 촉촉한!! 물결이의 핵심) -->
+  <circle cx="104" cy="134" r="8" fill="#4A4A4A"/>
+  <circle cx="136" cy="134" r="8" fill="#4A4A4A"/>
+  <!-- 큰 하이라이트 -->
+  <circle cx="107" cy="131" r="3.2" fill="white"/>
+  <circle cx="139" cy="131" r="3.2" fill="white"/>
+  <!-- 작은 하이라이트 -->
+  <circle cx="102" cy="136" r="1.5" fill="white" opacity="0.5"/>
+  <circle cx="134" cy="136" r="1.5" fill="white" opacity="0.5"/>
+
+  <!-- 코 -->
+  <path d="M117 148 L120 144.5 L123 148 Z" fill="#89B0CB"/>
+
+  <!-- 입 (살짝 벌린 순한 ω) -->
+  <path d="M112 153 C114 158 118 160 120 156 C122 160 126 158 128 153" fill="none" stroke="#4A4A4A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- 수염 -->
+  <line x1="76" y1="146" x2="58" y2="142" stroke="#4A4A4A" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="76" y1="152" x2="56" y2="154" stroke="#4A4A4A" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="76" y1="158" x2="58" y2="164" stroke="#4A4A4A" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="164" y1="146" x2="182" y2="142" stroke="#4A4A4A" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="164" y1="152" x2="184" y2="154" stroke="#4A4A4A" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="164" y1="158" x2="182" y2="164" stroke="#4A4A4A" stroke-width="1.8" stroke-linecap="round"/>
+
+  <!-- 팔 -->
+  <path d="M62 158 C50 162 44 170 46 178 C48 184 54 184 56 180" fill="#E8F0F5" stroke="#4A4A4A" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M178 158 C190 162 196 170 194 178 C192 184 186 184 184 180" fill="#E8F0F5" stroke="#4A4A4A" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- 발 -->
+  <ellipse cx="98" cy="214" rx="16" ry="9" fill="#E8F0F5" stroke="#4A4A4A" stroke-width="2.5"/>
+  <ellipse cx="142" cy="214" rx="16" ry="9" fill="#E8F0F5" stroke="#4A4A4A" stroke-width="2.5"/>
+
+  <!-- 꼬리 -->
+  <path d="M180 188 C198 182 208 168 204 152 C202 144 196 146 198 154" fill="none" stroke="#4A4A4A" stroke-width="2.8" stroke-linecap="round"/>
+</svg>

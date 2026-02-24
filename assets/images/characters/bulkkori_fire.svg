@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 270" width="240" height="270">
+  <!-- 불꼬리 (火) - 불꽃 꼬리 고양이 / 활발하고 장난꾸러기 -->
+
+  <!-- 고양이 귀 -->
+  <path d="M72 62 C68 38 72 18 84 28 C88 32 86 48 84 62" fill="#F5F0EA" stroke="#4A4A4A" stroke-width="2.8" stroke-linejoin="round"/>
+  <path d="M76 54 C74 40 78 30 84 36 C86 38 84 48 82 54" fill="#F0D4D2" opacity="0.6"/>
+  <path d="M168 62 C172 38 168 18 156 28 C152 32 154 48 156 62" fill="#F5F0EA" stroke="#4A4A4A" stroke-width="2.8" stroke-linejoin="round"/>
+  <path d="M164 54 C166 40 162 30 156 36 C154 38 156 48 158 54" fill="#F0D4D2" opacity="0.6"/>
+
+  <!-- 몸 -->
+  <ellipse cx="120" cy="140" rx="62" ry="72" fill="#F5F0EA" stroke="#4A4A4A" stroke-width="2.8"/>
+
+  <!-- 볼터치 (불꽃색 좀 더 강하게) -->
+  <circle cx="86" cy="142" r="16" fill="#F0D4D2" opacity="0.75"/>
+  <circle cx="154" cy="142" r="16" fill="#F0D4D2" opacity="0.75"/>
+
+  <!-- 눈썹 (올라간! 활발한 느낌) -->
+  <path d="M96 116 C103 111 112 116" fill="none" stroke="#4A4A4A" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M128 116 C137 111 144 116" fill="none" stroke="#4A4A4A" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- 눈 (반짝이는!) -->
+  <circle cx="104" cy="132" r="6.5" fill="#4A4A4A"/>
+  <circle cx="136" cy="132" r="6.5" fill="#4A4A4A"/>
+  <circle cx="106.5" cy="129.5" r="2.5" fill="white"/>
+  <circle cx="138.5" cy="129.5" r="2.5" fill="white"/>
+  <circle cx="102.5" cy="134" r="1" fill="white" opacity="0.5"/>
+  <circle cx="134.5" cy="134" r="1" fill="white" opacity="0.5"/>
+
+  <!-- 코 -->
+  <path d="M117 145 L120 141.5 L123 145 Z" fill="#D4918E"/>
+
+  <!-- 입 (활짝 웃는 ω) -->
+  <path d="M110 150 C113 157 118 159 120 154 C122 159 127 157 130 150" fill="none" stroke="#4A4A4A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- 수염 -->
+  <line x1="76" y1="142" x2="58" y2="136" stroke="#4A4A4A" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="76" y1="148" x2="56" y2="148" stroke="#4A4A4A" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="76" y1="154" x2="58" y2="158" stroke="#4A4A4A" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="164" y1="142" x2="182" y2="136" stroke="#4A4A4A" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="164" y1="148" x2="184" y2="148" stroke="#4A4A4A" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="164" y1="154" x2="182" y2="158" stroke="#4A4A4A" stroke-width="1.8" stroke-linecap="round"/>
+
+  <!-- 팔 -->
+  <path d="M62 155 C50 158 44 166 46 174 C48 180 54 180 56 176" fill="#F5F0EA" stroke="#4A4A4A" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M178 155 C190 158 196 166 194 174 C192 180 186 180 184 176" fill="#F5F0EA" stroke="#4A4A4A" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- 발 -->
+  <ellipse cx="98" cy="212" rx="16" ry="9" fill="#F5F0EA" stroke="#4A4A4A" stroke-width="2.5"/>
+  <ellipse cx="142" cy="212" rx="16" ry="9" fill="#F5F0EA" stroke="#4A4A4A" stroke-width="2.5"/>
+
+  <!-- 꼬리 (불꽃 꼬리!) -->
+  <path d="M180 185 C200 178 215 164 210 148" fill="none" stroke="#4A4A4A" stroke-width="2.8" stroke-linecap="round"/>
+  <!-- 불꽃 이펙트 on 꼬리 끝 -->
+  <path d="M210 148 C214 138 208 130 206 136 C210 128 204 122 202 130 C200 124 196 128 200 136 C198 132 194 136 198 142 C196 138 194 142 200 148 C204 152 210 150 210 148" fill="#D4918E" opacity="0.7" stroke="none"/>
+  <path d="M208 146 C210 140 206 136 205 140 C207 134 204 130 203 136 C202 132 200 134 202 140 C206 146 208 146 208 146" fill="#F0D4D2" stroke="none"/>
+</svg>
