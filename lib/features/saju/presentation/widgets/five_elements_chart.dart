@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/tokens/saju_spacing.dart';
 import '../../domain/entities/saju_entity.dart';
 
 /// FiveElementsChart -- 오행 분포 수평 바 차트
@@ -75,7 +76,7 @@ class _FiveElementsChartState extends State<FiveElementsChart>
           mainAxisSize: MainAxisSize.min,
           children: entries.map((entry) {
             return Padding(
-              padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingXs),
+              padding: const EdgeInsets.symmetric(vertical: SajuSpacing.space4),
               child: _buildBar(context, entry, total, maxCount),
             );
           }).toList(),
@@ -123,7 +124,7 @@ class _FiveElementsChartState extends State<FiveElementsChart>
           ),
         ),
 
-        const SizedBox(width: AppTheme.spacingSm),
+        const SizedBox(width: SajuSpacing.space8),
 
         // 바 영역
         Expanded(
@@ -155,7 +156,7 @@ class _FiveElementsChartState extends State<FiveElementsChart>
           ),
         ),
 
-        const SizedBox(width: AppTheme.spacingSm),
+        const SizedBox(width: SajuSpacing.space8),
 
         // 수치
         SizedBox(

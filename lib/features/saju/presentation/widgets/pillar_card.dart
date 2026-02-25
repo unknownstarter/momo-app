@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/tokens/saju_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../domain/entities/saju_entity.dart';
 
@@ -58,8 +59,8 @@ class PillarCard extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppTheme.spacingSm,
-        vertical: AppTheme.spacingMd,
+        horizontal: SajuSpacing.space8,
+        vertical: SajuSpacing.space16,
       ),
       decoration: BoxDecoration(
         color: elementPastel.withValues(alpha: 0.4),
@@ -88,7 +89,7 @@ class PillarCard extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: AppTheme.spacingSm),
+          const SizedBox(height: SajuSpacing.space8),
 
           // 천간 한자 (큰 글씨)
           Text(
@@ -116,7 +117,7 @@ class PillarCard extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: AppTheme.spacingXs),
+          const SizedBox(height: SajuSpacing.space4),
 
           // 한글 표기 (예: "갑자")
           Text(
@@ -129,7 +130,7 @@ class PillarCard extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: AppTheme.spacingSm),
+          const SizedBox(height: SajuSpacing.space8),
 
           // 오행 뱃지
           if (hasPillar && stemElement != null)

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/tokens/saju_spacing.dart';
 import '../../../../core/utils/date_formatter.dart';
 import '../../../../core/widgets/saju_avatar.dart';
 import '../../../../core/widgets/saju_enums.dart';
@@ -149,7 +150,7 @@ class _TextBubble extends StatelessWidget {
             : (showAvatar ? 0 : ChatMessageBubble._avatarIndent),
         right: isMine ? 0 : ChatMessageBubble._bubbleSidePadding,
         bottom: showTime
-            ? AppTheme.spacingSm
+            ? SajuSpacing.space8
             : ChatMessageBubble._groupedMessageGap,
       ),
       child: Row(
@@ -164,7 +165,7 @@ class _TextBubble extends StatelessWidget {
               size: SajuSize.sm,
               elementColor: SajuColor.fromElement(partnerElement),
             ),
-            const SizedBox(width: AppTheme.spacingSm),
+            const SizedBox(width: SajuSpacing.space8),
           ],
 
           // 시간 (내 메시지 좌측)
@@ -239,7 +240,7 @@ class _ImageBubble extends StatelessWidget {
             : ChatMessageBubble._avatarIndent,
         right: isMine ? 0 : ChatMessageBubble._bubbleSidePadding,
         bottom: showTime
-            ? AppTheme.spacingSm
+            ? SajuSpacing.space8
             : ChatMessageBubble._groupedMessageGap,
       ),
       child: Row(
@@ -301,7 +302,7 @@ class _DeletedBubble extends StatelessWidget {
             ? ChatMessageBubble._bubbleSidePadding
             : ChatMessageBubble._avatarIndent,
         right: isMine ? 0 : ChatMessageBubble._bubbleSidePadding,
-        bottom: AppTheme.spacingSm,
+        bottom: SajuSpacing.space8,
       ),
       child: Row(
         mainAxisAlignment:
@@ -349,7 +350,7 @@ class _TimeLabel extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingXs),
+      padding: const EdgeInsets.symmetric(horizontal: SajuSpacing.space4),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

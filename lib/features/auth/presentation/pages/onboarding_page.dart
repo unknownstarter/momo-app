@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/tokens/saju_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../providers/onboarding_provider.dart';
 import 'onboarding_form_page.dart';
@@ -138,7 +139,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage>
 
             // --- 페이지 인디케이터 ---
             Padding(
-              padding: const EdgeInsets.only(bottom: AppTheme.spacingLg),
+              padding: const EdgeInsets.only(bottom: SajuSpacing.space24),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(
@@ -151,7 +152,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage>
             // --- CTA 버튼 ---
             Padding(
               padding: const EdgeInsets.symmetric(
-                horizontal: AppTheme.spacingLg,
+                horizontal: SajuSpacing.space24,
               ),
               child: Column(
                 children: [
@@ -172,7 +173,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage>
                     color: _introSlides[_currentIntroPage].elementColor,
                     size: SajuSize.xl,
                   ),
-                  const SizedBox(height: AppTheme.spacingSm),
+                  const SizedBox(height: SajuSpacing.space8),
                   SajuButton(
                     label: '건너뛰기',
                     onPressed: _startForm,
@@ -183,7 +184,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage>
                 ],
               ),
             ),
-            const SizedBox(height: AppTheme.spacingXl),
+            const SizedBox(height: SajuSpacing.space32),
           ],
         ),
       ),
@@ -196,7 +197,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage>
     final pastel = slide.elementColor.resolvePastel(context);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingXl),
+      padding: const EdgeInsets.symmetric(horizontal: SajuSpacing.space32),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -231,7 +232,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage>
               ),
             ),
           ),
-          const SizedBox(height: AppTheme.spacingSm),
+          const SizedBox(height: SajuSpacing.space8),
           // 캐릭터 이름 태그
           SajuChip(
             label: slide.characterName,
@@ -239,7 +240,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage>
             isSelected: true,
             size: SajuSize.sm,
           ),
-          const SizedBox(height: AppTheme.spacingXl),
+          const SizedBox(height: SajuSpacing.space32),
           // 타이틀
           Text(
             slide.title,
@@ -248,7 +249,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage>
                 ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: AppTheme.spacingMd),
+          const SizedBox(height: SajuSpacing.space16),
           // 서브타이틀
           Text(
             slide.subtitle,

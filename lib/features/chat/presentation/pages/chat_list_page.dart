@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
-import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/tokens/saju_spacing.dart';
 import '../../../../core/utils/date_formatter.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../domain/entities/chat_room_entity.dart';
@@ -43,7 +43,7 @@ class ChatListPage extends ConsumerWidget {
             );
           }
           return ListView.separated(
-            padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingSm),
+            padding: const EdgeInsets.symmetric(vertical: SajuSpacing.space8),
             itemCount: rooms.length,
             separatorBuilder: (context, index) => Divider(
               height: 1,
@@ -77,8 +77,8 @@ class _ChatRoomTile extends StatelessWidget {
       onTap: () => context.push(RoutePaths.chatRoomPath(room.id)),
       child: Padding(
         padding: const EdgeInsets.symmetric(
-          horizontal: AppTheme.spacingMd,
-          vertical: AppTheme.spacingMd * 0.75,
+          horizontal: SajuSpacing.space16,
+          vertical: SajuSpacing.space16 * 0.75,
         ),
         child: Row(
           children: [
@@ -89,7 +89,7 @@ class _ChatRoomTile extends StatelessWidget {
               elementColor: SajuColor.fromElement(room.partnerElementType),
             ),
 
-            const SizedBox(width: AppTheme.spacingMd * 0.75),
+            const SizedBox(width: SajuSpacing.space16 * 0.75),
 
             // 이름 + 마지막 메시지
             Expanded(
@@ -117,7 +117,7 @@ class _ChatRoomTile extends StatelessWidget {
                     ],
                   ),
 
-                  const SizedBox(height: AppTheme.spacingXs),
+                  const SizedBox(height: SajuSpacing.space4),
 
                   // 둘째 줄: 마지막 메시지 미리보기
                   Text(
@@ -136,7 +136,7 @@ class _ChatRoomTile extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(width: AppTheme.spacingSm),
+            const SizedBox(width: SajuSpacing.space8),
 
             // 시간 + 안읽음 뱃지
             Column(
@@ -153,7 +153,7 @@ class _ChatRoomTile extends StatelessWidget {
                   ),
                 ),
                 if (room.hasUnread) ...[
-                  const SizedBox(height: AppTheme.spacingXs),
+                  const SizedBox(height: SajuSpacing.space4),
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 6,

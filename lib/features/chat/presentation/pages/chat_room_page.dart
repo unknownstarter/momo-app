@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/tokens/saju_spacing.dart';
 import '../../../../core/utils/date_formatter.dart';
 import '../../../../core/widgets/saju_avatar.dart';
 import '../../../../core/widgets/saju_badge.dart';
@@ -163,7 +164,7 @@ class _ChatRoomPageState extends ConsumerState<ChatRoomPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(height: AppTheme.spacingSm),
+            const SizedBox(height: SajuSpacing.space8),
             Container(
               width: 36,
               height: 4,
@@ -172,7 +173,7 @@ class _ChatRoomPageState extends ConsumerState<ChatRoomPage> {
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            const SizedBox(height: AppTheme.spacingMd),
+            const SizedBox(height: SajuSpacing.space16),
             ListTile(
               leading: const Icon(Icons.block_outlined),
               title: const Text('차단'),
@@ -193,7 +194,7 @@ class _ChatRoomPageState extends ConsumerState<ChatRoomPage> {
                 // TODO: 신고 로직
               },
             ),
-            const SizedBox(height: AppTheme.spacingSm),
+            const SizedBox(height: SajuSpacing.space8),
           ],
         ),
       ),
@@ -244,8 +245,8 @@ class _MessageList extends StatelessWidget {
     return ListView.builder(
       controller: scrollController,
       padding: const EdgeInsets.symmetric(
-        horizontal: AppTheme.spacingMd * 0.75,
-        vertical: AppTheme.spacingSm,
+        horizontal: SajuSpacing.space16 * 0.75,
+        vertical: SajuSpacing.space8,
       ),
       itemCount: messages.length,
       itemBuilder: (context, index) {

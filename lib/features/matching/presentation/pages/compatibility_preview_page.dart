@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/domain/entities/compatibility_entity.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/theme_extensions.dart';
 import '../../../../core/widgets/widgets.dart';
 // NOTE: saju_provider 참조는 현재 유저의 오행 캐릭터 정보를 읽기 위한
 // presentation-level 크로스 피처 의존성입니다. 사주 분석 결과를
@@ -38,9 +39,9 @@ class CompatibilityPreviewPage extends ConsumerWidget {
           final textTheme = Theme.of(context).textTheme;
 
           return Container(
-            decoration: const BoxDecoration(
-              color: AppTheme.inkBlack,
-              borderRadius: BorderRadius.vertical(
+            decoration: BoxDecoration(
+              color: context.sajuColors.bgPrimary,
+              borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(20),
               ),
             ),
@@ -210,7 +211,7 @@ class CompatibilityPreviewPage extends ConsumerWidget {
             },
             style: FilledButton.styleFrom(
               backgroundColor: AppTheme.mysticGlow,
-              foregroundColor: AppTheme.inkBlack,
+              foregroundColor: context.sajuColors.bgPrimary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppTheme.radiusMd),
               ),

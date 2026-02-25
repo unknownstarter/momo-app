@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/tokens/saju_spacing.dart';
 
 /// 채팅 입력 바 — Sendbird 기본형 스타일
 ///
@@ -68,7 +69,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.all(AppTheme.spacingSm),
+          padding: const EdgeInsets.all(SajuSpacing.space8),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -80,11 +81,11 @@ class _ChatInputBarState extends State<ChatInputBar> {
                   color: colorScheme.outline,
                   size: 24,
                 ),
-                padding: const EdgeInsets.all(AppTheme.spacingSm),
+                padding: const EdgeInsets.all(SajuSpacing.space8),
                 constraints: const BoxConstraints(),
               ),
 
-              const SizedBox(width: AppTheme.spacingXs),
+              const SizedBox(width: SajuSpacing.space4),
 
               // 텍스트 입력
               Expanded(
@@ -109,7 +110,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
                         color: colorScheme.outline.withValues(alpha: 0.6),
                       ),
                       contentPadding: const EdgeInsets.symmetric(
-                        horizontal: AppTheme.spacingMd,
+                        horizontal: SajuSpacing.space16,
                         vertical: 10,
                       ),
                       border: InputBorder.none,
@@ -119,7 +120,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
                 ),
               ),
 
-              const SizedBox(width: AppTheme.spacingXs),
+              const SizedBox(width: SajuSpacing.space4),
 
               // 전송 버튼
               AnimatedOpacity(

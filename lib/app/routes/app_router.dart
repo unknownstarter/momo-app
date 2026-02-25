@@ -7,6 +7,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/network/supabase_client.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/theme_extensions.dart';
 import '../providers/notification_badge_provider.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
@@ -348,16 +349,15 @@ class _MainScaffold extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final chatBadge = ref.watch(chatBadgeCountProvider);
     final matchingBadge = ref.watch(matchingBadgeCountProvider);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: isDark ? AppTheme.inkBlack : Colors.white,
+          color: context.sajuColors.bgPrimary,
           border: Border(
             top: BorderSide(
-              color: isDark ? AppTheme.dividerDark : AppTheme.dividerLight,
+              color: context.sajuColors.borderDefault,
               width: 0.5,
             ),
           ),
@@ -435,9 +435,8 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final activeColor = isDark ? AppTheme.textLight : AppTheme.textDark;
-    final inactiveColor = isDark ? AppTheme.textSecondaryLight : AppTheme.textSecondaryDark;
+    final activeColor = context.sajuColors.textPrimary;
+    final inactiveColor = context.sajuColors.textSecondary;
 
     return Expanded(
       child: Semantics(
@@ -464,7 +463,7 @@ class _NavItem extends StatelessWidget {
                         width: 56,
                         height: 28,
                         decoration: BoxDecoration(
-                          color: (isDark ? AppTheme.mysticGlow : AppTheme.waterColor)
+                          color: (context.isDarkMode ? AppTheme.mysticGlow : AppTheme.waterColor)
                               .withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(14),
                         ),
@@ -530,9 +529,7 @@ class _Badge extends StatelessWidget {
           color: AppTheme.statusError,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? AppTheme.inkBlack
-                : Colors.white,
+            color: context.sajuColors.bgPrimary,
             width: 1.5,
           ),
         ),
@@ -599,7 +596,7 @@ class _SplashPageState extends ConsumerState<_SplashPage> {
     });
 
     return Scaffold(
-      backgroundColor: AppTheme.inkBlack,
+      backgroundColor: context.sajuColors.bgPrimary,
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,

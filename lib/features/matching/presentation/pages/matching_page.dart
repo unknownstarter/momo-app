@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/tokens/saju_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../domain/entities/match_profile.dart';
 import '../providers/matching_provider.dart';
@@ -163,7 +164,7 @@ class _MatchingPageState extends ConsumerState<MatchingPage> {
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: 20,
-        vertical: AppTheme.spacingSm,
+        vertical: SajuSpacing.space8,
       ),
       decoration: BoxDecoration(
         border: Border(

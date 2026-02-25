@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/tokens/saju_spacing.dart';
 import '../../../../core/utils/date_formatter.dart';
 
 /// 시스템 메시지 — 매칭 알림, 날짜 구분 등
@@ -21,8 +22,8 @@ class ChatSystemMessage extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(
-        vertical: AppTheme.spacingMd * 0.75,
-        horizontal: AppTheme.spacingXl,
+        vertical: SajuSpacing.space16 * 0.75,
+        horizontal: SajuSpacing.space32,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -30,8 +31,8 @@ class ChatSystemMessage extends StatelessWidget {
           Flexible(
             child: Container(
               padding: const EdgeInsets.symmetric(
-                horizontal: AppTheme.spacingMd,
-                vertical: AppTheme.spacingSm,
+                horizontal: SajuSpacing.space16,
+                vertical: SajuSpacing.space8,
               ),
               decoration: BoxDecoration(
                 color: colorScheme.onSurface.withValues(alpha: 0.05),
