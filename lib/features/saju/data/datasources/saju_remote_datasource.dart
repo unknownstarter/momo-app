@@ -137,4 +137,46 @@ class SajuRemoteDatasource {
       Map<String, dynamic>.from(response as Map),
     );
   }
+
+  /// 사주 분석 결과를 DB에 저장 (upsert)
+  Future<String> saveSajuProfile({
+    required String userId,
+    required SajuProfileModel sajuModel,
+    required SajuInsightModel insightModel,
+  }) async {
+    final data = <String, dynamic>{
+      'user_id': userId,
+      'year_pillar': sajuModel.yearPillar.toJson(),
+      'month_pillar': sajuModel.monthPillar.toJson(),
+      'day_pillar': sajuModel.dayPillar.toJson(),
+      'hour_pillar': sajuModel.hourPillar?.toJson(),
+      'five_elements': sajuModel.fiveElements.toJson(),
+      'dominant_element': sajuModel.dominantElement ?? 'wood',
+      'personality_traits': insightModel.personalityTraits,
+      'ai_interpretation': insightModel.interpretation,
+      'is_lunar_calendar': sajuModel.isLunar,
+      'calculated_at': DateTime.now().toUtc().toIso8601String(),
+    };
+
+    final row = await _helper.upsert(_sajuProfilesTable, data);
+    return row['id'] as String;
+  }
+
+  /// 사주 프로필을 유저 프로필에 연결
+  Future<void> linkSajuProfileToUser({
+    required String userId,
+    required String sajuProfileId,
+    required String dominantElement,
+    required String characterType,
+  }) async {
+    await _helper.update(
+      SupabaseTables.profiles,
+      userId,
+      {
+        'saju_profile_id': sajuProfileId,
+        'dominant_element': dominantElement,
+        'character_type': characterType,
+      },
+    );
+  }
 }

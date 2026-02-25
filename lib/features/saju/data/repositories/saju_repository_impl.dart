@@ -13,6 +13,15 @@ import '../datasources/saju_remote_datasource.dart';
 // 사주 Repository 구현체
 // =============================================================================
 
+/// 오행 → 캐릭터 타입 매핑 (DB 저장용)
+const _elementToCharacter = <String, String>{
+  'wood': 'namuri',
+  'fire': 'bulkkori',
+  'earth': 'heuksuni',
+  'metal': 'soedongi',
+  'water': 'mulgyeori',
+};
+
 /// 사주 분석 Repository 구현체
 ///
 /// 두 단계의 Edge Function 호출을 체이닝합니다:
@@ -40,20 +49,32 @@ class SajuRepositoryImpl implements SajuRepository {
       isLunar: isLunar,
     );
 
-    // Step 2: AI 인사이트 생성 (사주 계산 결과를 입력으로)
+    // Step 2: AI 인사이트 생성
     final insightModel = await _datasource.generateInsight(
       sajuResult: sajuModel.toJson(),
       userName: userName,
     );
 
-    // Step 3: 두 결과를 조합하여 SajuProfile 엔티티 생성
-    //
-    // ID는 "userId_타임스탬프" 형식으로 생성합니다.
-    // 향후 Supabase에서 UUID를 반환하도록 변경할 수 있습니다.
-    final profileId = '${userId}_${DateTime.now().millisecondsSinceEpoch}';
+    // Step 3: DB에 사주 프로필 저장 (upsert)
+    final savedId = await _datasource.saveSajuProfile(
+      userId: userId,
+      sajuModel: sajuModel,
+      insightModel: insightModel,
+    );
 
+    // Step 4: 프로필에 사주 연결
+    final element = sajuModel.dominantElement ?? 'wood';
+    final character = _elementToCharacter[element] ?? 'namuri';
+    await _datasource.linkSajuProfileToUser(
+      userId: userId,
+      sajuProfileId: savedId,
+      dominantElement: element,
+      characterType: character,
+    );
+
+    // Step 5: 실제 DB ID로 엔티티 생성
     return sajuModel.toEntity(
-      id: profileId,
+      id: savedId,
       userId: userId,
       personalityTraits: insightModel.personalityTraits,
       aiInterpretation: insightModel.interpretation,
@@ -64,5 +85,15 @@ class SajuRepositoryImpl implements SajuRepository {
   Future<Map<String, dynamic>?> getSajuForCompatibility(String userId) async {
     final model = await _datasource.getSajuProfileByUserId(userId);
     return model?.toJson();
+  }
+
+  @override
+  Future<String> saveSajuProfile({
+    required String userId,
+    required SajuProfile sajuProfile,
+  }) async {
+    throw UnimplementedError(
+      'saveSajuProfile은 analyzeSaju 내부에서 자동으로 호출됩니다.',
+    );
   }
 }

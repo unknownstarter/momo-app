@@ -53,4 +53,10 @@ abstract class SajuRepository {
   /// [userId]: profiles.id (현재 사용자 또는 상대방)
   /// 반환: 해당 사용자의 saju_profiles가 있으면 Edge Function 요청용 맵(mySaju/partnerSaju 한 명분), 없으면 null.
   Future<Map<String, dynamic>?> getSajuForCompatibility(String userId);
+
+  /// 사주 분석 결과를 DB에 저장하고 프로필에 연결
+  Future<String> saveSajuProfile({
+    required String userId,
+    required SajuProfile sajuProfile,
+  });
 }
