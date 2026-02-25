@@ -25,7 +25,7 @@
 | # | Task | 담당 관점 | 산출물/참고 | 상태 |
 |---|------|-----------|-------------|------|
 | 1 | **daily_matches 실데이터** | Backend + Data | cron 또는 API로 오늘의 추천 생성, `getDailyRecommendations` Mock 제거 후 Supabase 연동 | ⬜ |
-| 2 | **프로필·사주 저장 연동** | Backend + Flutter | 온보딩/사주 분석 완료 시 `saju_profiles` 저장, `profiles.saju_profile_id` 갱신 | ⬜ |
+| 2 | **프로필·사주 저장 연동** | Backend + Flutter | 온보딩/사주 분석 완료 시 `saju_profiles` 저장, `profiles.saju_profile_id` 갱신 | ✅ |
 | 3 | **궁합 프리뷰 실사용 검증** | QA | 실제 유저 2명 사주 저장 후 궁합 프리뷰 호출 → 점수·강점/도전 문구 확인 | ⬜ |
 
 ### 단기 (Medium) — 궁합·매칭 고도화 (Phase 2)
