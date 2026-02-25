@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../theme/app_theme.dart';
+import '../theme/tokens/saju_spacing.dart';
 import 'saju_enums.dart';
 
 /// SajuInput — 사주 디자인 시스템 텍스트 입력 컴포넌트
@@ -102,7 +102,7 @@ class SajuInput extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(height: AppTheme.spacingSm),
+        SajuSpacing.gap8,
         // 입력 필드
         TextField(
           controller: controller,

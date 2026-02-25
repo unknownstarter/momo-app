@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../constants/app_constants.dart';
-import '../theme/app_theme.dart';
+import '../theme/tokens/saju_spacing.dart';
 
 /// 에러 상태 공통 위젯 — 캐릭터(당황/사과) + 메시지 + 다시 시도 CTA
 ///
@@ -27,7 +27,7 @@ class SajuErrorState extends StatelessWidget {
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppTheme.spacingXl),
+        padding: const EdgeInsets.all(SajuSpacing.space32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -38,7 +38,7 @@ class SajuErrorState extends StatelessWidget {
               fit: BoxFit.contain,
               errorBuilder: (_, __, ___) => const SizedBox(height: 72, width: 72),
             ),
-            const SizedBox(height: AppTheme.spacingMd),
+            SajuSpacing.gap16,
             Text(
               message,
               textAlign: TextAlign.center,
@@ -46,7 +46,7 @@ class SajuErrorState extends StatelessWidget {
                 color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
               ),
             ),
-            const SizedBox(height: AppTheme.spacingLg),
+            SajuSpacing.gap24,
             FilledButton(
               onPressed: onRetry,
               child: Text(retryLabel),

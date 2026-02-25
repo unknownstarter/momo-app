@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../constants/app_constants.dart';
 import '../theme/app_theme.dart';
+import '../theme/tokens/saju_spacing.dart';
 
 /// 빈 상태 공통 위젯 — 캐릭터 + 메시지 + 선택적 CTA
 ///
@@ -33,7 +34,7 @@ class SajuEmptyState extends StatelessWidget {
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppTheme.spacingXl),
+        padding: const EdgeInsets.all(SajuSpacing.space32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -43,7 +44,7 @@ class SajuEmptyState extends StatelessWidget {
                 size: 64,
                 color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
               ),
-              const SizedBox(height: AppTheme.spacingMd),
+              SajuSpacing.gap16,
             ] else
               Image.asset(
                 characterAssetPath,
@@ -52,7 +53,7 @@ class SajuEmptyState extends StatelessWidget {
                 fit: BoxFit.contain,
                 errorBuilder: (_, __, ___) => const SizedBox(height: 72, width: 72),
               ),
-            const SizedBox(height: AppTheme.spacingMd),
+            SajuSpacing.gap16,
             Text(
               message,
               textAlign: TextAlign.center,
@@ -62,7 +63,7 @@ class SajuEmptyState extends StatelessWidget {
               ),
             ),
             if (subtitle != null) ...[
-              const SizedBox(height: AppTheme.spacingSm),
+              SajuSpacing.gap8,
               Text(
                 subtitle!,
                 textAlign: TextAlign.center,
@@ -73,7 +74,7 @@ class SajuEmptyState extends StatelessWidget {
               ),
             ],
             if (actionLabel != null && onAction != null) ...[
-              const SizedBox(height: AppTheme.spacingLg),
+              SajuSpacing.gap24,
               FilledButton(
                 onPressed: onAction,
                 child: Text(actionLabel!),
