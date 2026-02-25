@@ -184,43 +184,9 @@ class CompatibilityPreviewPage extends ConsumerWidget {
     TextTheme textTheme,
     Compatibility compat,
   ) {
-    return Column(
-      children: [
-        // 게이지
-        CompatibilityGauge(
-          score: compat.score,
-          grade: compat.grade,
-          size: 140,
-          strokeWidth: 8,
-        ),
-        const SizedBox(height: 8),
-        Text(
-          compat.grade.description,
-          style: textTheme.bodySmall?.copyWith(
-            color: Colors.white.withValues(alpha: 0.45),
-          ),
-        ),
-
-        const SizedBox(height: 32),
-
-        // 강점
-        if (compat.strengths.isNotEmpty) ...[
-          _SectionList(
-            title: '잘 맞는 점',
-            items: compat.strengths,
-            accentColor: AppTheme.woodColor,
-          ),
-          const SizedBox(height: 24),
-        ],
-
-        // 도전
-        if (compat.challenges.isNotEmpty)
-          _SectionList(
-            title: '노력이 필요한 점',
-            items: compat.challenges,
-            accentColor: AppTheme.earthColor,
-          ),
-      ],
+    return _CompatibilityResult(
+      compat: compat,
+      textTheme: textTheme,
     );
   }
 
@@ -267,6 +233,134 @@ class CompatibilityPreviewPage extends ConsumerWidget {
             ),
           ),
         ),
+      ],
+    );
+  }
+}
+
+// =============================================================================
+// 궁합 결과 — 와우 모먼트 연출
+// =============================================================================
+
+class _CompatibilityResult extends StatefulWidget {
+  const _CompatibilityResult({
+    required this.compat,
+    required this.textTheme,
+  });
+
+  final Compatibility compat;
+  final TextTheme textTheme;
+
+  @override
+  State<_CompatibilityResult> createState() => _CompatibilityResultState();
+}
+
+class _CompatibilityResultState extends State<_CompatibilityResult>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _fadeController;
+  late Animation<double> _fadeAnimation;
+
+  bool get _isDestined => widget.compat.score >= 90;
+
+  @override
+  void initState() {
+    super.initState();
+    _fadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeOut,
+    );
+
+    // 게이지 애니메이션(1800ms) 완료 후 300ms 뒤에 등급 텍스트 페이드인
+    Future.delayed(const Duration(milliseconds: 2100), () {
+      if (mounted) _fadeController.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final grade = widget.compat.grade;
+    final scoreColor = AppTheme.compatibilityColor(widget.compat.score);
+
+    return Column(
+      children: [
+        // --- 게이지 (천생연분이면 글로우 래핑) ---
+        if (_isDestined)
+          Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.mysticGlow.withValues(alpha: 0.25),
+                  blurRadius: 32,
+                  spreadRadius: 4,
+                ),
+                BoxShadow(
+                  color: AppTheme.mysticGlow.withValues(alpha: 0.1),
+                  blurRadius: 64,
+                  spreadRadius: 8,
+                ),
+              ],
+            ),
+            child: CompatibilityGauge(
+              score: widget.compat.score,
+              grade: grade,
+              size: 140,
+              strokeWidth: 8,
+            ),
+          )
+        else
+          CompatibilityGauge(
+            score: widget.compat.score,
+            grade: grade,
+            size: 140,
+            strokeWidth: 8,
+          ),
+
+        const SizedBox(height: 20),
+
+        // --- 등급 설명 (딜레이 페이드인) ---
+        FadeTransition(
+          opacity: _fadeAnimation,
+          child: Text(
+            grade.description,
+            style: widget.textTheme.titleMedium?.copyWith(
+              color: _isDestined
+                  ? AppTheme.mysticGlow
+                  : scoreColor.withValues(alpha: 0.9),
+              fontWeight: FontWeight.w600,
+              height: 1.4,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+
+        const SizedBox(height: 32),
+
+        // --- 강점/도전 섹션 ---
+        if (widget.compat.strengths.isNotEmpty) ...[
+          _SectionList(
+            title: '이런 점이 잘 맞아요',
+            items: widget.compat.strengths,
+            accentColor: scoreColor,
+          ),
+          const SizedBox(height: 20),
+        ],
+        if (widget.compat.challenges.isNotEmpty)
+          _SectionList(
+            title: '함께 노력하면 좋은 점',
+            items: widget.compat.challenges,
+            accentColor: Colors.white.withValues(alpha: 0.3),
+          ),
       ],
     );
   }

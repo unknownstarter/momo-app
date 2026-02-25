@@ -158,7 +158,11 @@ class SajuRemoteDatasource {
       'calculated_at': DateTime.now().toUtc().toIso8601String(),
     };
 
-    final row = await _helper.upsert(_sajuProfilesTable, data);
+    final row = await _helper.upsert(
+      _sajuProfilesTable,
+      data,
+      onConflict: 'user_id',
+    );
     return row['id'] as String;
   }
 

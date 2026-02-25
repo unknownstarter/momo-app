@@ -144,11 +144,11 @@ class Compatibility {
 ///
 /// 마케팅적으로 매력적인 표현을 사용합니다.
 enum CompatibilityGrade {
-  destined('천생연분', '운명이 이끈 만남이에요', 90),
-  excellent('최고의 인연', '아주 잘 맞는 사이예요', 75),
+  destined('천생연분', '하늘이 맺어준 인연이에요', 90),
+  excellent('최고의 인연', '별이 겹치는 특별한 사이예요', 75),
   good('좋은 인연', '함께 성장할 수 있는 관계예요', 60),
-  average('보통 인연', '노력하면 좋은 관계가 될 수 있어요', 40),
-  challenging('도전적 인연', '서로 다른 매력이 있는 관계예요', 0);
+  average('보통 인연', '알아갈수록 깊어지는 인연이에요', 40),
+  challenging('도전적 인연', '정반대이기에 끌리는 특별한 관계예요', 0);
 
   const CompatibilityGrade(this.label, this.description, this.minScore);
 

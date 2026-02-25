@@ -152,12 +152,17 @@ class SupabaseHelper {
   /// 레코드 삽입 (upsert)
   ///
   /// 이미 존재하면 업데이트, 없으면 삽입합니다.
+  /// [onConflict]를 지정하면 해당 컬럼 기준으로 충돌을 감지합니다.
   Future<Map<String, dynamic>> upsert(
     String table,
-    Map<String, dynamic> data,
-  ) async {
-    final response =
-        await _client.from(table).upsert(data).select().single();
+    Map<String, dynamic> data, {
+    String? onConflict,
+  }) async {
+    final response = await _client
+        .from(table)
+        .upsert(data, onConflict: onConflict)
+        .select()
+        .single();
     return response;
   }
 

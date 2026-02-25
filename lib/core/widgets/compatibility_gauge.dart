@@ -26,7 +26,7 @@ class CompatibilityGauge extends StatefulWidget {
     this.size = 120,
     this.strokeWidth = 8,
     this.animate = true,
-    this.duration = const Duration(milliseconds: 1000),
+    this.duration = const Duration(milliseconds: 1800),
   });
 
   /// 궁합 점수 (0~100)

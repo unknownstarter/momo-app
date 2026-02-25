@@ -199,6 +199,12 @@ class MatchingRepositoryImpl implements MatchingRepository {
 
   @override
   Future<Compatibility> getCompatibilityPreview(String partnerId) async {
+    // Mock 파트너인 경우 로컬 Mock 데이터로 처리
+    // (daily_matches 실연동 전까지 추천 프로필이 Mock이므로)
+    if (partnerId.startsWith('mock-user-')) {
+      return _getMockCompatibility(partnerId);
+    }
+
     final myProfile = await _authRepository.getCurrentUserProfile();
     if (myProfile == null) {
       throw Exception(MatchingFailure.sajuRequired().message);
@@ -238,6 +244,40 @@ class MatchingRepositoryImpl implements MatchingRepository {
       advice: map['advice'] as String?,
       aiStory: map['aiStory'] as String?,
       calculatedAt: calculatedAt,
+    );
+  }
+
+  /// Mock 파트너용 궁합 데이터 (daily_matches 실연동 전까지 사용)
+  Compatibility _getMockCompatibility(String partnerId) {
+    final profile = _mockProfiles.firstWhere(
+      (p) => p.userId == partnerId,
+      orElse: () => _mockProfiles.first,
+    );
+    final strengths = _mockStrengths[partnerId] ??
+        _mockStrengths[_mockProfiles.first.userId]!;
+    final challenges = _mockChallenges[partnerId] ??
+        _mockChallenges[_mockProfiles.first.userId]!;
+
+    return Compatibility(
+      id: 'compat-$partnerId',
+      userId: 'current-user',
+      partnerId: partnerId,
+      score: profile.compatibilityScore,
+      fiveElementScore: (profile.compatibilityScore * 0.9).round(),
+      dayPillarScore:
+          (profile.compatibilityScore * 1.1).round().clamp(0, 100),
+      overallAnalysis:
+          '${profile.name}님과의 사주 궁합을 분석했어요. '
+          '오행과 일주의 조화를 바탕으로 두 분의 인연을 읽어보았답니다.',
+      strengths: strengths,
+      challenges: challenges,
+      advice:
+          '서로의 다른 점을 인정하고 존중하면, 더없이 좋은 관계로 발전할 수 있어요. '
+          '가끔은 상대의 입장에서 생각해보는 시간을 가져보세요.',
+      aiStory:
+          '운명의 실이 두 사람을 이어주고 있어요. '
+          '${profile.name}님의 기운이 당신의 사주와 아름다운 조화를 만들어내고 있답니다.',
+      calculatedAt: DateTime.now(),
     );
   }
 
