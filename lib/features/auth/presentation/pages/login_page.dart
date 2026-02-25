@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/tokens/saju_spacing.dart';
 import '../providers/auth_provider.dart';
 
 /// 로그인 페이지 — 신비 모드(다크) 디자인
@@ -102,8 +103,8 @@ class _LoginPageState extends ConsumerState<LoginPage>
             borderRadius: BorderRadius.circular(AppTheme.radiusMd),
           ),
           margin: const EdgeInsets.symmetric(
-            horizontal: AppTheme.spacingMd,
-            vertical: AppTheme.spacingSm,
+            horizontal: SajuSpacing.space16,
+            vertical: SajuSpacing.space8,
           ),
         ),
       );
@@ -152,9 +153,9 @@ class _LoginPageState extends ConsumerState<LoginPage>
             opacity: _fadeAnimation,
             child: Padding(
               padding: EdgeInsets.only(
-                left: AppTheme.spacingLg,
-                right: AppTheme.spacingLg,
-                bottom: bottomPadding > 0 ? 0 : AppTheme.spacingMd,
+                left: SajuSpacing.space24,
+                right: SajuSpacing.space24,
+                bottom: bottomPadding > 0 ? 0 : SajuSpacing.space16,
               ),
               child: Column(
                 children: [
@@ -172,12 +173,12 @@ class _LoginPageState extends ConsumerState<LoginPage>
                   // === 하단 로그인 버튼 영역 ===
                   _buildLoginSection(),
 
-                  const SizedBox(height: AppTheme.spacingMd),
+                  SajuSpacing.gap16,
 
                   // === 이용약관 안내 ===
                   _buildTermsNotice(),
 
-                  const SizedBox(height: AppTheme.spacingSm),
+                  SajuSpacing.gap8,
                 ],
               ),
             ),
@@ -213,7 +214,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
           ),
         ),
 
-        const SizedBox(height: AppTheme.spacingSm),
+        SajuSpacing.gap8,
 
         // 부제
         Text(
@@ -280,7 +281,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
             ),
           ),
 
-          const SizedBox(height: AppTheme.spacingMd),
+          SajuSpacing.gap16,
 
           // 은은한 장식선
           Container(
@@ -312,7 +313,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
           isDisabled: _isGoogleLoading,
         ),
 
-        const SizedBox(height: AppTheme.spacingSm + 4),
+        const SizedBox(height: SajuSpacing.space8 + 4),
 
         // Google Sign In 버튼
         _GoogleSignInButton(
@@ -321,12 +322,12 @@ class _LoginPageState extends ConsumerState<LoginPage>
           isDisabled: _isAppleLoading,
         ),
 
-        const SizedBox(height: AppTheme.spacingLg),
+        SajuSpacing.gap24,
 
         // 구분선 "또는"
         _buildDividerWithText('또는'),
 
-        const SizedBox(height: AppTheme.spacingMd),
+        SajuSpacing.gap16,
 
         // 둘러보기 텍스트 버튼
         TextButton(
@@ -355,7 +356,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
       children: [
         Expanded(child: Divider(color: dividerColor, thickness: 0.5)),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMd),
+          padding: const EdgeInsets.symmetric(horizontal: SajuSpacing.space16),
           child: Text(
             text,
             style: TextStyle(
@@ -373,7 +374,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
   /// 이용약관 안내 문구
   Widget _buildTermsNotice() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMd),
+      padding: const EdgeInsets.symmetric(horizontal: SajuSpacing.space16),
       child: Text(
         '로그인하면 이용약관에 동의하는 것으로 간주합니다',
         textAlign: TextAlign.center,

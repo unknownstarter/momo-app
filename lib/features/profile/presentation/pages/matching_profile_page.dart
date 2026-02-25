@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/tokens/saju_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../../core/domain/entities/user_entity.dart';
 import '../providers/matching_profile_provider.dart';
@@ -288,11 +289,11 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
           children: [
             // 상단 바
             _buildTopBar(theme),
-            const SizedBox(height: AppTheme.spacingXs),
+            SajuSpacing.gap4,
 
             // 프로그레스 바
             _buildProgressBar(theme),
-            const SizedBox(height: AppTheme.spacingMd),
+            SajuSpacing.gap16,
 
             // 스텝 콘텐츠
             Expanded(
@@ -324,8 +325,8 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
   Widget _buildTopBar(ThemeData theme) {
     return Padding(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppTheme.spacingMd,
-        vertical: AppTheme.spacingSm,
+        horizontal: SajuSpacing.space16,
+        vertical: SajuSpacing.space8,
       ),
       child: Row(
         children: [
@@ -384,7 +385,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
 
   Widget _buildProgressBar(ThemeData theme) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLg),
+      padding: const EdgeInsets.symmetric(horizontal: SajuSpacing.space24),
       child: Column(
         children: [
           Row(
@@ -428,11 +429,11 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
 
   Widget _buildStep1Photos() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLg),
+      padding: const EdgeInsets.symmetric(horizontal: SajuSpacing.space24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: AppTheme.spacingSm),
+          SajuSpacing.gap8,
 
           SajuCharacterBubble(
             characterName: '불꼬리',
@@ -440,7 +441,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
             elementColor: SajuColor.fire,
             size: SajuSize.md,
           ),
-          const SizedBox(height: AppTheme.spacingLg),
+          SajuSpacing.gap24,
 
           // 사진 그리드 (6슬롯, 첫 2개 필수)
           GridView.builder(
@@ -542,11 +543,11 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
               );
             },
           ),
-          const SizedBox(height: AppTheme.spacingMd),
+          SajuSpacing.gap16,
 
           // 팁
           Container(
-            padding: const EdgeInsets.all(AppTheme.spacingMd),
+            padding: const EdgeInsets.all(SajuSpacing.space16),
             decoration: BoxDecoration(
               color: AppTheme.firePastel.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
@@ -558,7 +559,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
                   size: 18,
                   color: AppTheme.fireColor.withValues(alpha: 0.7),
                 ),
-                const SizedBox(width: AppTheme.spacingSm),
+                SajuSpacing.hGap8,
                 Expanded(
                   child: Text(
                     '얼굴이 잘 보이는 사진이 매칭 확률을 2배 높여요!',
@@ -572,7 +573,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
               ],
             ),
           ),
-          const SizedBox(height: AppTheme.spacingXl),
+          SajuSpacing.gap32,
         ],
       ),
     );
@@ -584,11 +585,11 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
 
   Widget _buildStep2BasicInfo() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLg),
+      padding: const EdgeInsets.symmetric(horizontal: SajuSpacing.space24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: AppTheme.spacingSm),
+          SajuSpacing.gap8,
 
           SajuCharacterBubble(
             characterName: '흙순이',
@@ -596,7 +597,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
             elementColor: SajuColor.earth,
             size: SajuSize.md,
           ),
-          const SizedBox(height: AppTheme.spacingXl),
+          SajuSpacing.gap32,
 
           // 키
           SajuInput(
@@ -606,7 +607,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
             keyboardType: TextInputType.number,
             size: SajuSize.lg,
           ),
-          const SizedBox(height: AppTheme.spacingLg),
+          SajuSpacing.gap24,
 
           // 직업
           SajuInput(
@@ -615,7 +616,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
             controller: _occupationController,
             size: SajuSize.lg,
           ),
-          const SizedBox(height: AppTheme.spacingLg),
+          SajuSpacing.gap24,
 
           // 활동 지역
           Text(
@@ -625,7 +626,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: AppTheme.spacingSm),
+          SajuSpacing.gap8,
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -640,7 +641,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
               );
             }).toList(),
           ),
-          const SizedBox(height: AppTheme.spacingXl),
+          SajuSpacing.gap32,
         ],
       ),
     );
@@ -652,11 +653,11 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
 
   Widget _buildStep3Expression() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLg),
+      padding: const EdgeInsets.symmetric(horizontal: SajuSpacing.space24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: AppTheme.spacingSm),
+          SajuSpacing.gap8,
 
           SajuCharacterBubble(
             characterName: '물결이',
@@ -664,7 +665,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
             elementColor: SajuColor.water,
             size: SajuSize.md,
           ),
-          const SizedBox(height: AppTheme.spacingXl),
+          SajuSpacing.gap32,
 
           // 자기소개
           SajuInput(
@@ -675,7 +676,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
             maxLength: 300,
             size: SajuSize.lg,
           ),
-          const SizedBox(height: AppTheme.spacingSm),
+          SajuSpacing.gap8,
           Align(
             alignment: Alignment.centerRight,
             child: ValueListenableBuilder<TextEditingValue>(
@@ -693,7 +694,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
               },
             ),
           ),
-          const SizedBox(height: AppTheme.spacingLg),
+          SajuSpacing.gap24,
 
           // MBTI
           Text(
@@ -703,7 +704,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: AppTheme.spacingSm),
+          SajuSpacing.gap8,
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -722,7 +723,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
               }),
             ],
           ),
-          const SizedBox(height: AppTheme.spacingLg),
+          SajuSpacing.gap24,
 
           // 관심사 (최소 3개)
           Text(
@@ -732,7 +733,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: AppTheme.spacingSm),
+          SajuSpacing.gap8,
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -757,7 +758,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
               );
             }).toList(),
           ),
-          const SizedBox(height: AppTheme.spacingMd),
+          SajuSpacing.gap16,
 
           // 커스텀 관심사 추가
           Row(
@@ -771,7 +772,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
                   onSubmitted: (_) => _addCustomInterest(),
                 ),
               ),
-              const SizedBox(width: AppTheme.spacingSm),
+              SajuSpacing.hGap8,
               Padding(
                 padding: const EdgeInsets.only(top: 22),
                 child: SajuButton(
@@ -789,7 +790,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
           if (_selectedInterests
               .where((i) => !_presetInterests.contains(i))
               .isNotEmpty) ...[
-            const SizedBox(height: AppTheme.spacingSm),
+            SajuSpacing.gap8,
             Text(
               '내가 추가한 관심사',
               style: TextStyle(
@@ -797,7 +798,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
                 color: const Color(0xFF6B6B6B),
               ),
             ),
-            const SizedBox(height: AppTheme.spacingXs),
+            SajuSpacing.gap4,
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -816,7 +817,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
               }).toList(),
             ),
           ],
-          const SizedBox(height: AppTheme.spacingXxl),
+          const SizedBox(height: SajuSpacing.space48),
         ],
       ),
     );
@@ -845,11 +846,11 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
 
   Widget _buildStep4Lifestyle() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLg),
+      padding: const EdgeInsets.symmetric(horizontal: SajuSpacing.space24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: AppTheme.spacingSm),
+          SajuSpacing.gap8,
 
           SajuCharacterBubble(
             characterName: '쇠동이',
@@ -857,7 +858,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
             elementColor: SajuColor.metal,
             size: SajuSize.md,
           ),
-          const SizedBox(height: AppTheme.spacingXl),
+          SajuSpacing.gap32,
 
           // 음주
           Text(
@@ -867,7 +868,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: AppTheme.spacingSm),
+          SajuSpacing.gap8,
           Row(
             children: DrinkingFrequency.values.map((freq) {
               final isSelected = _selectedDrinking == freq;
@@ -875,7 +876,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
                 child: Padding(
                   padding: EdgeInsets.only(
                     right: freq != DrinkingFrequency.values.last
-                        ? AppTheme.spacingSm
+                        ? SajuSpacing.space8
                         : 0,
                   ),
                   child: SajuChip(
@@ -892,7 +893,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
               );
             }).toList(),
           ),
-          const SizedBox(height: AppTheme.spacingLg),
+          SajuSpacing.gap24,
 
           // 흡연
           Text(
@@ -902,7 +903,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: AppTheme.spacingSm),
+          SajuSpacing.gap8,
           Row(
             children: SmokingStatus.values.map((status) {
               final isSelected = _selectedSmoking == status;
@@ -910,7 +911,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
                 child: Padding(
                   padding: EdgeInsets.only(
                     right: status != SmokingStatus.values.last
-                        ? AppTheme.spacingSm
+                        ? SajuSpacing.space8
                         : 0,
                   ),
                   child: SajuChip(
@@ -927,7 +928,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
               );
             }).toList(),
           ),
-          const SizedBox(height: AppTheme.spacingLg),
+          SajuSpacing.gap24,
 
           // 종교
           Text(
@@ -937,7 +938,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: AppTheme.spacingSm),
+          SajuSpacing.gap8,
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -955,7 +956,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
             }).toList(),
           ),
 
-          const SizedBox(height: AppTheme.spacingXxl),
+          const SizedBox(height: SajuSpacing.space48),
         ],
       ),
     );
@@ -967,11 +968,11 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
 
   Widget _buildStep5Verification() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLg),
+      padding: const EdgeInsets.symmetric(horizontal: SajuSpacing.space24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const SizedBox(height: AppTheme.spacingSm),
+          SajuSpacing.gap8,
 
           SajuCharacterBubble(
             characterName: '나무리',
@@ -979,12 +980,12 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
             elementColor: SajuColor.wood,
             size: SajuSize.md,
           ),
-          const SizedBox(height: AppTheme.spacingXl),
+          SajuSpacing.gap32,
 
           // 셀카 인증 카드
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(AppTheme.spacingXl),
+            padding: const EdgeInsets.all(SajuSpacing.space32),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(AppTheme.radiusLg),
@@ -1008,7 +1009,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
                     color: AppTheme.woodColor,
                   ),
                 ),
-                const SizedBox(height: AppTheme.spacingLg),
+                SajuSpacing.gap24,
                 Text(
                   '셀카 인증',
                   style: TextStyle(
@@ -1017,22 +1018,22 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
                     color: const Color(0xFF2D2D2D),
                   ),
                 ),
-                const SizedBox(height: AppTheme.spacingMd),
+                SajuSpacing.gap16,
                 _buildVerificationBenefit(
                   Icons.verified_user,
                   '프로필에 인증 뱃지가 표시돼요',
                 ),
-                const SizedBox(height: AppTheme.spacingSm),
+                SajuSpacing.gap8,
                 _buildVerificationBenefit(
                   Icons.trending_up,
                   '매칭 확률이 높아져요',
                 ),
-                const SizedBox(height: AppTheme.spacingSm),
+                SajuSpacing.gap8,
                 _buildVerificationBenefit(
                   Icons.shield_outlined,
                   '안전한 만남을 보장해요',
                 ),
-                const SizedBox(height: AppTheme.spacingLg),
+                SajuSpacing.gap24,
                 SajuButton(
                   label: '셀카 촬영하기',
                   onPressed: () {
@@ -1047,7 +1048,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
             ),
           ),
 
-          const SizedBox(height: AppTheme.spacingXl),
+          SajuSpacing.gap32,
         ],
       ),
     );
@@ -1058,7 +1059,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(icon, size: 18, color: AppTheme.woodColor),
-        const SizedBox(width: AppTheme.spacingSm),
+        SajuSpacing.hGap8,
         Text(
           text,
           style: TextStyle(
@@ -1080,10 +1081,10 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
 
     return Container(
       padding: const EdgeInsets.fromLTRB(
-        AppTheme.spacingLg,
-        AppTheme.spacingSm,
-        AppTheme.spacingLg,
-        AppTheme.spacingMd,
+        SajuSpacing.space24,
+        SajuSpacing.space8,
+        SajuSpacing.space24,
+        SajuSpacing.space16,
       ),
       decoration: BoxDecoration(
         color: const Color(0xFFF7F3EE),
@@ -1107,7 +1108,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
           ),
           // Step 4(라이프스타일), Step 5(인증)는 건너뛰기 가능
           if (_currentStep >= 3) ...[
-            const SizedBox(height: AppTheme.spacingXs),
+            SajuSpacing.gap4,
             SajuButton(
               label: isLastStep ? '나중에 인증할게요' : '건너뛰기',
               onPressed: () {

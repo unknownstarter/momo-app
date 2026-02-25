@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/theme_extensions.dart';
+import '../../../../core/theme/tokens/saju_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../domain/entities/saju_entity.dart';
 import '../providers/saju_provider.dart';
@@ -53,7 +55,7 @@ class SajuResultPage extends ConsumerWidget {
     return Theme(
       data: AppTheme.light,
       child: Scaffold(
-        backgroundColor: AppTheme.hanjiBg,
+        backgroundColor: context.sajuColors.bgPrimary,
         body: CustomScrollView(
           slivers: [
             SliverAppBar(
@@ -75,7 +77,7 @@ class SajuResultPage extends ConsumerWidget {
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: AppTheme.spacingLg,
+                  horizontal: SajuSpacing.space24,
                 ),
                 child: _ResultRevealContent(
                   sections: [
@@ -172,7 +174,7 @@ class SajuResultPage extends ConsumerWidget {
           ),
         ),
 
-        const SizedBox(height: AppTheme.spacingMd),
+        SajuSpacing.gap16,
 
         // 캐릭터 이름 뱃지
         SajuBadge(
@@ -181,7 +183,7 @@ class SajuResultPage extends ConsumerWidget {
           size: SajuSize.md,
         ),
 
-        const SizedBox(height: AppTheme.spacingSm),
+        SajuSpacing.gap8,
 
         // 오행 뱃지
         if (profile.dominantElement != null)
@@ -192,7 +194,7 @@ class SajuResultPage extends ConsumerWidget {
             icon: Icons.auto_awesome,
           ),
 
-        const SizedBox(height: AppTheme.spacingSm),
+        SajuSpacing.gap8,
 
         // 사주 요약 텍스트
         Text(
@@ -216,7 +218,7 @@ class SajuResultPage extends ConsumerWidget {
       children: [
         // 섹션 제목
         _buildSectionTitle(context, '사주팔자 (四柱八字)'),
-        const SizedBox(height: AppTheme.spacingMd),
+        SajuSpacing.gap16,
 
         // 4기둥 카드 Row
         Row(
@@ -228,7 +230,7 @@ class SajuResultPage extends ConsumerWidget {
                 sublabel: '年柱',
               ),
             ),
-            const SizedBox(width: AppTheme.spacingSm),
+            SajuSpacing.hGap8,
             Expanded(
               child: PillarCard(
                 pillar: profile.monthPillar,
@@ -236,7 +238,7 @@ class SajuResultPage extends ConsumerWidget {
                 sublabel: '月柱',
               ),
             ),
-            const SizedBox(width: AppTheme.spacingSm),
+            SajuSpacing.hGap8,
             Expanded(
               child: PillarCard(
                 pillar: profile.dayPillar,
@@ -244,7 +246,7 @@ class SajuResultPage extends ConsumerWidget {
                 sublabel: '日柱',
               ),
             ),
-            const SizedBox(width: AppTheme.spacingSm),
+            SajuSpacing.hGap8,
             Expanded(
               child: PillarCard(
                 pillar: profile.hourPillar,
@@ -268,7 +270,7 @@ class SajuResultPage extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionTitle(context, '오행 분포 (五行)'),
-        const SizedBox(height: AppTheme.spacingSm),
+        SajuSpacing.gap8,
 
         // 균형 점수
         Row(
@@ -277,7 +279,7 @@ class SajuResultPage extends ConsumerWidget {
               '균형 점수',
               style: Theme.of(context).textTheme.bodySmall,
             ),
-            const SizedBox(width: AppTheme.spacingSm),
+            SajuSpacing.hGap8,
             Text(
               '${profile.fiveElements.balanceScore}점',
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
@@ -289,7 +291,7 @@ class SajuResultPage extends ConsumerWidget {
             ),
           ],
         ),
-        const SizedBox(height: AppTheme.spacingMd),
+        SajuSpacing.gap16,
 
         // 차트
         SajuCard(
@@ -315,10 +317,10 @@ class SajuResultPage extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionTitle(context, '성격 특성'),
-        const SizedBox(height: AppTheme.spacingMd),
+        SajuSpacing.gap16,
         Wrap(
-          spacing: AppTheme.spacingSm,
-          runSpacing: AppTheme.spacingSm,
+          spacing: SajuSpacing.space8,
+          runSpacing: SajuSpacing.space8,
           children: profile.personalityTraits.map((trait) {
             return SajuChip(
               label: trait,
@@ -346,7 +348,7 @@ class SajuResultPage extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionTitle(context, 'AI 사주 해석'),
-        const SizedBox(height: AppTheme.spacingMd),
+        SajuSpacing.gap16,
         SajuCard(
           variant: SajuVariant.elevated,
           borderColor: elementColorValue.withValues(alpha: 0.2),
@@ -354,7 +356,7 @@ class SajuResultPage extends ConsumerWidget {
             profile.aiInterpretation!,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               height: 1.7,
-              color: AppTheme.textDark,
+              color: context.sajuColors.textPrimary,
             ),
           ),
         ),
@@ -377,7 +379,7 @@ class SajuResultPage extends ConsumerWidget {
           size: SajuSize.lg,
           leadingIcon: Icons.favorite,
         ),
-        const SizedBox(height: AppTheme.spacingMd),
+        SajuSpacing.gap16,
         SajuButton(
           label: '내 사주 공유하기',
           onPressed: () {
@@ -391,7 +393,7 @@ class SajuResultPage extends ConsumerWidget {
           size: SajuSize.lg,
           leadingIcon: Icons.share_outlined,
         ),
-        const SizedBox(height: AppTheme.spacingSm),
+        SajuSpacing.gap8,
         SajuButton(
           label: '나중에 할게요',
           onPressed: () => context.go(RoutePaths.home),
@@ -411,7 +413,7 @@ class SajuResultPage extends ConsumerWidget {
     return Text(
       title,
       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-        color: AppTheme.textDark,
+        color: context.sajuColors.textPrimary,
       ),
     );
   }
@@ -420,7 +422,7 @@ class SajuResultPage extends ConsumerWidget {
     return Theme(
       data: AppTheme.light,
       child: Scaffold(
-        backgroundColor: AppTheme.hanjiBg,
+        backgroundColor: context.sajuColors.bgPrimary,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -430,7 +432,7 @@ class SajuResultPage extends ConsumerWidget {
                 size: 64,
                 color: AppTheme.metalColor.withValues(alpha: 0.5),
               ),
-              const SizedBox(height: AppTheme.spacingMd),
+              SajuSpacing.gap16,
               Text(
                 '분석 결과를 찾을 수 없어요',
                 style: TextStyle(
@@ -439,7 +441,7 @@ class SajuResultPage extends ConsumerWidget {
                   color: const Color(0xFF4A4F54),
                 ),
               ),
-              const SizedBox(height: AppTheme.spacingXl),
+              SajuSpacing.gap32,
               SajuButton(
                 label: '홈으로 돌아가기',
                 onPressed: () => context.go(RoutePaths.home),
@@ -526,11 +528,11 @@ class _ResultRevealContentState extends State<_ResultRevealContent>
           if (i < widget.sections.length - 1)
             SizedBox(
               height: i == 0
-                  ? AppTheme.spacingLg
-                  : (i == 1 ? AppTheme.spacingXl : AppTheme.spacingXl),
+                  ? SajuSpacing.space24
+                  : (i == 1 ? SajuSpacing.space32 : SajuSpacing.space32),
             ),
         ],
-        const SizedBox(height: AppTheme.spacingXxl),
+        const SizedBox(height: SajuSpacing.space48),
       ],
     );
   }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/tokens/saju_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
 
 /// OnboardingFormPage -- 2단계 사주 정보 온보딩 폼 (Phase A)
@@ -213,8 +214,8 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
               // 상단 바
               Padding(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: AppTheme.spacingMd,
-                  vertical: AppTheme.spacingSm,
+                  horizontal: SajuSpacing.space16,
+                  vertical: SajuSpacing.space8,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -268,11 +269,11 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
           children: [
             // --- 상단: 뒤로가기 + 프로그레스 바 ---
             _buildTopBar(),
-            const SizedBox(height: AppTheme.spacingSm),
+            SajuSpacing.gap8,
 
             // --- 캐릭터 프로그레스 인디케이터 ---
             _buildCharacterProgress(),
-            const SizedBox(height: AppTheme.spacingMd),
+            SajuSpacing.gap16,
 
             // --- 스텝 콘텐츠 ---
             Expanded(
@@ -301,8 +302,8 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
   Widget _buildTopBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppTheme.spacingMd,
-        vertical: AppTheme.spacingSm,
+        horizontal: SajuSpacing.space16,
+        vertical: SajuSpacing.space8,
       ),
       child: Row(
         children: [
@@ -352,7 +353,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
 
   Widget _buildCharacterProgress() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingXl),
+      padding: const EdgeInsets.symmetric(horizontal: SajuSpacing.space32),
       child: Row(
         children: List.generate(2, (index) {
           final character = _stepCharacters[index];
@@ -429,11 +430,11 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
 
   Widget _buildStep1() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLg),
+      padding: const EdgeInsets.symmetric(horizontal: SajuSpacing.space24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: AppTheme.spacingSm),
+          SajuSpacing.gap8,
 
           // 캐릭터 가이드 말풍선
           SajuCharacterBubble(
@@ -442,7 +443,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
             elementColor: SajuColor.water,
             size: SajuSize.md,
           ),
-          const SizedBox(height: AppTheme.spacingXl),
+          SajuSpacing.gap32,
 
           // 이름 입력
           SajuInput(
@@ -458,7 +459,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
             maxLength: 20,
             size: SajuSize.lg,
           ),
-          const SizedBox(height: AppTheme.spacingLg),
+          SajuSpacing.gap24,
 
           // 성별 선택
           Text(
@@ -468,7 +469,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: AppTheme.spacingSm),
+          SajuSpacing.gap8,
           Row(
             children: [
               Expanded(
@@ -480,7 +481,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
                   onTap: () => setState(() => _selectedGender = '남성'),
                 ),
               ),
-              const SizedBox(width: AppTheme.spacingSm),
+              SajuSpacing.hGap8,
               Expanded(
                 child: SajuChip(
                   label: '여성',
@@ -492,7 +493,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
               ),
             ],
           ),
-          const SizedBox(height: AppTheme.spacingLg),
+          SajuSpacing.gap24,
 
           // 생년월일
           Text(
@@ -502,7 +503,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: AppTheme.spacingSm),
+          SajuSpacing.gap8,
           GestureDetector(
             onTap: _showBirthDatePicker,
             child: Container(
@@ -547,7 +548,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
               ),
             ),
           ),
-          const SizedBox(height: AppTheme.spacingXl),
+          SajuSpacing.gap32,
         ],
       ),
     );
@@ -559,11 +560,11 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
 
   Widget _buildStep2() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLg),
+      padding: const EdgeInsets.symmetric(horizontal: SajuSpacing.space24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: AppTheme.spacingSm),
+          SajuSpacing.gap8,
 
           // 캐릭터 가이드 말풍선
           SajuCharacterBubble(
@@ -572,7 +573,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
             elementColor: SajuColor.metal,
             size: SajuSize.md,
           ),
-          const SizedBox(height: AppTheme.spacingLg),
+          SajuSpacing.gap24,
 
           // 12시진 그리드
           GridView.builder(
@@ -649,7 +650,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
               );
             },
           ),
-          const SizedBox(height: AppTheme.spacingMd),
+          SajuSpacing.gap16,
 
           // "모르겠어요" 옵션
           Center(
@@ -664,11 +665,11 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
               },
             ),
           ),
-          const SizedBox(height: AppTheme.spacingMd),
+          SajuSpacing.gap16,
 
           // 안내 텍스트
           Container(
-            padding: const EdgeInsets.all(AppTheme.spacingMd),
+            padding: const EdgeInsets.all(SajuSpacing.space16),
             decoration: BoxDecoration(
               color: AppTheme.metalPastel.withValues(alpha: 0.4),
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
@@ -680,7 +681,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
                   size: 18,
                   color: AppTheme.metalColor.withValues(alpha: 0.7),
                 ),
-                const SizedBox(width: AppTheme.spacingSm),
+                SajuSpacing.hGap8,
                 Expanded(
                   child: Text(
                     '태어난 시간을 모르면 일주(日柱) 기반으로 분석해요.\n나중에 수정할 수 있어요!',
@@ -694,7 +695,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
               ],
             ),
           ),
-          const SizedBox(height: AppTheme.spacingXl),
+          SajuSpacing.gap32,
         ],
       ),
     );
@@ -709,10 +710,10 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
 
     return Container(
       padding: const EdgeInsets.fromLTRB(
-        AppTheme.spacingLg,
-        AppTheme.spacingSm,
-        AppTheme.spacingLg,
-        AppTheme.spacingMd,
+        SajuSpacing.space24,
+        SajuSpacing.space8,
+        SajuSpacing.space24,
+        SajuSpacing.space16,
       ),
       decoration: BoxDecoration(
         color: const Color(0xFFF7F3EE),

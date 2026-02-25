@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/theme_extensions.dart';
+import '../../../../core/theme/tokens/saju_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../providers/saju_provider.dart';
 
@@ -295,14 +297,14 @@ class _SajuAnalysisPageState extends ConsumerState<SajuAnalysisPage>
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              AppTheme.inkBlack, // 먹색
-              Color(0xFF15161A), // 짙은 먹
-              Color(0xFF1A1B20), // 중간 먹
+              context.sajuColors.bgPrimary, // 먹색
+              const Color(0xFF15161A), // 짙은 먹
+              const Color(0xFF1A1B20), // 중간 먹
             ],
           ),
         ),
@@ -354,7 +356,7 @@ class _SajuAnalysisPageState extends ConsumerState<SajuAnalysisPage>
     return FadeTransition(
       opacity: _phase1Fade,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingXl),
+        padding: const EdgeInsets.symmetric(horizontal: SajuSpacing.space32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -387,12 +389,12 @@ class _SajuAnalysisPageState extends ConsumerState<SajuAnalysisPage>
                 ),
               ),
             ),
-            const SizedBox(height: AppTheme.spacingMd),
+            SajuSpacing.gap16,
             // 말풍선
             Container(
               padding: const EdgeInsets.symmetric(
-                horizontal: AppTheme.spacingMd,
-                vertical: AppTheme.spacingMd,
+                horizontal: SajuSpacing.space16,
+                vertical: SajuSpacing.space16,
               ),
               decoration: BoxDecoration(
                 color: AppTheme.woodColor.withValues(alpha: 0.1),
@@ -412,7 +414,7 @@ class _SajuAnalysisPageState extends ConsumerState<SajuAnalysisPage>
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
-                  color: AppTheme.textLight,
+                  color: context.sajuColors.textPrimary,
                   height: 1.5,
                 ),
                 textAlign: TextAlign.center,
@@ -461,7 +463,7 @@ class _SajuAnalysisPageState extends ConsumerState<SajuAnalysisPage>
             },
           ),
         ),
-        const SizedBox(height: AppTheme.spacingLg),
+        SajuSpacing.gap24,
         // 진행 텍스트 + 펄스
         AnimatedBuilder(
           animation: _pulseAnimation,
@@ -554,7 +556,7 @@ class _SajuAnalysisPageState extends ConsumerState<SajuAnalysisPage>
             );
           },
         ),
-        const SizedBox(height: AppTheme.spacingMd),
+        SajuSpacing.gap16,
         // 캐릭터 이름
         FadeTransition(
           opacity: _greetingFade,
@@ -564,16 +566,16 @@ class _SajuAnalysisPageState extends ConsumerState<SajuAnalysisPage>
             size: SajuSize.md,
           ),
         ),
-        const SizedBox(height: AppTheme.spacingMd),
+        SajuSpacing.gap16,
         // 인사 텍스트
         FadeTransition(
           opacity: _greetingFade,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingXl),
+            padding: const EdgeInsets.symmetric(horizontal: SajuSpacing.space32),
             child: Container(
               padding: const EdgeInsets.symmetric(
-                horizontal: AppTheme.spacingMd,
-                vertical: AppTheme.spacingMd,
+                horizontal: SajuSpacing.space16,
+                vertical: SajuSpacing.space16,
               ),
               decoration: BoxDecoration(
                 color: character.color.resolve(context).withValues(alpha: 0.1),
@@ -588,7 +590,7 @@ class _SajuAnalysisPageState extends ConsumerState<SajuAnalysisPage>
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
-                  color: AppTheme.textLight,
+                  color: context.sajuColors.textPrimary,
                   height: 1.5,
                 ),
                 textAlign: TextAlign.center,
@@ -606,7 +608,7 @@ class _SajuAnalysisPageState extends ConsumerState<SajuAnalysisPage>
 
   Widget _buildWaitingIndicator() {
     return Padding(
-      padding: const EdgeInsets.only(top: AppTheme.spacingXl),
+      padding: const EdgeInsets.only(top: SajuSpacing.space32),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -620,7 +622,7 @@ class _SajuAnalysisPageState extends ConsumerState<SajuAnalysisPage>
               ),
             ),
           ),
-          const SizedBox(height: AppTheme.spacingSm),
+          SajuSpacing.gap8,
           Text(
             '조금만 더 기다려 줘...',
             style: TextStyle(
@@ -640,7 +642,7 @@ class _SajuAnalysisPageState extends ConsumerState<SajuAnalysisPage>
   Widget _buildErrorState() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingXl),
+        padding: const EdgeInsets.symmetric(horizontal: SajuSpacing.space32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -673,26 +675,26 @@ class _SajuAnalysisPageState extends ConsumerState<SajuAnalysisPage>
                 ),
               ),
             ),
-            const SizedBox(height: AppTheme.spacingMd),
+            SajuSpacing.gap16,
             Text(
               '앗, 사주 분석 중에 문제가 생겼어...',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
-                color: AppTheme.textLight,
+                color: context.sajuColors.textPrimary,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: AppTheme.spacingSm),
+            SajuSpacing.gap8,
             Text(
               '다시 한 번 시도해 볼까?',
               style: TextStyle(
                 fontSize: 14,
-                color: AppTheme.textSecondaryLight,
+                color: context.sajuColors.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: AppTheme.spacingXl),
+            SajuSpacing.gap32,
             SajuButton(
               label: '다시 시도하기',
               onPressed: () {
@@ -717,7 +719,7 @@ class _SajuAnalysisPageState extends ConsumerState<SajuAnalysisPage>
               color: SajuColor.wood,
               size: SajuSize.lg,
             ),
-            const SizedBox(height: AppTheme.spacingMd),
+            SajuSpacing.gap16,
             SajuButton(
               label: '돌아가기',
               onPressed: () => context.pop(),

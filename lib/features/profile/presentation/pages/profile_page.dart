@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/domain/entities/user_entity.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/theme_extensions.dart';
+import '../../../../core/theme/tokens/saju_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
@@ -60,7 +62,7 @@ class _ProfileContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: AppTheme.spacingLg),
+          SajuSpacing.gap24,
 
           // ---- 1. 프로필 헤더 (아바타 + 이름, 나이 + 내 캐릭터) ----
           Padding(
@@ -72,7 +74,7 @@ class _ProfileContent extends StatelessWidget {
                   imageUrl: user.primaryPhotoUrl,
                   size: SajuSize.xl,
                 ),
-                const SizedBox(width: AppTheme.spacingMd),
+                SajuSpacing.hGap16,
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -83,11 +85,11 @@ class _ProfileContent extends StatelessWidget {
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      const SizedBox(height: AppTheme.spacingXs),
+                      SajuSpacing.gap4,
                       Text(
                         '${user.age}세 · ${user.gender.label}',
                         style: textTheme.bodyMedium?.copyWith(
-                          color: AppTheme.textSecondaryDark,
+                          color: context.sajuColors.textSecondary,
                         ),
                       ),
                     ],
@@ -105,7 +107,7 @@ class _ProfileContent extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: AppTheme.spacingXl),
+          SajuSpacing.gap32,
 
           // ---- 2. 프로필 완성도 ----
           Padding(
@@ -113,7 +115,7 @@ class _ProfileContent extends StatelessWidget {
             child: _CompletionSection(percent: user.completionPercent),
           ),
 
-          const SizedBox(height: AppTheme.spacingMd),
+          SajuSpacing.gap16,
 
           // ---- 3. 한 줄 정보 (지역, 직업, MBTI) ----
           if (user.location != null ||
@@ -143,7 +145,7 @@ class _ProfileContent extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: AppTheme.spacingLg),
+            SajuSpacing.gap24,
           ],
 
           // ---- 4. 사주 분석 상태 ----
@@ -159,9 +161,9 @@ class _ProfileContent extends StatelessWidget {
                     size: 20,
                     color: user.hasSajuProfile
                         ? AppTheme.woodColor
-                        : AppTheme.textHint,
+                        : context.sajuColors.textTertiary,
                   ),
-                  const SizedBox(width: AppTheme.spacingSm),
+                  SajuSpacing.hGap8,
                   Text(
                     user.hasSajuProfile
                         ? '사주 분석 완료'
@@ -172,13 +174,13 @@ class _ProfileContent extends StatelessWidget {
               ),
               variant: SajuVariant.flat,
               padding: const EdgeInsets.symmetric(
-                horizontal: AppTheme.spacingMd,
-                vertical: AppTheme.spacingSm,
+                horizontal: SajuSpacing.space16,
+                vertical: SajuSpacing.space8,
               ),
             ),
           ),
 
-          const SizedBox(height: AppTheme.spacingXl),
+          SajuSpacing.gap32,
 
           // ---- 5. 메뉴 (편집, 설정, 결제) ----
           Padding(
@@ -204,7 +206,7 @@ class _ProfileContent extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: AppTheme.spacingXl),
+          SajuSpacing.gap32,
 
           // ---- 6. 로그아웃 ----
           Padding(
@@ -212,7 +214,7 @@ class _ProfileContent extends StatelessWidget {
             child: _LogoutButton(),
           ),
 
-          const SizedBox(height: AppTheme.spacingXl),
+          SajuSpacing.gap32,
         ],
       ),
     );
@@ -237,7 +239,7 @@ class _CompletionSection extends StatelessWidget {
             Text(
               '프로필 완성도',
               style: textTheme.titleSmall?.copyWith(
-                color: AppTheme.textSecondaryDark,
+                color: context.sajuColors.textSecondary,
               ),
             ),
             Text(
@@ -254,7 +256,7 @@ class _CompletionSection extends StatelessWidget {
           child: LinearProgressIndicator(
             value: percent / 100,
             minHeight: 6,
-            backgroundColor: AppTheme.hanjiElevated,
+            backgroundColor: context.sajuColors.bgSecondary,
             valueColor: AlwaysStoppedAnimation<Color>(
               AppTheme.woodColor.withValues(alpha: 0.9),
             ),
@@ -285,13 +287,13 @@ class _MenuTile extends StatelessWidget {
       borderRadius: BorderRadius.circular(AppTheme.radiusMd),
       child: Padding(
         padding: const EdgeInsets.symmetric(
-          vertical: AppTheme.spacingMd,
-          horizontal: AppTheme.spacingSm,
+          vertical: SajuSpacing.space16,
+          horizontal: SajuSpacing.space8,
         ),
         child: Row(
           children: [
-            Icon(icon, size: 22, color: AppTheme.textSecondaryDark),
-            const SizedBox(width: AppTheme.spacingMd),
+            Icon(icon, size: 22, color: context.sajuColors.textSecondary),
+            SajuSpacing.hGap16,
             Text(
               label,
               style: textTheme.bodyLarge,
@@ -300,7 +302,7 @@ class _MenuTile extends StatelessWidget {
             Icon(
               Icons.chevron_right,
               size: 20,
-              color: AppTheme.textHint,
+              color: context.sajuColors.textTertiary,
             ),
           ],
         ),
@@ -339,7 +341,7 @@ class _LogoutButton extends ConsumerWidget {
         }
       },
       style: OutlinedButton.styleFrom(
-        foregroundColor: AppTheme.textSecondaryDark,
+        foregroundColor: context.sajuColors.textSecondary,
       ),
       child: const Text('로그아웃'),
     );
