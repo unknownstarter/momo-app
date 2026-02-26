@@ -87,6 +87,8 @@ lib/
 ├── features/               # 피처별 클린 아키텍처
 │   ├── auth/               # 인증 (소셜 로그인, SMS)
 │   ├── saju/               # 사주 분석 (만세력, AI 해석)
+│   ├── gwansang/           # 관상 분석 (ML Kit + AI 동물상)
+│   ├── destiny/            # 통합 운명 분석 (사주+관상 통합 퍼널)
 │   ├── matching/           # 매칭 (궁합 계산, 추천)
 │   ├── profile/            # 프로필 관리
 │   ├── chat/               # 1:1 채팅
@@ -168,11 +170,19 @@ feature/
 - 토스 스타일 미니멀: 타이포 위계, 넉넉한 여백(20-32px), 얇은 보더, 색 절제
 - **"미니멀 ≠ 휑함"**: 장식은 줄이되, 캐릭터는 적절한 크기(64-72px)로 핵심 위치에 배치
 - 듀얼 무드: 라이트(일상 탐색), 다크(사주/궁합/매칭 결과)
+- **[규칙 2026-02-26]** 테마 확장 타입은 `SajuColors`(`lib/core/theme/tokens/saju_colors.dart`)이지 `SajuColorScheme`이 아님. 새 페이지 작성 시 주의
 
 ### Git Workflow
 - 브랜치: `feature/`, `fix/`, `experiment/`, `research/`
 - 커밋: Conventional Commits (한국어 본문 가능)
 - PR 리뷰 필수
+
+### 디버그 바이패스 (2026-02-26 추가)
+- **[중요]** 현재 Backend 미연결 상태에서 테스트를 위해 `kDebugMode` 바이패스 6건이 존재
+- **바이패스 목록 문서**: `docs/dev-log/2026-02-26-debug-bypass.md`
+- **검색 키워드**: `TODO(PROD)` 또는 `BYPASS-` 로 코드 검색
+- **원복 시점**: Supabase Auth + DB + Edge Functions 연결 완료 후
+- **[규칙]** 새 바이패스 추가 시 반드시 `TODO(PROD)` + `[BYPASS-N]` 태그 + 문서 업데이트
 
 ### 연속 작업 / 다음 할 일 (2026-02-24 추가)
 - **다른 디바이스에서 이어서 작업할 때**: 먼저 **테스크 마스터**를 확인할 것.

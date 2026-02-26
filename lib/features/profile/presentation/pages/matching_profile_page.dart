@@ -316,7 +316,8 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
     if (result != null && mounted) {
       context.go(RoutePaths.home);
     } else if (mounted) {
-      // DEV: 디버그 모드에서는 DB 없이도 홈으로 이동
+      // TODO(PROD): 디버그 바이패스 제거 — Supabase 연결 후 이 블록 삭제
+      // [BYPASS-5] 프로필 완성 저장 실패 시 홈으로 직행
       if (kDebugMode) {
         context.go(RoutePaths.home);
         return;

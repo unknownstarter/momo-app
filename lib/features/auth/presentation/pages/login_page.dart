@@ -82,8 +82,8 @@ class _LoginPageState extends ConsumerState<LoginPage>
     } catch (e) {
       if (!mounted) return;
 
-      // DEV: 디버그 모드에서는 인증 실패 시 온보딩으로 바이패스 (테스트용)
-      // Release 빌드에서는 에러 메시지 표시
+      // TODO(PROD): 디버그 바이패스 제거 — 실제 인증 연결 후 이 블록 삭제
+      // [BYPASS-1] 로그인 인증 실패 시 온보딩으로 직행
       if (kDebugMode) {
         context.go(RoutePaths.onboarding);
         return;

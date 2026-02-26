@@ -83,9 +83,9 @@ GoRouter appRouter(Ref ref) {
         RoutePaths.login,
         RoutePaths.onboarding,
         RoutePaths.home, // 둘러보기 모드
-        RoutePaths.matching, // 둘러보기 모드
-        RoutePaths.chat, // 둘러보기 모드
-        RoutePaths.profile, // 둘러보기 모드
+        RoutePaths.matching, // TODO(PROD): [BYPASS-6] 인증 연결 후 제거 — 비로그인 접근 차단
+        RoutePaths.chat, // TODO(PROD): [BYPASS-6] 인증 연결 후 제거 — 비로그인 접근 차단
+        RoutePaths.profile, // TODO(PROD): [BYPASS-6] 인증 연결 후 제거 — 비로그인 접근 차단
         RoutePaths.sajuAnalysis,
         RoutePaths.sajuResult,
         RoutePaths.destinyAnalysis,

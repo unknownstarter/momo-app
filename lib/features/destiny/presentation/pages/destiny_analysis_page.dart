@@ -235,6 +235,8 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
         _sajuResult = next.value;
         _startGwansangAnalysis(next.value!);
       } else if (next.hasError) {
+        // TODO(PROD): 디버그 바이패스 제거 — 사주 Edge Function 연결 후 이 블록 삭제
+        // [BYPASS-3] 사주 분석 실패 시 Mock 결과로 진행
         if (kDebugMode) {
           final mockSaju = _createMockSajuResult();
           _sajuResult = mockSaju;
@@ -254,6 +256,8 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
         _gwansangResult = next.value;
         _tryNavigate();
       } else if (next.hasError) {
+        // TODO(PROD): 디버그 바이패스 제거 — 관상 분석 API 연결 후 이 블록 삭제
+        // [BYPASS-4] 관상 분석 실패 시 Mock 결과로 진행
         if (kDebugMode && _gwansangResult == null) {
           _gwansangResult = _createMockGwansangResult();
           _tryNavigate();

@@ -110,7 +110,8 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage>
     } catch (e) {
       if (!mounted) return;
 
-      // DEV: 디버그 모드에서는 DB 없이도 Mock 데이터로 다음 플로우 진행
+      // TODO(PROD): 디버그 바이패스 제거 — Supabase 연결 후 이 블록 삭제
+      // [BYPASS-2] 프로필 저장 실패 시 Mock 데이터로 분석 진행
       if (kDebugMode) {
         final analysisData = <String, dynamic>{
           'userId': 'dev-mock-user-001',
