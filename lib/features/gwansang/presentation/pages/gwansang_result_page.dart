@@ -521,7 +521,9 @@ class _ResultRevealContentState extends State<_ResultRevealContent>
           label: '운명의 인연 찾으러 가기',
           onPressed: () => context.go(
             RoutePaths.matchingProfile,
-            extra: photoUrls.isNotEmpty ? photoUrls : null,
+            extra: photoUrls.isNotEmpty
+                ? {'gwansangPhotoUrls': photoUrls}
+                : null,
           ),
           variant: SajuVariant.filled,
           color: SajuColor.primary,

@@ -21,7 +21,15 @@ import '../providers/matching_profile_provider.dart';
 /// | 4    | 쇠동이(金) | 음주, 흡연, 연애스타일, 종교 |
 /// | 5    | 나무리(木) | 본인인증 (셀카) |
 class MatchingProfilePage extends ConsumerStatefulWidget {
-  const MatchingProfilePage({super.key, this.gwansangPhotoUrls});
+  const MatchingProfilePage({
+    super.key,
+    this.quickMode = false,
+    this.gwansangPhotoUrls,
+  });
+
+  /// 퀵 모드 여부.
+  /// true이면 사주 결과에서 바로 진입한 것으로, 최소 정보만 수집한다.
+  final bool quickMode;
 
   /// 관상 분석에서 넘어온 사진 URL 목록.
   /// null이 아니면 Step 1(사진)을 자동으로 채우고 Step 2부터 시작한다.

@@ -293,13 +293,17 @@ GoRouter appRouter(Ref ref) {
       ),
 
       // 매칭 프로필 완성 (Phase B 온보딩)
-      // extra: List<String>? — 관상 분석에서 넘어온 사진 URL 목록
+      // extra: Map<String, dynamic>? — {quickMode: bool, gwansangPhotoUrls: List<String>?}
       GoRoute(
         path: RoutePaths.matchingProfile,
         name: RouteNames.matchingProfile,
         builder: (context, state) {
-          final gwansangPhotoUrls = state.extra as List<String>?;
+          final data = state.extra as Map<String, dynamic>? ?? {};
+          final quickMode = data['quickMode'] as bool? ?? false;
+          final gwansangPhotoUrls =
+              data['gwansangPhotoUrls'] as List<String>?;
           return MatchingProfilePage(
+            quickMode: quickMode,
             gwansangPhotoUrls: gwansangPhotoUrls,
           );
         },
