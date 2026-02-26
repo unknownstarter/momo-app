@@ -1,4 +1,4 @@
-# 테스크 마스터 — 2026-02-26 (v4)
+# 테스크 마스터 — 2026-02-26 (v5)
 
 > **작성일**: 2026-02-24 | **갱신**: 2026-02-26
 > **목적**: 다음에 할 일을 한곳에 정리해, 다른 디바이스에서 보고 연속으로 작업할 수 있게 함.
@@ -90,6 +90,31 @@
 | U5 | **홈 스켈레톤** SkeletonCard + 섹션 fadeIn/slideUp | `27404ad` | ✅ |
 | U6 | **통합 검증** flutter analyze 0 errors | `27404ad` | ✅ |
 
+#### 통합 사주+관상 온보딩 플로우 (2026-02-26)
+
+> **핵심**: 사주와 관상을 **하나의 온보딩 퍼널**로 통합. "이름→성별→생일→시진→사진→확인→통합분석→탭결과" 하나의 흐름.
+> **플랜**: `.claude/plans/lucky-watching-goose.md`
+> **원칙**: "자꾸 두 개로 분리하지 마라!" — 노아님 피드백
+
+| # | Task | 커밋 | 상태 |
+|---|------|------|------|
+| D1 | **온보딩 폼 사진 스텝 추가** (5→6스텝, 정면 사진 1장) | `55cfb27` | ✅ |
+| D2 | **온보딩 완료 시 통합 분석(destiny-analysis)으로 라우팅** | `55cfb27` | ✅ |
+| D3 | **라우트 등록** destiny-analysis, destiny-result 라우트 + 상수 | `55cfb27` | ✅ |
+| D4 | **통합 분석 로딩 페이지** — 사주→관상 순차 분석 (~10s 연출) | `55cfb27` | ✅ |
+| D5 | **통합 결과 페이지** — TabBar [사주 \| 관상] + 통합 CTA | `55cfb27` | ✅ |
+| D6 | **통합 검증** flutter analyze 0 errors (28 issues = 기존 동일) | `55cfb27` | ✅ |
+
+**신규 파일:**
+- `lib/features/destiny/presentation/pages/destiny_analysis_page.dart` (~630줄)
+- `lib/features/destiny/presentation/pages/destiny_result_page.dart` (~916줄)
+
+**수정 파일:**
+- `onboarding_form_page.dart` — Step 4 사진 추가, 6스텝 전환
+- `onboarding_page.dart` — destinyAnalysis 라우팅
+- `app_constants.dart` — destinyAnalysis/destinyResult 상수
+- `app_router.dart` — destiny 라우트 2개 등록
+
 ### 기존 (High) — 매칭·궁합 실데이터 연동
 
 | # | Task | 담당 관점 | 산출물/참고 | 상태 |
@@ -141,6 +166,7 @@
 | `docs/plans/2026-02-25-gwansang-content-system.md` | 관상 콘텐츠 시스템 (동물상 + AI 프롬프트) |
 | `docs/plans/2026-02-26-toss-ux-refactoring-design.md` | **토스 UX 리팩토링 설계서** (3원칙 + 5스텝 온보딩) |
 | `docs/plans/2026-02-26-toss-ux-implementation.md` | **토스 UX 구현 계획** (6 Tasks) |
+| `.claude/plans/lucky-watching-goose.md` | **통합 사주+관상 온보딩 플로우 플랜** (6 Tasks) |
 | `CLAUDE.md` | 개발자룰·아키텍처·에셋·라우팅 규칙 |
 
 ---
