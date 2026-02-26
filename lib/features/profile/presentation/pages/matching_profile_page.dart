@@ -9,10 +9,11 @@ import '../../../../core/widgets/widgets.dart';
 import '../../../../core/domain/entities/user_entity.dart';
 import '../providers/matching_profile_provider.dart';
 
-/// Phase B 매칭 프로필 완성 온보딩 — 5스텝
+/// Phase B 매칭 프로필 완성 온보딩 — 풀모드 5스텝 / 퀵모드 2스텝
 ///
 /// 사주 결과 확인 후, 매칭에 필요한 추가 정보를 수집한다.
 ///
+/// **풀 모드 (quickMode=false):**
 /// | Step | 캐릭터 | 내용 |
 /// |------|--------|------|
 /// | 1    | 불꼬리(火) | 프로필 사진 (최소 2장) |
@@ -20,6 +21,12 @@ import '../providers/matching_profile_provider.dart';
 /// | 3    | 물결이(水) | 자기소개, MBTI, 관심사 |
 /// | 4    | 쇠동이(金) | 음주, 흡연, 연애스타일, 종교 |
 /// | 5    | 나무리(木) | 본인인증 (셀카) |
+///
+/// **퀵 모드 (quickMode=true):**
+/// | Step | 캐릭터 | 내용 |
+/// |------|--------|------|
+/// | 1    | 불꼬리(火) | 프로필 사진 (최소 1장) |
+/// | 2    | 흙순이(土) | 키, 직업, 활동 지역 |
 class MatchingProfilePage extends ConsumerStatefulWidget {
   const MatchingProfilePage({
     super.key,
@@ -150,6 +157,20 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
     ),
   ];
 
+  // -------------------------------------------------------------------------
+  // 퀵 모드 / 풀 모드 스텝 계산
+  // -------------------------------------------------------------------------
+
+  /// 퀵 모드: 2스텝 (사진 + 기본정보), 풀 모드: 5스텝
+  int get _totalSteps => widget.quickMode ? 2 : 5;
+
+  /// 현재 스텝의 캐릭터 정보를 안전하게 가져온다.
+  /// 퀵 모드에서 _currentStep이 _stepCharacters 범위를 벗어나지 않도록 clamp 처리.
+  _StepInfo get _currentStepInfo {
+    final index = _currentStep.clamp(0, _stepCharacters.length - 1);
+    return _stepCharacters[index];
+  }
+
   @override
   void initState() {
     super.initState();
@@ -195,7 +216,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
   void _nextStep() {
     if (!_validateCurrentStep()) return;
 
-    if (_currentStep < 4) {
+    if (_currentStep < _totalSteps - 1) {
       _goToStep(_currentStep + 1);
     } else {
       _submitProfile();
@@ -211,10 +232,13 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
 
   bool _validateCurrentStep() {
     switch (_currentStep) {
-      case 0: // 사진: 최소 2장
+      case 0: // 사진: 퀵 모드 최소 1장, 풀 모드 최소 2장
+        final requiredCount = widget.quickMode ? 1 : 2;
         final photoCount = _photoSlots.where((s) => s).length;
-        if (photoCount < 2) {
-          _showSnack('프로필 사진을 최소 2장 추가해주세요');
+        if (photoCount < requiredCount) {
+          _showSnack(widget.quickMode
+              ? '프로필 사진 1장을 추가해주세요'
+              : '프로필 사진을 최소 2장 추가해주세요');
           return false;
         }
         return true;
@@ -280,12 +304,12 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
           height: int.parse(_heightController.text.trim()),
           occupation: _occupationController.text.trim(),
           location: _selectedLocation!,
-          bio: _bioController.text.trim(),
-          interests: _selectedInterests.toList(),
-          mbti: _selectedMbti,
-          drinking: _selectedDrinking,
-          smoking: _selectedSmoking,
-          religion: _selectedReligion,
+          bio: widget.quickMode ? '' : _bioController.text.trim(),
+          interests: widget.quickMode ? [] : _selectedInterests.toList(),
+          mbti: widget.quickMode ? null : _selectedMbti,
+          drinking: widget.quickMode ? null : _selectedDrinking,
+          smoking: widget.quickMode ? null : _selectedSmoking,
+          religion: widget.quickMode ? null : _selectedReligion,
         );
 
     if (result != null && mounted) {
@@ -310,7 +334,11 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
   // -------------------------------------------------------------------------
 
   int get _progressPercent {
-    // 사주 완료 = 40%, 각 스텝 +12%
+    if (widget.quickMode) {
+      // 퀵 모드: 사주 완료 40% + 각 스텝 +15% → 최대 70%
+      return 40 + (_currentStep * 15);
+    }
+    // 풀 모드: 사주 완료 40% + 각 스텝 +12% → 최대 88%
     return 40 + (_currentStep * 12);
   }
 
@@ -340,13 +368,18 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
               child: PageView(
                 controller: _pageController,
                 physics: const NeverScrollableScrollPhysics(),
-                children: [
-                  _buildStep1Photos(),
-                  _buildStep2BasicInfo(),
-                  _buildStep3Expression(),
-                  _buildStep4Lifestyle(),
-                  _buildStep5Verification(),
-                ],
+                children: widget.quickMode
+                    ? [
+                        _buildStep1Photos(),
+                        _buildStep2BasicInfo(),
+                      ]
+                    : [
+                        _buildStep1Photos(),
+                        _buildStep2BasicInfo(),
+                        _buildStep3Expression(),
+                        _buildStep4Lifestyle(),
+                        _buildStep5Verification(),
+                      ],
               ),
             ),
 
@@ -398,7 +431,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
             const SizedBox(width: 40),
           const Spacer(),
           Text(
-            '프로필 완성하기  ${_currentStep + 1}/5',
+            '프로필 완성하기  ${_currentStep + 1}/$_totalSteps',
             style: theme.textTheme.labelLarge?.copyWith(
               color: theme.colorScheme.outline,
             ),
@@ -440,7 +473,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
               Text(
                 '$_progressPercent%',
                 style: theme.textTheme.labelSmall?.copyWith(
-                  color: _stepCharacters[_currentStep].color.resolve(context),
+                  color: _currentStepInfo.color.resolve(context),
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -454,7 +487,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
               minHeight: 6,
               backgroundColor: theme.colorScheme.outline.withValues(alpha: 0.1),
               valueColor: AlwaysStoppedAnimation<Color>(
-                _stepCharacters[_currentStep].color.resolve(context),
+                _currentStepInfo.color.resolve(context),
               ),
             ),
           ),
@@ -477,9 +510,11 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
 
           SajuCharacterBubble(
             characterName: '불꼬리',
-            message: _hasGwansangPhotos
-                ? '관상 분석 사진이 자동으로 들어갔어!\n더 추가해도 돼~'
-                : '첫인상이 중요해!\n멋진 사진 보여줘~',
+            message: widget.quickMode
+                ? '첫인상이 중요해!\n정면 사진 1장이면 충분해~'
+                : _hasGwansangPhotos
+                    ? '관상 분석 사진이 자동으로 들어갔어!\n더 추가해도 돼~'
+                    : '첫인상이 중요해!\n멋진 사진 보여줘~',
             elementColor: SajuColor.fire,
             size: SajuSize.md,
           ),
@@ -686,7 +721,9 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
 
           SajuCharacterBubble(
             characterName: '흙순이',
-            message: '몇 가지만 더 알려줘!\n금방이야~',
+            message: widget.quickMode
+                ? '마지막이야! 금방이지?\n이것만 알려주면 돼~'
+                : '몇 가지만 더 알려줘!\n금방이야~',
             elementColor: SajuColor.earth,
             size: SajuSize.md,
           ),
@@ -1169,8 +1206,8 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
   // -------------------------------------------------------------------------
 
   Widget _buildBottomButtons(ThemeData theme) {
-    final isLastStep = _currentStep == 4;
-    final currentColor = _stepCharacters[_currentStep].color;
+    final isLastStep = _currentStep == _totalSteps - 1;
+    final currentColor = _currentStepInfo.color;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(
@@ -1199,8 +1236,9 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
             size: SajuSize.xl,
             leadingIcon: isLastStep ? Icons.celebration : null,
           ),
-          // Step 4(라이프스타일), Step 5(인증)는 건너뛰기 가능
-          if (_currentStep >= 3) ...[
+          // 풀 모드에서만 Step 4(라이프스타일), Step 5(인증)는 건너뛰기 가능
+          // 퀵 모드에서는 스킵 버튼 표시하지 않음
+          if (!widget.quickMode && _currentStep >= 3) ...[
             SajuSpacing.gap4,
             SajuButton(
               label: isLastStep ? '나중에 인증할게요' : '건너뛰기',
