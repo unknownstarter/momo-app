@@ -372,12 +372,12 @@ class SajuResultPage extends ConsumerWidget {
     return Column(
       children: [
         SajuButton(
-          label: '운명의 인연 찾으러 가기',
-          onPressed: () => context.go(RoutePaths.matchingProfile),
+          label: '내 관상도 알아보기',
+          onPressed: () => context.go(RoutePaths.gwansangBridge, extra: result),
           variant: SajuVariant.filled,
           color: elementColor,
           size: SajuSize.lg,
-          leadingIcon: Icons.favorite,
+          leadingIcon: Icons.face_retouching_natural,
         ),
         SajuSpacing.gap16,
         SajuButton(

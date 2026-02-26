@@ -16,6 +16,8 @@ import '../../features/auth/data/datasources/auth_remote_datasource.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../features/chat/data/datasources/chat_remote_datasource.dart';
 import '../../features/chat/data/repositories/mock_chat_repository.dart';
+import '../../features/gwansang/data/datasources/gwansang_remote_datasource.dart';
+import '../../features/gwansang/data/repositories/gwansang_repository_impl.dart';
 import '../../features/matching/data/repositories/matching_repository_impl.dart';
 import '../../features/profile/data/repositories/profile_repository_impl.dart';
 import '../../features/saju/data/datasources/saju_remote_datasource.dart';
@@ -24,6 +26,7 @@ import '../../features/saju/data/repositories/saju_repository_impl.dart';
 // --- Domain Layer (인터페이스) ---
 import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../../features/chat/domain/repositories/chat_repository.dart';
+import '../../features/gwansang/domain/repositories/gwansang_repository.dart';
 import '../../features/matching/domain/repositories/matching_repository.dart';
 import '../../features/profile/domain/repositories/profile_repository.dart';
 import '../../features/saju/domain/repositories/saju_repository.dart';
@@ -111,4 +114,20 @@ ChatRepository chatRepository(Ref ref) {
   return MockChatRepository();
   // TODO: Supabase 연동 시 아래로 교체
   // return ChatRepositoryImpl(ref.watch(chatRemoteDatasourceProvider));
+}
+
+// =============================================================================
+// Gwansang (관상)
+// =============================================================================
+
+/// 관상 데이터소스 Provider
+@riverpod
+GwansangRemoteDatasource gwansangRemoteDatasource(Ref ref) {
+  return GwansangRemoteDatasource(ref.watch(supabaseHelperProvider));
+}
+
+/// 관상 Repository Provider
+@riverpod
+GwansangRepository gwansangRepository(Ref ref) {
+  return GwansangRepositoryImpl(ref.watch(gwansangRemoteDatasourceProvider));
 }

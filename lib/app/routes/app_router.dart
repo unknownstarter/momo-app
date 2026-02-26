@@ -18,6 +18,10 @@ import '../../features/chat/presentation/pages/chat_list_page.dart';
 import '../../features/chat/presentation/pages/chat_room_page.dart';
 import '../../features/profile/presentation/pages/matching_profile_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
+import '../../features/gwansang/presentation/pages/gwansang_analysis_page.dart';
+import '../../features/gwansang/presentation/pages/gwansang_bridge_page.dart';
+import '../../features/gwansang/presentation/pages/gwansang_photo_page.dart';
+import '../../features/gwansang/presentation/pages/gwansang_result_page.dart';
 import '../../features/saju/presentation/pages/saju_analysis_page.dart';
 import '../../features/saju/presentation/pages/saju_result_page.dart';
 import '../../features/saju/presentation/providers/saju_provider.dart';
@@ -79,6 +83,10 @@ GoRouter appRouter(Ref ref) {
         RoutePaths.sajuAnalysis,
         RoutePaths.sajuResult,
         RoutePaths.matchingProfile,
+        RoutePaths.gwansangBridge,
+        RoutePaths.gwansangPhoto,
+        RoutePaths.gwansangAnalysis,
+        RoutePaths.gwansangResult,
       ];
       final isPublicPath = publicPaths.contains(currentPath);
 
@@ -239,6 +247,48 @@ GoRouter appRouter(Ref ref) {
         builder: (context, state) {
           final result = state.extra as SajuAnalysisResult?;
           return SajuResultPage(result: result);
+        },
+      ),
+
+      // --- 관상 퍼널 ---
+
+      // 관상 브릿지 (사주 결과 → 관상 유도)
+      GoRoute(
+        path: RoutePaths.gwansangBridge,
+        name: RouteNames.gwansangBridge,
+        builder: (context, state) {
+          final sajuResult = state.extra;
+          return GwansangBridgePage(sajuResult: sajuResult);
+        },
+      ),
+
+      // 관상 사진 업로드
+      GoRoute(
+        path: RoutePaths.gwansangPhoto,
+        name: RouteNames.gwansangPhoto,
+        builder: (context, state) {
+          final sajuResult = state.extra;
+          return GwansangPhotoPage(sajuResult: sajuResult);
+        },
+      ),
+
+      // 관상 분석 (로딩 애니메이션)
+      GoRoute(
+        path: RoutePaths.gwansangAnalysis,
+        name: RouteNames.gwansangAnalysis,
+        builder: (context, state) {
+          final data = state.extra as Map<String, dynamic>? ?? {};
+          return GwansangAnalysisPage(analysisData: data);
+        },
+      ),
+
+      // 관상 결과 (동물상 리빌)
+      GoRoute(
+        path: RoutePaths.gwansangResult,
+        name: RouteNames.gwansangResult,
+        builder: (context, state) {
+          final result = state.extra;
+          return GwansangResultPage(result: result);
         },
       ),
 

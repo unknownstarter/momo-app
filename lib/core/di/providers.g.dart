@@ -165,5 +165,46 @@ final chatRepositoryProvider = AutoDisposeProvider<ChatRepository>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef ChatRepositoryRef = AutoDisposeProviderRef<ChatRepository>;
+String _$gwansangRemoteDatasourceHash() => r'gwansangRemoteDatasource_di';
+
+/// 관상 데이터소스 Provider
+///
+/// Copied from [gwansangRemoteDatasource].
+@ProviderFor(gwansangRemoteDatasource)
+final gwansangRemoteDatasourceProvider =
+    AutoDisposeProvider<GwansangRemoteDatasource>.internal(
+  gwansangRemoteDatasource,
+  name: r'gwansangRemoteDatasourceProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$gwansangRemoteDatasourceHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef GwansangRemoteDatasourceRef
+    = AutoDisposeProviderRef<GwansangRemoteDatasource>;
+String _$gwansangRepositoryHash() => r'gwansangRepository_di';
+
+/// 관상 Repository Provider
+///
+/// Copied from [gwansangRepository].
+@ProviderFor(gwansangRepository)
+final gwansangRepositoryProvider =
+    AutoDisposeProvider<GwansangRepository>.internal(
+  gwansangRepository,
+  name: r'gwansangRepositoryProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$gwansangRepositoryHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef GwansangRepositoryRef = AutoDisposeProviderRef<GwansangRepository>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
