@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/services/haptic_service.dart';
@@ -20,7 +23,8 @@ import '../../../../core/widgets/widgets.dart';
 /// | 1 | 물결이(水) | 성별 | 자동 진행 |
 /// | 2 | 물결이(水) | 생년월일 | 버튼 활성화 |
 /// | 3 | 쇠동이(金) | 생시(시진) | 자동 진행 |
-/// | 4 | 물결이(水) | 확인 요약 | CTA 버튼 |
+/// | 4 | 불꼬리(火) | 사진(정면) | 버튼 활성화 |
+/// | 5 | 물결이(水) | 확인 요약 | CTA 버튼 |
 class OnboardingFormPage extends StatefulWidget {
   const OnboardingFormPage({
     super.key,
@@ -35,7 +39,7 @@ class OnboardingFormPage extends StatefulWidget {
 }
 
 class _OnboardingFormPageState extends State<OnboardingFormPage> {
-  static const _totalSteps = 5;
+  static const _totalSteps = 6;
 
   final _pageController = PageController();
   int _currentStep = 0;
@@ -61,6 +65,11 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
   // ---------------------------------------------------------------------------
   int? _selectedSiJinIndex; // 0~11 (자시~해시), null = 모르겠어요
   bool _siJinIsUnknown = false;
+
+  // ---------------------------------------------------------------------------
+  // Step 4: 사진(정면)
+  // ---------------------------------------------------------------------------
+  String? _photoPath; // 로컬 파일 경로
 
   // ---------------------------------------------------------------------------
   // 12시진 데이터
@@ -112,6 +121,11 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
       name: '쇠동이',
       asset: CharacterAssets.soedongiMetalDefault,
       color: SajuColor.metal,
+    ),
+    _StepCharacter(
+      name: '불꼬리',
+      asset: CharacterAssets.bulkkoriFireDefault,
+      color: SajuColor.fire,
     ),
     _StepCharacter(
       name: '물결이',
@@ -173,7 +187,9 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
         return _birthDate != null;
       case 3: // 시진 — 모르겠어요 허용이므로 항상 통과
         return true;
-      case 4: // 확인 — 항상 통과
+      case 4: // 사진 — 선택 필수
+        return _photoPath != null;
+      case 5: // 확인 — 항상 통과
         return true;
       default:
         return true;
@@ -184,7 +200,8 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
   bool get _isCurrentStepValid => switch (_currentStep) {
     0 => _nameController.text.trim().length >= 2,
     2 => _birthDate != null,
-    4 => true,
+    4 => _photoPath != null,
+    5 => true,
     _ => true,
   };
 
@@ -198,6 +215,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
       'birthTime': _selectedSiJinIndex != null
           ? _siJinToHHmm(_selectedSiJinIndex!)
           : null,
+      'photoPath': _photoPath,
     };
 
     widget.onComplete(formData);
@@ -244,6 +262,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
                   _buildStepGender(),
                   _buildStepBirthDate(),
                   _buildStepSiJin(),
+                  _buildStepPhoto(),
                   _buildStepConfirm(),
                 ],
               ),
@@ -645,7 +664,165 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
   }
 
   // ---------------------------------------------------------------------------
-  // Step 4: 입력 확인 요약
+  // Step 4: 사진(정면) — 이미지 피커
+  // ---------------------------------------------------------------------------
+
+  Widget _buildStepPhoto() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: SajuSpacing.space24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SajuSpacing.gap8,
+          SajuCharacterBubble(
+            characterName: '불꼬리',
+            message: '당신의 얼굴에 어떤 동물이 숨어있을까?\n정면 사진 한 장이면 충분해!',
+            elementColor: SajuColor.fire,
+            characterAssetPath: CharacterAssets.bulkkoriFireDefault,
+            size: SajuSize.md,
+          ),
+          const SizedBox(height: SajuSpacing.space32),
+          Center(
+            child: GestureDetector(
+              onTap: _pickPhoto,
+              child: _photoPath != null
+                  ? _buildPhotoPreview()
+                  : _buildPhotoPlaceholder(),
+            ),
+          ),
+          if (_photoPath != null) ...[
+            const SizedBox(height: SajuSpacing.space16),
+            Center(
+              child: SajuButton(
+                label: '다시 찍기',
+                onPressed: _pickPhoto,
+                variant: SajuVariant.ghost,
+                color: SajuColor.fire,
+                size: SajuSize.sm,
+              ),
+            ),
+          ],
+          const SizedBox(height: SajuSpacing.space24),
+          // 안내 텍스트
+          Container(
+            padding: const EdgeInsets.all(SajuSpacing.space16),
+            decoration: BoxDecoration(
+              color: AppTheme.firePastel.withValues(alpha: 0.4),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  size: 18,
+                  color: AppTheme.fireColor.withValues(alpha: 0.7),
+                ),
+                SajuSpacing.hGap8,
+                Expanded(
+                  child: Text(
+                    '정면을 바라본 사진이 가장 정확해요.\nAI가 관상을 분석해 동물상을 알려줄게요!',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: const Color(0xFF6B6B6B),
+                      height: 1.5,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPhotoPlaceholder() {
+    return Container(
+      width: 180,
+      height: 180,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white,
+        border: Border.all(
+          color: AppTheme.fireColor.withValues(alpha: 0.3),
+          width: 2,
+          strokeAlign: BorderSide.strokeAlignInside,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.fireColor.withValues(alpha: 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.camera_alt_outlined,
+            size: 40,
+            color: AppTheme.fireColor.withValues(alpha: 0.5),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '사진 선택',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppTheme.fireColor.withValues(alpha: 0.7),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPhotoPreview() {
+    return Container(
+      width: 180,
+      height: 180,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: AppTheme.fireColor.withValues(alpha: 0.4),
+          width: 3,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.fireColor.withValues(alpha: 0.15),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipOval(
+        child: Image.file(
+          File(_photoPath!),
+          width: 180,
+          height: 180,
+          fit: BoxFit.cover,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickPhoto() async {
+    final picker = ImagePicker();
+    final image = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1024,
+      maxHeight: 1024,
+      imageQuality: 85,
+    );
+    if (image != null) {
+      setState(() => _photoPath = image.path);
+      HapticService.selection();
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Step 5: 입력 확인 요약
   // ---------------------------------------------------------------------------
 
   Widget _buildStepConfirm() {
@@ -657,7 +834,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
           SajuSpacing.gap8,
           SajuCharacterBubble(
             characterName: '물결이',
-            message: '좋아! 이제 사주를 분석해볼까?',
+            message: '좋아! 이제 사주와 관상을 함께 분석해볼까?',
             elementColor: SajuColor.water,
             characterAssetPath: CharacterAssets.mulgyeoriWaterDefault,
             size: SajuSize.md,
@@ -710,6 +887,8 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
                 : '모르겠어요',
             3,
           ),
+          const Divider(height: 24),
+          _summaryPhotoRow(),
         ],
       ),
     );
@@ -756,6 +935,59 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
     );
   }
 
+  Widget _summaryPhotoRow() {
+    return GestureDetector(
+      onTap: () => _goToStep(4),
+      child: Row(
+        children: [
+          Icon(Icons.camera_alt, size: 20, color: AppTheme.fireColor),
+          const SizedBox(width: 12),
+          Text(
+            '사진',
+            style: TextStyle(
+              fontSize: 14,
+              color: const Color(0xFF6B6B6B),
+            ),
+          ),
+          const Spacer(),
+          if (_photoPath != null)
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: AppTheme.fireColor.withValues(alpha: 0.3),
+                ),
+              ),
+              child: ClipOval(
+                child: Image.file(
+                  File(_photoPath!),
+                  width: 32,
+                  height: 32,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            )
+          else
+            Text(
+              '미선택',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          const SizedBox(width: 8),
+          Icon(
+            Icons.edit_outlined,
+            size: 14,
+            color: const Color(0xFFA0A0A0),
+          ),
+        ],
+      ),
+    );
+  }
+
   // ---------------------------------------------------------------------------
   // 하단 버튼 — 자동 진행 스텝에서는 숨김
   // ---------------------------------------------------------------------------
@@ -786,7 +1018,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
         ],
       ),
       child: SajuButton(
-        label: isLastStep ? '사주 분석하기' : '다음',
+        label: isLastStep ? '운명 분석하기' : '다음',
         onPressed: isValid ? _nextStep : null,
         color: _stepCharacters[_currentStep].color,
         size: SajuSize.xl,

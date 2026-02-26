@@ -94,8 +94,10 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage>
           'birthTime': formData['birthTime'] as String?,
           'isLunar': false,
           'userName': formData['name'] as String?,
+          'gender': formData['gender'] as String?,
+          'photoPath': formData['photoPath'] as String?,
         };
-        context.go(RoutePaths.sajuAnalysis, extra: analysisData);
+        context.go(RoutePaths.destinyAnalysis, extra: analysisData);
       }
     } catch (e) {
       if (mounted) {

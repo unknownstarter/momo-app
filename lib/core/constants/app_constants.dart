@@ -33,6 +33,10 @@ abstract final class RoutePaths {
   static const payment = '/payment';
   static const paymentSuccess = '/payment/success';
 
+  // --- 통합 운명 분석 ---
+  static const destinyAnalysis = '/destiny-analysis';
+  static const destinyResult = '/destiny-result';
+
   // --- 관상 퍼널 ---
   static const gwansangBridge = '/gwansang-bridge';
   static const gwansangPhoto = '/gwansang-photo';
@@ -65,6 +69,8 @@ abstract final class RouteNames {
   static const editProfile = 'edit-profile';
   static const payment = 'payment';
   static const paymentSuccess = 'payment-success';
+  static const destinyAnalysis = 'destiny-analysis';
+  static const destinyResult = 'destiny-result';
   static const gwansangBridge = 'gwansang-bridge';
   static const gwansangPhoto = 'gwansang-photo';
   static const gwansangAnalysis = 'gwansang-analysis';

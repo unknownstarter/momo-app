@@ -22,6 +22,8 @@ import '../../features/gwansang/presentation/pages/gwansang_analysis_page.dart';
 import '../../features/gwansang/presentation/pages/gwansang_bridge_page.dart';
 import '../../features/gwansang/presentation/pages/gwansang_photo_page.dart';
 import '../../features/gwansang/presentation/pages/gwansang_result_page.dart';
+import '../../features/destiny/presentation/pages/destiny_analysis_page.dart';
+import '../../features/destiny/presentation/pages/destiny_result_page.dart';
 import '../../features/saju/presentation/pages/saju_analysis_page.dart';
 import '../../features/saju/presentation/pages/saju_result_page.dart';
 import '../../features/saju/presentation/providers/saju_provider.dart';
@@ -82,6 +84,8 @@ GoRouter appRouter(Ref ref) {
         RoutePaths.onboarding,
         RoutePaths.sajuAnalysis,
         RoutePaths.sajuResult,
+        RoutePaths.destinyAnalysis,
+        RoutePaths.destinyResult,
         RoutePaths.matchingProfile,
         RoutePaths.gwansangBridge,
         RoutePaths.gwansangPhoto,
@@ -247,6 +251,31 @@ GoRouter appRouter(Ref ref) {
         builder: (context, state) {
           final result = state.extra as SajuAnalysisResult?;
           return SajuResultPage(result: result);
+        },
+      ),
+
+      // --- 통합 운명 분석 ---
+
+      // 통합 분석 (사주 + 관상 순차 실행)
+      GoRoute(
+        path: RoutePaths.destinyAnalysis,
+        name: RouteNames.destinyAnalysis,
+        builder: (context, state) {
+          final data = state.extra as Map<String, dynamic>? ?? {};
+          return DestinyAnalysisPage(analysisData: data);
+        },
+      ),
+
+      // 통합 결과 (TabBar [사주 | 관상])
+      GoRoute(
+        path: RoutePaths.destinyResult,
+        name: RouteNames.destinyResult,
+        builder: (context, state) {
+          final data = state.extra as Map<String, dynamic>? ?? {};
+          return DestinyResultPage(
+            sajuResult: data['sajuResult'],
+            gwansangResult: data['gwansangResult'],
+          );
         },
       ),
 
