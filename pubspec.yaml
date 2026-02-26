@@ -38,6 +38,11 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter_svg: ^2.0.17
 
+  # --- 관상 (Face Reading) ---
+  google_mlkit_face_detection: ^0.13.2
+  image_picker: ^1.1.2
+  image_cropper: ^8.0.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

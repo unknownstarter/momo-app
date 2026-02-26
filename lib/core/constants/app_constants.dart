@@ -33,6 +33,12 @@ abstract final class RoutePaths {
   static const payment = '/payment';
   static const paymentSuccess = '/payment/success';
 
+  // --- 관상 퍼널 ---
+  static const gwansangBridge = '/gwansang-bridge';
+  static const gwansangPhoto = '/gwansang-photo';
+  static const gwansangAnalysis = '/gwansang-analysis';
+  static const gwansangResult = '/gwansang-result';
+
   /// matchDetail 경로에 실제 ID를 삽입
   static String matchDetailPath(String matchId) => '/matching/$matchId';
 
@@ -59,6 +65,10 @@ abstract final class RouteNames {
   static const editProfile = 'edit-profile';
   static const payment = 'payment';
   static const paymentSuccess = 'payment-success';
+  static const gwansangBridge = 'gwansang-bridge';
+  static const gwansangPhoto = 'gwansang-photo';
+  static const gwansangAnalysis = 'gwansang-analysis';
+  static const gwansangResult = 'gwansang-result';
 }
 
 // =============================================================================
@@ -85,6 +95,7 @@ abstract final class SupabaseTables {
   static const dailyUsage = 'daily_usage';
   static const characterItems = 'character_items';
   static const purchases = 'purchases';
+  static const gwansangProfiles = 'gwansang_profiles';
 }
 
 /// Supabase Storage 버킷명
@@ -92,6 +103,7 @@ abstract final class SupabaseBuckets {
   static const profileImages = 'profile-images';
   static const chatImages = 'chat-images';
   static const sajuCards = 'saju-cards';
+  static const gwansangPhotos = 'gwansang-photos';
 }
 
 /// Supabase Edge Function 이름
@@ -107,6 +119,7 @@ abstract final class SupabaseFunctions {
   static const purchasePoints = 'purchase-points';
   static const getDailyMatches = 'get-daily-matches';
   static const resetDailyUsage = 'reset-daily-usage';
+  static const generateGwansangReading = 'generate-gwansang-reading';
 }
 
 // =============================================================================
