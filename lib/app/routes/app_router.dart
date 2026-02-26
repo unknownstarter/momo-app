@@ -77,11 +77,15 @@ GoRouter appRouter(Ref ref) {
 
       final isLoggedIn = authState.valueOrNull != null;
 
-      // 인증이 필요 없는 경로들
+      // 인증이 필요 없는 경로들 (둘러보기 모드 지원)
       const publicPaths = [
         RoutePaths.splash,
         RoutePaths.login,
         RoutePaths.onboarding,
+        RoutePaths.home, // 둘러보기 모드
+        RoutePaths.matching, // 둘러보기 모드
+        RoutePaths.chat, // 둘러보기 모드
+        RoutePaths.profile, // 둘러보기 모드
         RoutePaths.sajuAnalysis,
         RoutePaths.sajuResult,
         RoutePaths.destinyAnalysis,

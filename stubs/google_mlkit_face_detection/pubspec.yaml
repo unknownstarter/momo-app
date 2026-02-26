@@ -1,0 +1,7 @@
+name: google_mlkit_face_detection
+description: Stub package for simulator builds — no native dependencies
+version: 0.13.2
+publish_to: none
+
+environment:
+  sdk: ^3.10.0

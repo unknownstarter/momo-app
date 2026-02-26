@@ -53,8 +53,8 @@ dev_dependencies:
   riverpod_generator: ^2.6.3
   freezed: ^2.5.7
   json_serializable: ^6.9.4
-  custom_lint:
-  riverpod_lint:
+  # custom_lint: any       # TODO: analyzer 호환 버전 나오면 복원
+  # riverpod_lint: any     # TODO: analyzer 호환 버전 나오면 복원
 
 flutter:
   uses-material-design: true

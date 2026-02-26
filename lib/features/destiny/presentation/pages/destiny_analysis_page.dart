@@ -1,21 +1,19 @@
-/// 통합 운명 분석 로딩 페이지 — 사주 + 관상 순차 분석
+/// 통합 운명 분석 로딩 페이지 — 토스 스타일 미니멀 로딩
 ///
 /// 온보딩에서 수집한 (이름, 성별, 생년월일시, 사진) 데이터를 기반으로
 /// 사주 분석(~3s) → 관상 분석(~5s)을 순차 실행하며,
-/// 하나의 연출 흐름(~10s)으로 보여준다.
+/// 하나의 깔끔한 연출 흐름(~10s)으로 보여준다.
 ///
-/// | 구간 | 시간 | 텍스트 |
-/// |------|------|--------|
-/// | Phase 1 | 0-2s | "사주팔자를 풀어보고 있어요..." |
-/// | Phase 2 | 2-4s | "오행의 기운을 읽고 있어요..." |
-/// | Phase 3 | 4-6s | "당신의 관상을 분석하고 있어요..." |
-/// | Phase 4 | 6-8s | "닮은 동물상을 찾고 있어요..." |
-/// | Phase 5 | 8-10s | "운명을 정리하고 있어요..." |
+/// 디자인 원칙:
+/// - 캐릭터/장식 요소 없음 — 타이포 위계 + 미니멀 인디케이터
+/// - 다크 배경 + 은은한 골드 악센트
+/// - 단계별 텍스트가 자연스럽게 전환
+/// - 토스 송금 로딩처럼 깔끔하고 신뢰감 있는 UX
 library;
 
 import 'dart:async';
-import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -26,16 +24,20 @@ import '../../../../core/theme/theme_extensions.dart';
 import '../../../../core/theme/tokens/saju_colors.dart';
 import '../../../../core/theme/tokens/saju_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
+import '../../../gwansang/domain/entities/animal_type.dart';
+import '../../../gwansang/domain/entities/face_measurements.dart';
+import '../../../gwansang/domain/entities/gwansang_entity.dart';
 import '../../../gwansang/presentation/providers/gwansang_provider.dart';
+import '../../../saju/domain/entities/saju_entity.dart';
 import '../../../saju/presentation/providers/saju_provider.dart';
 
-/// 분석 단계 텍스트
-const _phaseTexts = [
-  '사주팔자를 풀어보고 있어요...',
-  '오행의 기운을 읽고 있어요...',
-  '당신의 관상을 분석하고 있어요...',
-  '닮은 동물상을 찾고 있어요...',
-  '운명을 정리하고 있어요...',
+/// 분석 단계 데이터
+const _phases = [
+  _Phase('사주팔자를 풀어보고 있어요', '생년월일시를 바탕으로 사주를 계산해요'),
+  _Phase('오행의 기운을 읽고 있어요', '목·화·토·금·수의 균형을 살펴봐요'),
+  _Phase('당신의 관상을 분석하고 있어요', '얼굴의 이목구비 비율을 측정해요'),
+  _Phase('닮은 동물상을 찾고 있어요', '10가지 동물상 중 가장 닮은 상을 찾아요'),
+  _Phase('운명을 정리하고 있어요', '사주와 관상을 하나로 통합해요'),
 ];
 
 class DestinyAnalysisPage extends ConsumerStatefulWidget {
@@ -61,16 +63,11 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
   late final AnimationController _progressController;
   late final Animation<double> _progressAnimation;
 
-  /// 캐릭터 회전
-  late final AnimationController _rotationController;
-
-  /// 펄스
-  late final AnimationController _pulseController;
-  late final Animation<double> _pulseAnimation;
-
   /// 텍스트 페이드
   late final AnimationController _textFadeController;
-  late final Animation<double> _textFadeAnimation;
+
+  /// 전체 페이드인
+  late final AnimationController _fadeInController;
 
   // ---------------------------------------------------------------------------
   // 상태
@@ -93,17 +90,6 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
   bool _hasError = false;
   String? _errorMessage;
 
-  // ---------------------------------------------------------------------------
-  // 캐릭터 데이터
-  // ---------------------------------------------------------------------------
-  static const _characters = [
-    _CharData('나무리', CharacterAssets.namuriWoodDefault, SajuColor.wood),
-    _CharData('불꼬리', CharacterAssets.bulkkoriFireDefault, SajuColor.fire),
-    _CharData('흙순이', CharacterAssets.heuksuniEarthDefault, SajuColor.earth),
-    _CharData('쇠동이', CharacterAssets.soedongiMetalDefault, SajuColor.metal),
-    _CharData('물결이', CharacterAssets.mulgyeoriWaterDefault, SajuColor.water),
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -118,26 +104,11 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
       vsync: this,
       duration: const Duration(seconds: 10),
     );
-    _progressAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _progressController, curve: Curves.easeInOut),
+    _progressAnimation = CurvedAnimation(
+      parent: _progressController,
+      curve: Curves.easeInOut,
     );
     _progressController.forward();
-
-    // 캐릭터 회전 (무한)
-    _rotationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 4000),
-    )..repeat();
-
-    // 펄스
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    );
-    _pulseAnimation = Tween<double>(begin: 0.95, end: 1.05).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
-    _pulseController.repeat(reverse: true);
 
     // 텍스트 페이드
     _textFadeController = AnimationController(
@@ -145,7 +116,13 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
       duration: const Duration(milliseconds: 300),
       value: 1.0,
     );
-    _textFadeAnimation = _textFadeController;
+
+    // 전체 페이드인
+    _fadeInController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    _fadeInController.forward();
   }
 
   // ---------------------------------------------------------------------------
@@ -154,7 +131,7 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
 
   void _startPhaseTimer() {
     _phaseTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
-      if (_currentPhase < _phaseTexts.length - 1) {
+      if (_currentPhase < _phases.length - 1) {
         _textFadeController.reverse().then((_) {
           if (!mounted) return;
           setState(() => _currentPhase++);
@@ -245,9 +222,8 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
   void dispose() {
     _phaseTimer?.cancel();
     _progressController.dispose();
-    _rotationController.dispose();
-    _pulseController.dispose();
     _textFadeController.dispose();
+    _fadeInController.dispose();
     super.dispose();
   }
 
@@ -257,12 +233,17 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
     ref.listen(sajuAnalysisNotifierProvider, (prev, next) {
       if (next.hasValue && next.value != null && _sajuResult == null) {
         _sajuResult = next.value;
-        // 사주 완료 → 관상 시작
         _startGwansangAnalysis(next.value!);
       } else if (next.hasError) {
+        if (kDebugMode) {
+          final mockSaju = _createMockSajuResult();
+          _sajuResult = mockSaju;
+          _startGwansangAnalysis(mockSaju);
+          return;
+        }
         setState(() {
           _hasError = true;
-          _errorMessage = '사주 분석 중에 문제가 생겼어요...';
+          _errorMessage = '사주 분석 중에 문제가 생겼어요';
         });
       }
     });
@@ -273,7 +254,11 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
         _gwansangResult = next.value;
         _tryNavigate();
       } else if (next.hasError) {
-        // 관상 에러 시에도 사주 결과만으로 진행
+        if (kDebugMode && _gwansangResult == null) {
+          _gwansangResult = _createMockGwansangResult();
+          _tryNavigate();
+          return;
+        }
         _gwansangResult = null;
         if (_animationComplete && _sajuResult != null) {
           _hasNavigated = true;
@@ -294,7 +279,9 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
           return Scaffold(
             backgroundColor: colors.bgPrimary,
             body: SafeArea(
-              child: _hasError ? _buildErrorState(colors) : _buildContent(colors),
+              child: _hasError
+                  ? _buildErrorState(colors)
+                  : _buildContent(colors),
             ),
           );
         },
@@ -303,222 +290,161 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
   }
 
   // ---------------------------------------------------------------------------
-  // 메인 콘텐츠
+  // 메인 콘텐츠 — 토스 스타일 미니멀 로딩
   // ---------------------------------------------------------------------------
 
   Widget _buildContent(SajuColors colors) {
-    return Stack(
-      children: [
-        _buildBackgroundGlow(),
-        Center(
-          child: Padding(
-            padding: SajuSpacing.page,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Spacer(flex: 3),
+    return FadeTransition(
+      opacity: CurvedAnimation(
+        parent: _fadeInController,
+        curve: Curves.easeOut,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: SajuSpacing.space24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Spacer(flex: 3),
 
-                // 5캐릭터 원형 회전
-                _buildCharacterCircles(),
+            // --- 단계 인디케이터 (스텝 dots) ---
+            _buildStepIndicator(colors),
 
-                SajuSpacing.gap32,
+            const SizedBox(height: SajuSpacing.space32),
 
-                // 단계별 텍스트
-                SizedBox(
-                  height: 28,
-                  child: FadeTransition(
-                    opacity: _textFadeAnimation,
-                    child: Text(
-                      _phaseTexts[_currentPhase],
-                      key: ValueKey(_currentPhase),
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: colors.textPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-
-                SajuSpacing.gap32,
-
-                // 프로그레스 바
-                _buildProgressBar(colors),
-
-                SajuSpacing.gap24,
-
-                // 안내 캡션
-                Text(
-                  '사주와 관상을 함께 분석하고 있어요',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colors.textTertiary,
+            // --- 메인 텍스트 ---
+            SizedBox(
+              height: 72,
+              child: FadeTransition(
+                opacity: _textFadeController,
+                child: Column(
+                  key: ValueKey(_currentPhase),
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _phases[_currentPhase].title,
+                      style: const TextStyle(
+                        fontFamily: AppTheme.fontFamily,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.5,
+                        height: 1.3,
+                        color: Color(0xFFE8E4DF),
                       ),
-                ),
-
-                const Spacer(flex: 4),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // 5캐릭터 원형 회전
-  // ---------------------------------------------------------------------------
-
-  Widget _buildCharacterCircles() {
-    return AnimatedBuilder(
-      animation: _pulseAnimation,
-      builder: (context, child) {
-        return Transform.scale(
-          scale: _pulseAnimation.value,
-          child: child,
-        );
-      },
-      child: SizedBox(
-        width: 220,
-        height: 220,
-        child: AnimatedBuilder(
-          animation: _rotationController,
-          builder: (context, child) {
-            return Stack(
-              alignment: Alignment.center,
-              children: [
-                // 중앙 글로우
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        AppTheme.mysticGlow.withValues(alpha: 0.2),
-                        AppTheme.mysticGlow.withValues(alpha: 0.0),
-                      ],
                     ),
-                  ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _phases[_currentPhase].subtitle,
+                      style: TextStyle(
+                        fontFamily: AppTheme.fontFamily,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w400,
+                        height: 1.5,
+                        color: const Color(0xFFE8E4DF).withValues(alpha: 0.5),
+                      ),
+                    ),
+                  ],
                 ),
-                // 5캐릭터
-                ...List.generate(5, (i) {
-                  final angle = (2 * math.pi * i / 5) +
-                      (2 * math.pi * _rotationController.value);
-                  const radius = 75.0;
-                  final dx = radius * math.cos(angle - math.pi / 2);
-                  final dy = radius * math.sin(angle - math.pi / 2);
-
-                  return Transform.translate(
-                    offset: Offset(dx, dy),
-                    child: _buildCharCircle(i, 48),
-                  );
-                }),
-              ],
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCharCircle(int index, double size) {
-    final c = _characters[index];
-    final color = c.color.resolve(context);
-
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: color.withValues(alpha: 0.15),
-        border: Border.all(
-          color: color.withValues(alpha: 0.4),
-          width: 2,
-        ),
-      ),
-      child: ClipOval(
-        child: Image.asset(
-          c.assetPath,
-          width: size,
-          height: size,
-          fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => Center(
-            child: Text(
-              c.name.characters.first,
-              style: TextStyle(
-                fontSize: size * 0.35,
-                fontWeight: FontWeight.w600,
-                color: color,
               ),
             ),
-          ),
+
+            const SizedBox(height: SajuSpacing.space48),
+
+            // --- 프로그레스 바 ---
+            _buildProgressBar(colors),
+
+            const Spacer(flex: 5),
+
+            // --- 하단 안내 ---
+            Center(
+              child: Text(
+                '잠시만 기다려 주세요',
+                style: TextStyle(
+                  fontFamily: AppTheme.fontFamily,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w400,
+                  color: const Color(0xFFE8E4DF).withValues(alpha: 0.3),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: SajuSpacing.space32),
+          ],
         ),
       ),
     );
   }
 
   // ---------------------------------------------------------------------------
-  // 프로그레스 바
+  // 스텝 인디케이터 — 현재 단계를 시각적으로 표시
+  // ---------------------------------------------------------------------------
+
+  Widget _buildStepIndicator(SajuColors colors) {
+    return Row(
+      children: List.generate(_phases.length, (index) {
+        final isActive = index == _currentPhase;
+        final isPast = index < _currentPhase;
+
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          margin: const EdgeInsets.only(right: 6),
+          width: isActive ? 24 : 6,
+          height: 6,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(3),
+            color: isActive
+                ? AppTheme.mysticGlow
+                : isPast
+                    ? AppTheme.mysticGlow.withValues(alpha: 0.4)
+                    : const Color(0xFFE8E4DF).withValues(alpha: 0.1),
+          ),
+        );
+      }),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // 프로그레스 바 — 얇고 깔끔한 라인
   // ---------------------------------------------------------------------------
 
   Widget _buildProgressBar(SajuColors colors) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 40),
-      child: AnimatedBuilder(
-        animation: _progressAnimation,
-        builder: (context, _) {
-          return Column(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
+    return AnimatedBuilder(
+      animation: _progressAnimation,
+      builder: (context, _) {
+        final value = _progressAnimation.value;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 퍼센트
+            Text(
+              '${(value * 100).toInt()}%',
+              style: TextStyle(
+                fontFamily: AppTheme.fontFamily,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.mysticGlow.withValues(alpha: 0.8),
+                letterSpacing: -0.3,
+              ),
+            ),
+            const SizedBox(height: 10),
+            // 프로그레스 바
+            ClipRRect(
+              borderRadius: BorderRadius.circular(2),
+              child: SizedBox(
+                height: 3,
                 child: LinearProgressIndicator(
-                  value: _progressAnimation.value,
-                  minHeight: 4,
-                  backgroundColor: colors.bgElevated,
+                  value: value,
+                  backgroundColor:
+                      const Color(0xFFE8E4DF).withValues(alpha: 0.08),
                   valueColor: const AlwaysStoppedAnimation<Color>(
                     AppTheme.mysticGlow,
                   ),
                 ),
               ),
-              SajuSpacing.gap8,
-              Text(
-                '${(_progressAnimation.value * 100).toInt()}%',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppTheme.mysticGlow.withValues(alpha: 0.7),
-                    ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // 배경 글로우
-  // ---------------------------------------------------------------------------
-
-  Widget _buildBackgroundGlow() {
-    return Positioned.fill(
-      child: IgnorePointer(
-        child: Center(
-          child: Container(
-            width: 300,
-            height: 300,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(
-                colors: [
-                  AppTheme.mysticGlow.withValues(alpha: 0.08),
-                  AppTheme.mysticGlow.withValues(alpha: 0.02),
-                  Colors.transparent,
-                ],
-                stops: const [0.0, 0.5, 1.0],
-              ),
             ),
-          ),
-        ),
-      ),
+          ],
+        );
+      },
     );
   }
 
@@ -533,48 +459,42 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // 에러 아이콘
             Container(
-              width: 80,
-              height: 80,
+              width: 64,
+              height: 64,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppTheme.woodPastel.withValues(alpha: 0.2),
-                border: Border.all(
-                  color: AppTheme.woodColor.withValues(alpha: 0.3),
-                  width: 2,
-                ),
+                color: AppTheme.statusError.withValues(alpha: 0.1),
               ),
-              child: ClipOval(
-                child: Image.asset(
-                  _characters[0].assetPath,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => Center(
-                    child: Text(
-                      '나',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.woodColor,
-                      ),
-                    ),
+              child: Center(
+                child: Text(
+                  '!',
+                  style: TextStyle(
+                    fontFamily: AppTheme.fontFamily,
+                    fontSize: 28,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.statusError.withValues(alpha: 0.8),
                   ),
                 ),
               ),
             ),
-            SajuSpacing.gap16,
+            SajuSpacing.gap24,
             Text(
-              _errorMessage ?? '분석 중에 문제가 생겼어...',
+              _errorMessage ?? '분석 중에 문제가 생겼어요',
               style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
+                fontFamily: AppTheme.fontFamily,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
                 color: colors.textPrimary,
               ),
               textAlign: TextAlign.center,
             ),
             SajuSpacing.gap8,
             Text(
-              '다시 한 번 시도해 볼까?',
+              '다시 한 번 시도해 볼까요?',
               style: TextStyle(
+                fontFamily: AppTheme.fontFamily,
                 fontSize: 14,
                 color: colors.textSecondary,
               ),
@@ -616,16 +536,82 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
       ),
     );
   }
+
+  // ---------------------------------------------------------------------------
+  // DEV: Mock 데이터 (디버그 모드 전용)
+  // ---------------------------------------------------------------------------
+
+  SajuAnalysisResult _createMockSajuResult() {
+    return SajuAnalysisResult(
+      profile: SajuProfile(
+        id: 'mock-saju-001',
+        userId: 'dev-mock-user-001',
+        yearPillar: const Pillar(heavenlyStem: '갑', earthlyBranch: '자'),
+        monthPillar: const Pillar(heavenlyStem: '을', earthlyBranch: '축'),
+        dayPillar: const Pillar(heavenlyStem: '병', earthlyBranch: '인'),
+        hourPillar: const Pillar(heavenlyStem: '정', earthlyBranch: '묘'),
+        fiveElements: const FiveElements(
+          wood: 3, fire: 2, earth: 1, metal: 1, water: 1,
+        ),
+        dominantElement: FiveElementType.wood,
+        personalityTraits: const ['창의적', '감성적', '따뜻한', '성장지향적'],
+        aiInterpretation: '갑자일주는 큰 나무와 같은 기운을 가졌어요. '
+            '새로운 것을 시작하는 에너지가 넘치고, '
+            '사람들을 이끄는 자연스러운 리더십이 있답니다. '
+            '목(木)의 기운이 강해서 봄날처럼 따뜻하고 포용력 있는 성격이에요. '
+            '다만 가끔은 너무 이상이 높아 현실과의 갭에서 고민할 수 있어요.',
+        birthDateTime: DateTime(1995, 3, 15, 14, 0),
+        calculatedAt: DateTime.now(),
+      ),
+      characterName: '나무리',
+      characterAssetPath: CharacterAssets.heuksuniEarthDefault,
+      characterGreeting: '안녕! 나는 나무리야. 너의 성장하는 기운이 느껴져!',
+    );
+  }
+
+  GwansangAnalysisResult _createMockGwansangResult() {
+    return GwansangAnalysisResult(
+      profile: GwansangProfile(
+        id: 'mock-gwansang-001',
+        userId: 'dev-mock-user-001',
+        animalType: AnimalType.fox,
+        measurements: const FaceMeasurements(
+          faceShape: 'oval',
+          upperThird: 0.33, middleThird: 0.34, lowerThird: 0.33,
+          eyeSpacing: 0.32, eyeSlant: 0.05, eyeSize: 0.14,
+          noseBridgeHeight: 0.17, noseWidth: 0.28,
+          mouthWidth: 0.38, lipThickness: 0.07,
+          eyebrowArch: 0.03, eyebrowThickness: 0.04,
+          foreheadHeight: 0.33, jawlineAngle: 0.48,
+          faceSymmetry: 0.91, faceLengthRatio: 1.28,
+        ),
+        photoUrls: const [],
+        headline: '본능적으로 분위기를 읽는 타고난 매력가',
+        personalitySummary: '첫인상은 차분하지만, 알수록 매력이 넘치는 스타일이에요. '
+            '상대방의 감정을 잘 읽고 그에 맞는 반응을 하는 데 탁월해요. '
+            '유머 감각이 뛰어나고, 대화를 이끄는 능력이 있어요.',
+        romanceSummary: '밀당의 달인이라 불릴 만큼 연애 감각이 뛰어나요. '
+            '한번 마음을 주면 깊이 빠지지만, 쉽게 다가가지 않는 타입이에요. '
+            '상대방이 먼저 다가오게 만드는 묘한 매력이 있어요.',
+        sajuSynergy: '목(木)의 성장 에너지와 여우상의 예리한 관찰력이 만나 '
+            '사람을 꿰뚫어보는 직관력이 탁월해요. '
+            '새로운 인연 앞에서 본능적으로 "이 사람이다" 하는 감이 잘 맞아요.',
+        charmKeywords: const ['밀당의 달인', '분위기 메이커', '감성 지능 만렙', '은근한 카리스마'],
+        elementModifier: '봄바람의',
+        createdAt: DateTime.now(),
+      ),
+      isNewAnalysis: true,
+    );
+  }
 }
 
 // =============================================================================
-// 캐릭터 데이터 (내부용)
+// 단계 데이터
 // =============================================================================
 
-class _CharData {
-  const _CharData(this.name, this.assetPath, this.color);
+class _Phase {
+  const _Phase(this.title, this.subtitle);
 
-  final String name;
-  final String assetPath;
-  final SajuColor color;
+  final String title;
+  final String subtitle;
 }

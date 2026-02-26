@@ -18,6 +18,8 @@ import '../../features/chat/data/datasources/chat_remote_datasource.dart';
 import '../../features/chat/data/repositories/mock_chat_repository.dart';
 import '../../features/gwansang/data/datasources/gwansang_remote_datasource.dart';
 import '../../features/gwansang/data/repositories/gwansang_repository_impl.dart';
+import '../../features/gwansang/data/services/mlkit_face_analyzer_service.dart';
+import '../../features/gwansang/data/services/mock_face_analyzer_service.dart';
 import '../../features/matching/data/repositories/matching_repository_impl.dart';
 import '../../features/profile/data/repositories/profile_repository_impl.dart';
 import '../../features/saju/data/datasources/saju_remote_datasource.dart';
@@ -27,6 +29,7 @@ import '../../features/saju/data/repositories/saju_repository_impl.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../../features/chat/domain/repositories/chat_repository.dart';
 import '../../features/gwansang/domain/repositories/gwansang_repository.dart';
+import '../../features/gwansang/domain/services/face_analyzer_service.dart';
 import '../../features/matching/domain/repositories/matching_repository.dart';
 import '../../features/profile/domain/repositories/profile_repository.dart';
 import '../../features/saju/domain/repositories/saju_repository.dart';
@@ -130,4 +133,22 @@ GwansangRemoteDatasource gwansangRemoteDatasource(Ref ref) {
 @riverpod
 GwansangRepository gwansangRepository(Ref ref) {
   return GwansangRepositoryImpl(ref.watch(gwansangRemoteDatasourceProvider));
+}
+
+/// 얼굴 분석 서비스 Provider
+///
+/// 실 기기: MlKitFaceAnalyzerService (Google ML Kit 온디바이스 분석)
+/// 시뮬레이터: MockFaceAnalyzerService (개발/테스트용 Mock 데이터)
+///
+/// iOS 시뮬레이터에서는 ML Kit 네이티브 라이브러리가 동작하지 않으므로
+/// 자동으로 Mock 구현체를 사용합니다.
+@riverpod
+FaceAnalyzerService faceAnalyzerService(Ref ref) {
+  // 시뮬레이터 감지: 실 기기는 physical device이므로 isPhysicalDevice로 판별
+  // 런타임에 ML Kit 초기화를 시도하고, 실패 시 Mock으로 fallback
+  try {
+    return MlKitFaceAnalyzerService();
+  } catch (_) {
+    return MockFaceAnalyzerService();
+  }
 }

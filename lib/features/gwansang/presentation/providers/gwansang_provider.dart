@@ -7,7 +7,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/di/providers.dart';
 import '../../domain/entities/gwansang_entity.dart';
-import '../../domain/services/face_analyzer_service.dart';
 
 part 'gwansang_provider.g.dart';
 
@@ -25,11 +24,11 @@ class GwansangAnalysisResult {
 /// 관상 분석 상태 관리
 @riverpod
 class GwansangAnalysisNotifier extends _$GwansangAnalysisNotifier {
-  FaceAnalyzerService? _faceAnalyzer;
-
   @override
   FutureOr<GwansangAnalysisResult?> build() {
-    ref.onDispose(() => _faceAnalyzer?.dispose());
+    ref.onDispose(() {
+      ref.read(faceAnalyzerServiceProvider).dispose();
+    });
     return null;
   }
 
@@ -44,10 +43,10 @@ class GwansangAnalysisNotifier extends _$GwansangAnalysisNotifier {
     state = const AsyncLoading();
 
     state = await AsyncValue.guard(() async {
-      _faceAnalyzer ??= FaceAnalyzerService();
+      final faceAnalyzer = ref.read(faceAnalyzerServiceProvider);
 
       final images = photoLocalPaths.map((p) => File(p)).toList();
-      final measurements = await _faceAnalyzer!.analyzeMultiple(images);
+      final measurements = await faceAnalyzer.analyzeMultiple(images);
 
       if (measurements == null) {
         throw Exception('얼굴을 감지하지 못했어요. 정면 사진으로 다시 시도해주세요.');
@@ -87,16 +86,13 @@ class GwansangAnalysisNotifier extends _$GwansangAnalysisNotifier {
 /// 사진 유효성 검증 Provider
 @riverpod
 class PhotoValidator extends _$PhotoValidator {
-  FaceAnalyzerService? _analyzer;
-
   @override
   FutureOr<bool?> build() {
-    ref.onDispose(() => _analyzer?.dispose());
     return null;
   }
 
   Future<bool> validate(String path) async {
-    _analyzer ??= FaceAnalyzerService();
-    return _analyzer!.validatePhoto(File(path));
+    final analyzer = ref.read(faceAnalyzerServiceProvider);
+    return analyzer.validatePhoto(File(path));
   }
 }

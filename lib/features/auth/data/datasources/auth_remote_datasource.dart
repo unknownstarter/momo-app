@@ -45,9 +45,18 @@ class AuthRemoteDatasource {
       const webClientId = String.fromEnvironment('GOOGLE_WEB_CLIENT_ID');
       const iosClientId = String.fromEnvironment('GOOGLE_IOS_CLIENT_ID');
 
+      // Client ID 미설정 시 네이티브 크래시 방지
+      if (iosClientId.isEmpty && webClientId.isEmpty) {
+        throw AuthFailure.socialLoginFailed(
+          'Google',
+          'Google OAuth Client ID가 설정되지 않았습니다. '
+          '--dart-define으로 GOOGLE_IOS_CLIENT_ID를 전달하세요.',
+        );
+      }
+
       final googleSignIn = GoogleSignIn(
-        clientId: iosClientId,
-        serverClientId: webClientId,
+        clientId: iosClientId.isNotEmpty ? iosClientId : null,
+        serverClientId: webClientId.isNotEmpty ? webClientId : null,
       );
 
       final googleUser = await googleSignIn.signIn();

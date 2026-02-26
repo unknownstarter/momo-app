@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -315,6 +316,11 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
     if (result != null && mounted) {
       context.go(RoutePaths.home);
     } else if (mounted) {
+      // DEV: 디버그 모드에서는 DB 없이도 홈으로 이동
+      if (kDebugMode) {
+        context.go(RoutePaths.home);
+        return;
+      }
       _showSnack('프로필 저장에 실패했어요. 다시 시도해주세요.');
     }
   }
