@@ -17,6 +17,7 @@ import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/onboarding_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/matching/presentation/pages/matching_page.dart';
+import '../../features/matching/presentation/pages/post_analysis_match_list_page.dart';
 import '../../features/chat/presentation/pages/chat_list_page.dart';
 import '../../features/chat/presentation/pages/chat_room_page.dart';
 import '../../features/profile/presentation/pages/matching_profile_page.dart';
@@ -98,6 +99,7 @@ GoRouter appRouter(Ref ref) {
         RoutePaths.gwansangPhoto,
         RoutePaths.gwansangAnalysis,
         RoutePaths.gwansangResult,
+        RoutePaths.postAnalysisMatches,
       ];
       final isPublicPath = publicPaths.contains(currentPath);
 
@@ -284,6 +286,13 @@ GoRouter appRouter(Ref ref) {
             gwansangResult: data['gwansangResult'],
           );
         },
+      ),
+
+      // 분석 완료 후 매칭 리스트
+      GoRoute(
+        path: RoutePaths.postAnalysisMatches,
+        name: RouteNames.postAnalysisMatches,
+        builder: (context, state) => const PostAnalysisMatchListPage(),
       ),
 
       // --- 관상 퍼널 ---
