@@ -27,7 +27,9 @@ class HomePage extends ConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: SafeArea(
+        bottom: false,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,7 +188,8 @@ class HomePage extends ConsumerWidget {
                 ),
               ),
 
-              const SizedBox(height: 40),
+              // 플로팅 네비바 뒤 여백
+              SizedBox(height: MediaQuery.of(context).padding.bottom + 88),
             ],
           ),
         ),

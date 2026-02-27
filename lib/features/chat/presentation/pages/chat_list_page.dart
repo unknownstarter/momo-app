@@ -18,6 +18,7 @@ class ChatListPage extends ConsumerWidget {
     final chatRoomsAsync = ref.watch(chatRoomsProvider);
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text('채팅'),
         centerTitle: false,
@@ -43,7 +44,10 @@ class ChatListPage extends ConsumerWidget {
             );
           }
           return ListView.separated(
-            padding: const EdgeInsets.symmetric(vertical: SajuSpacing.space8),
+            padding: EdgeInsets.only(
+              top: SajuSpacing.space8,
+              bottom: MediaQuery.of(context).padding.bottom + 88,
+            ),
             itemCount: rooms.length,
             separatorBuilder: (context, index) => Divider(
               height: 1,

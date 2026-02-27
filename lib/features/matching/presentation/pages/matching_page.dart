@@ -25,11 +25,11 @@ class _MatchingPageState extends ConsumerState<MatchingPage> {
 
   static const _filters = [
     _Filter(label: '전체', value: null),
-    _Filter(label: '목', value: 'wood', color: SajuColor.wood),
-    _Filter(label: '화', value: 'fire', color: SajuColor.fire),
-    _Filter(label: '토', value: 'earth', color: SajuColor.earth),
+    _Filter(label: '나무', value: 'wood', color: SajuColor.wood),
+    _Filter(label: '불', value: 'fire', color: SajuColor.fire),
+    _Filter(label: '흙', value: 'earth', color: SajuColor.earth),
     _Filter(label: '금', value: 'metal', color: SajuColor.metal),
-    _Filter(label: '수', value: 'water', color: SajuColor.water),
+    _Filter(label: '물', value: 'water', color: SajuColor.water),
   ];
 
   @override
@@ -38,7 +38,9 @@ class _MatchingPageState extends ConsumerState<MatchingPage> {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: SafeArea(
+        bottom: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -125,7 +127,11 @@ class _MatchingPageState extends ConsumerState<MatchingPage> {
     }
 
     return GridView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        bottom: MediaQuery.of(context).padding.bottom + 88,
+      ),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         crossAxisSpacing: 14,
@@ -175,28 +181,25 @@ class _MatchingPageState extends ConsumerState<MatchingPage> {
           ),
         ),
       ),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 6,
-              height: 6,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppTheme.fireColor.withValues(alpha: 0.6),
-              ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppTheme.fireColor.withValues(alpha: 0.6),
             ),
-            const SizedBox(width: 8),
-            Text(
-              '오늘 무료 좋아요 3/3회 남음',
-              style: textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            '오늘 무료 좋아요 3/3회 남음',
+            style: textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w500,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

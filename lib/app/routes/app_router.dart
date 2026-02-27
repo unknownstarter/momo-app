@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +10,7 @@ import '../../core/constants/app_constants.dart';
 import '../../core/network/supabase_client.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/theme_extensions.dart';
+import '../../core/theme/tokens/saju_animation.dart';
 import '../providers/notification_badge_provider.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
@@ -442,56 +445,116 @@ class _MainScaffold extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final chatBadge = ref.watch(chatBadgeCountProvider);
     final matchingBadge = ref.watch(matchingBadgeCountProvider);
+    final isDark = context.isDarkMode;
 
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    final navItems = [
+      _NavItem(
+        icon: Icons.home_outlined,
+        activeIcon: Icons.home_rounded,
+        label: '홈',
+        isActive: navigationShell.currentIndex == 0,
+        onTap: () => _onTap(0),
+      ),
+      _NavItem(
+        icon: Icons.favorite_outline,
+        activeIcon: Icons.favorite_rounded,
+        label: '매칭',
+        isActive: navigationShell.currentIndex == 1,
+        badgeCount: matchingBadge,
+        onTap: () => _onTap(1),
+      ),
+      _NavItem(
+        icon: Icons.chat_bubble_outline,
+        activeIcon: Icons.chat_bubble_rounded,
+        label: '채팅',
+        isActive: navigationShell.currentIndex == 2,
+        badgeCount: chatBadge,
+        onTap: () => _onTap(2),
+      ),
+      _NavItem(
+        icon: Icons.person_outline,
+        activeIcon: Icons.person_rounded,
+        label: '프로필',
+        isActive: navigationShell.currentIndex == 3,
+        onTap: () => _onTap(3),
+      ),
+    ];
+
+    // 5-Layer iOS Glassmorphism: blur → tint → highlight → border → shadow
     return Scaffold(
+      extendBody: true,
       body: navigationShell,
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: context.sajuColors.bgPrimary,
-          border: Border(
-            top: BorderSide(
-              color: context.sajuColors.borderDefault,
-              width: 0.5,
-            ),
+      bottomNavigationBar: SizedBox(
+        height: 64 + bottomPadding + 8,
+        child: Padding(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            bottom: bottomPadding + 8,
           ),
-        ),
-        child: SafeArea(
-          top: false,
-          child: SizedBox(
-            height: 56,
-            child: Row(
-              children: [
-                _NavItem(
-                  icon: Icons.home_outlined,
-                  activeIcon: Icons.home_rounded,
-                  label: '홈',
-                  isActive: navigationShell.currentIndex == 0,
-                  onTap: () => _onTap(0),
-                ),
-                _NavItem(
-                  icon: Icons.favorite_outline,
-                  activeIcon: Icons.favorite_rounded,
-                  label: '매칭',
-                  isActive: navigationShell.currentIndex == 1,
-                  badgeCount: matchingBadge,
-                  onTap: () => _onTap(1),
-                ),
-                _NavItem(
-                  icon: Icons.chat_bubble_outline,
-                  activeIcon: Icons.chat_bubble_rounded,
-                  label: '채팅',
-                  isActive: navigationShell.currentIndex == 2,
-                  badgeCount: chatBadge,
-                  onTap: () => _onTap(2),
-                ),
-                _NavItem(
-                  icon: Icons.person_outline,
-                  activeIcon: Icons.person_rounded,
-                  label: '프로필',
-                  isActive: navigationShell.currentIndex == 3,
-                  onTap: () => _onTap(3),
+          child: DecoratedBox(
+            // Layer 5: Shadow
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(
+                      alpha: isDark ? 0.30 : 0.06),
+                  blurRadius: isDark ? 20.0 : 16.0,
+                  offset: Offset(0, isDark ? 6.0 : 4.0),
                 ),
               ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              // Layer 1: Blur only
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                // Layer 2: Tint overlay + Layer 4: Border
+                child: Container(
+                  decoration: BoxDecoration(
+                    // 유리처럼 맑게 — 상단 밝고 하단 살짝 어둡게 (유리 굴절 느낌)
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: isDark
+                          ? [
+                              Colors.white.withValues(alpha: 0.12),
+                              Colors.white.withValues(alpha: 0.05),
+                            ]
+                          : [
+                              Colors.white.withValues(alpha: 0.25),
+                              Colors.white.withValues(alpha: 0.10),
+                            ],
+                    ),
+                    border: Border.all(
+                      color: isDark
+                          ? const Color(0xFFC8A96E).withValues(alpha: 0.25)
+                          : Colors.white.withValues(alpha: 0.7),
+                      width: 0.5,
+                    ),
+                  ),
+                  child: Stack(
+                    children: [
+                      // Layer 3: Inner highlight (상단 빛 반사 — 유리 하이라이트)
+                      Positioned(
+                        top: 0, left: 0.5, right: 0.5,
+                        height: 0.5,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? const Color(0xFFC8A96E).withValues(alpha: 0.4)
+                                : Colors.white.withValues(alpha: 0.8),
+                          ),
+                        ),
+                      ),
+                      // Nav items
+                      Row(children: navItems),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
         ),
@@ -508,8 +571,8 @@ class _MainScaffold extends ConsumerWidget {
   }
 }
 
-/// Individual nav bar item with icon, label, optional badge
-class _NavItem extends StatelessWidget {
+/// Individual nav bar item with icon, label, optional badge, bounce animation
+class _NavItem extends StatefulWidget {
   const _NavItem({
     required this.icon,
     required this.activeIcon,
@@ -527,70 +590,97 @@ class _NavItem extends StatelessWidget {
   final int badgeCount;
 
   @override
+  State<_NavItem> createState() => _NavItemState();
+}
+
+class _NavItemState extends State<_NavItem> {
+  bool _pressed = false;
+
+  @override
   Widget build(BuildContext context) {
     final activeColor = context.sajuColors.textPrimary;
     final inactiveColor = context.sajuColors.textSecondary;
 
     return Expanded(
       child: Semantics(
-        label: badgeCount > 0 ? '$label $badgeCount개 알림' : label,
+        label: widget.badgeCount > 0
+            ? '${widget.label} ${widget.badgeCount}개 알림'
+            : widget.label,
         button: true,
-        selected: isActive,
+        selected: widget.isActive,
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: onTap,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Icon with optional badge
-              SizedBox(
-                width: 40,
-                height: 28,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  alignment: Alignment.center,
-                  children: [
-                    // Pill background for active tab
-                    if (isActive)
-                      Container(
-                        width: 56,
-                        height: 28,
-                        decoration: BoxDecoration(
-                          color: (context.isDarkMode ? AppTheme.mysticGlow : AppTheme.waterColor)
-                              .withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(14),
+          onTapDown: (_) => setState(() => _pressed = true),
+          onTapUp: (_) {
+            setState(() => _pressed = false);
+            widget.onTap();
+          },
+          onTapCancel: () => setState(() => _pressed = false),
+          child: TweenAnimationBuilder<double>(
+            tween: Tween(end: _pressed ? 0.85 : 1.0),
+            duration: _pressed
+                ? SajuAnimation.fast
+                : const Duration(milliseconds: 350),
+            curve: _pressed ? Curves.easeInOut : Curves.elasticOut,
+            builder: (context, scale, child) =>
+                Transform.scale(scale: scale, child: child),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Icon with optional badge
+                SizedBox(
+                  width: 40,
+                  height: 28,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    alignment: Alignment.center,
+                    children: [
+                      // Pill background for active tab
+                      if (widget.isActive)
+                        Container(
+                          width: 56,
+                          height: 28,
+                          decoration: BoxDecoration(
+                            color: (context.isDarkMode
+                                    ? AppTheme.mysticGlow
+                                    : AppTheme.waterColor)
+                                .withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 150),
+                        child: Icon(
+                          widget.isActive ? widget.activeIcon : widget.icon,
+                          key: ValueKey(widget.isActive),
+                          size: 22,
+                          color:
+                              widget.isActive ? activeColor : inactiveColor,
                         ),
                       ),
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 150),
-                      child: Icon(
-                        isActive ? activeIcon : icon,
-                        key: ValueKey(isActive),
-                        size: 22,
-                        color: isActive ? activeColor : inactiveColor,
-                      ),
-                    ),
-                    // Badge
-                    if (badgeCount > 0)
-                      Positioned(
-                        right: -4,
-                        top: -2,
-                        child: _Badge(count: badgeCount),
-                      ),
-                  ],
+                      // Badge
+                      if (widget.badgeCount > 0)
+                        Positioned(
+                          right: -4,
+                          top: -2,
+                          child: _Badge(count: widget.badgeCount),
+                        ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                label,
-                style: TextStyle(
-                  fontFamily: AppTheme.fontFamily,
-                  fontSize: 10,
-                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-                  color: isActive ? activeColor : inactiveColor,
+                const SizedBox(height: 2),
+                Text(
+                  widget.label,
+                  style: TextStyle(
+                    fontFamily: AppTheme.fontFamily,
+                    fontSize: 10,
+                    fontWeight:
+                        widget.isActive ? FontWeight.w600 : FontWeight.w400,
+                    color: widget.isActive ? activeColor : inactiveColor,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

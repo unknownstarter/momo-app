@@ -23,7 +23,9 @@ class ProfilePage extends ConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: SafeArea(
+        bottom: false,
         child: userAsync.when(
           loading: () => const Center(
             child: CircularProgressIndicator(strokeWidth: 2),
@@ -214,7 +216,8 @@ class _ProfileContent extends StatelessWidget {
             child: _LogoutButton(),
           ),
 
-          SajuSpacing.gap32,
+          // 플로팅 네비바 뒤 여백
+          SizedBox(height: MediaQuery.of(context).padding.bottom + 88),
         ],
       ),
     );
