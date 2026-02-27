@@ -60,6 +60,7 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/images/icons/
     - assets/images/characters/loading_spinner.gif
     - assets/images/characters/glod_rabbit_thrash.gif
     - assets/images/characters/namuri/

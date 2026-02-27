@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
@@ -313,12 +314,16 @@ class _LoginPageState extends ConsumerState<LoginPage>
                     valueColor: AlwaysStoppedAnimation<Color>(Colors.white60),
                   ),
                 )
-              : const Row(
+              : Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.apple, size: 20),
-                    SizedBox(width: 8),
-                    Text(
+                    SvgPicture.asset(
+                      'assets/images/icons/apple_logo.svg',
+                      width: 18,
+                      height: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
                       'Apple로 계속하기',
                       style: TextStyle(
                         fontFamily: AppTheme.fontFamily,
@@ -369,27 +374,10 @@ class _LoginPageState extends ConsumerState<LoginPage>
               : Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Google G 로고
-                    Container(
+                    SvgPicture.asset(
+                      'assets/images/icons/google_logo.svg',
                       width: 18,
                       height: 18,
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: const Color(0xFF2D2D2D).withValues(alpha: 0.08),
-                        ),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      alignment: Alignment.center,
-                      child: const Text(
-                        'G',
-                        style: TextStyle(
-                          fontFamily: AppTheme.fontFamily,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF4285F4),
-                          height: 1,
-                        ),
-                      ),
                     ),
                     const SizedBox(width: 8),
                     const Text(
