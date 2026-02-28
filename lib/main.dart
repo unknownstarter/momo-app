@@ -38,7 +38,8 @@ Future<void> main() async {
       defaultValue: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzamRmdnh5am5wbWJramJvbXlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNjUyNDksImV4cCI6MjA4Nzc0MTI0OX0.E3-4aMdDkzY8VGxqh_GEQXnkGAdPjDWpB8XDLQBqyek',
     ),
     authOptions: const FlutterAuthClientOptions(
-      // 딥링크 콜백 스킴 (소셜 로그인 리다이렉트용)
+      // PKCE 플로우 (소셜 로그인 리다이렉트용)
+      // 딥링크 콜백은 Info.plist/AndroidManifest의 URL scheme으로 자동 처리됨
       authFlowType: AuthFlowType.pkce,
     ),
     realtimeClientOptions: const RealtimeClientOptions(

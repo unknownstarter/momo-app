@@ -95,8 +95,8 @@ flutter build ios --no-codesign --debug   # iOS 빌드 확인
 - **작동하는 것**: 온보딩 → 사주+관상 통합 분석(Mock) → 결과(탭) → 홈(추천 그리드) → 프로필 상세(블러) → 궁합 프리뷰(실연동 가능)
 - **Mock인 것**: 로그인, 프로필 저장, 사주/관상 AI 분석, 추천 목록, 좋아요
 - **실연동된 것**: `calculate-compatibility` Edge Function (궁합 계산, Mock 파트너일 때는 로컬 Mock 사용)
-- **직전 완료**: Sprint 0 (관상 시스템 재설계 — 삼정/오관/traits 5축)
-- **다음 작업**: Sprint A (Auth 실연동 = 전체 블로커)
+- **직전 완료**: Sprint A 코드 사전 준비 (entitlements, URL scheme, 딥링크, Storage, OAuth config)
+- **다음 작업**: Sprint A 인프라 설정(노아님) → BYPASS 제거 → UX 고도화(상세페이지/궁합 진입점)
 
 ---
 
@@ -130,8 +130,8 @@ flutter build ios --no-codesign --debug   # iOS 빌드 확인
 
 ## 2. 다음에 할 일 (우선순위순)
 
-> **현재 최우선**: Sprint 0 (관상 시스템 재설계) → Sprint A (Auth 실연동) → Sprint B~E
-> Sprint 0는 Auth 없이 진행 가능 (UI + 엔티티 + Edge Function 변경)
+> **현재 최우선**: Sprint A 인프라(노아님) → BYPASS 제거 → UX 고도화(상세페이지/궁합 Wow 진입점)
+> Sprint A 코드 준비 완료. 인프라 설정 대기 중. 병렬로 UX 고도화 진행 가능.
 
 ### 🔥 즉시 (Highest) — AI 관상 + 동물상 Feature 구현 + 온보딩 리팩토링
 
@@ -280,30 +280,33 @@ flutter build ios --no-codesign --debug   # iOS 빌드 확인
 ### 🚨 Sprint A — 바이패스 제거 + Auth 실연동 (전체 블로커)
 
 > **핵심 인사이트**: Auth 하나만 뚫으면 BYPASS-2→3→4→5→6이 도미노처럼 제거됨.
-> 코드는 이미 다 완성되어 있고, 남은 건 인프라 설정(OAuth, API Key, Storage, DB 컬럼).
-> **A1+A2+A6+A8은 병렬 진행 가능.**
+> **코드 준비 완료 (2026-03-01)**: entitlements, URL scheme, 딥링크, Storage 마이그레이션, Google OAuth config, 이미지 업로드 코드 모두 세팅됨.
+> **남은 것**: 노아님의 인프라 설정(Apple Developer / Google Cloud Console / Supabase Dashboard) → BYPASS 제거.
+> **인프라 가이드**: `docs/guides/sprint-a-infra-setup.md`
 
 ```
 의존성 그래프:
-  A1(Apple) ──┐
-  A2(Google) ─┤→ A3(BYPASS-1) → A4(DB 마이그레이션) → A5(BYPASS-2) ──┐
-  A6(API Key) ─────────────────────────────────────────────────────────┤→ A7(BYPASS-3/4)
-  A8(Storage) ─────────────────────────────────────────────────────────┤→ A9(BYPASS-5)
-                                                                       └→ A10(BYPASS-6)
+  A0(코드 준비) ✅
+  A1(Apple 인프라) ──┐
+  A2(Google 인프라) ─┤→ A3(BYPASS-1) → A4(DB 마이그레이션) → A5(BYPASS-2) ──┐
+  A6(API Key) ─────────────────────────────────────────────────────────────────┤→ A7(BYPASS-3/4)
+  A8(Storage 인프라) ──────────────────────────────────────────────────────────┤→ A9(BYPASS-5)
+                                                                               └→ A10(BYPASS-6)
 ```
 
 | # | Task | 담당 | 의존성 | 상태 |
 |---|------|------|--------|------|
-| A1 | **Apple Sign In 연결** — Xcode capability 추가 + Supabase Apple Provider 설정 + Apple Developer Service ID 발급 | iOS + Backend | 없음 | ⬜ |
-| A2 | **Google Sign In 연결** — OAuth Client ID 발급 + `--dart-define` 설정 + Supabase Google Provider 활성화 | Backend + Flutter | 없음 | ⬜ |
-| A3 | **BYPASS-1 제거** — Auth 연결 검증 후 `login_page.dart` bypass 블록 삭제 | Flutter | A1 또는 A2 | ⬜ |
-| A4 | **profiles 테이블 컬럼 마이그레이션** — `saju_profile_id`, `is_saju_complete`, `is_profile_complete` 등 누락 컬럼 추가 | Backend | A3 | ⬜ |
-| A5 | **BYPASS-2 제거** — 온보딩 프로필 저장 실연동 검증 후 `onboarding_page.dart` bypass 삭제 | Flutter | A4 | ⬜ |
-| A6 | **Anthropic API Key Supabase 시크릿 등록** — Edge Functions 환경변수 설정 | Backend | 없음 | ⬜ |
-| A7 | **BYPASS-3/4 제거** — 사주/관상 Edge Function 실연동 검증 후 `destiny_analysis_page.dart` bypass 삭제 | Flutter | A5 + A6 | ⬜ |
-| A8 | **Storage 버킷 생성** — `profile-images` public 버킷 설정 | Backend | 없음 | ⬜ |
-| A9 | **BYPASS-5 제거** — 매칭 프로필 저장 실연동 검증 후 `matching_profile_page.dart` bypass 삭제 | Flutter | A5 + A8 | ⬜ |
-| A10 | **BYPASS-6 제거** — `app_router.dart` publicPaths에서 matching/chat/profile 제거 | Flutter | A3~A9 전체 | ⬜ |
+| A0 | **코드 사전 준비** — entitlements, URL scheme, 딥링크, Storage SQL, OAuth config, 이미지 업로드 | 아리 | 없음 | ✅ |
+| A1 | **Apple Sign In 인프라** — Apple Developer에서 Service ID + Key 발급, Supabase에서 Apple Provider 활성화 | 노아님 | A0 | ⬜ |
+| A2 | **Google Sign In 인프라** — Google Cloud Console OAuth Client ID, Supabase Google Provider 활성화 | 노아님 | A0 | ⬜ |
+| A3 | **BYPASS-1 제거** — Auth 연결 검증 후 `login_page.dart` bypass 블록 삭제 | 아리 | A1 또는 A2 | ⬜ |
+| A4 | **profiles 테이블 컬럼 마이그레이션** — `saju_profile_id`, `is_saju_complete`, `is_profile_complete` 등 누락 컬럼 추가 | 아리 | A3 | ⬜ |
+| A5 | **BYPASS-2 제거** — 온보딩 프로필 저장 실연동 검증 후 `onboarding_page.dart` bypass 삭제 | 아리 | A4 | ⬜ |
+| A6 | **Anthropic API Key Supabase 시크릿 등록** — Edge Functions 환경변수 설정 | 노아님 | 없음 | ⬜ |
+| A7 | **BYPASS-3/4 제거** — 사주/관상 Edge Function 실연동 검증 후 `destiny_analysis_page.dart` bypass 삭제 | 아리 | A5 + A6 | ⬜ |
+| A8 | **Storage 버킷 인프라** — Supabase Dashboard에서 마이그레이션 적용 확인 | 노아님 | A0 | ⬜ |
+| A9 | **BYPASS-5 제거** — 매칭 프로필 저장 실연동 검증 후 `matching_profile_page.dart` bypass 삭제 | 아리 | A5 + A8 | ⬜ |
+| A10 | **BYPASS-6 제거** — `app_router.dart` publicPaths에서 matching/chat/profile 제거 | 아리 | A3~A9 전체 | ⬜ |
 
 **Sprint A 완료 기준 (데모 가능):**
 - ✅ 실기기 Apple/Google 로그인 → `auth.users` 레코드 생성
@@ -380,17 +383,19 @@ flutter build ios --no-codesign --debug   # iOS 빌드 확인
 | `docs/plans/2026-02-28-home-ux-redesign-design.md` | 홈 UX 리디자인 설계 (12 섹션) |
 | `docs/plans/2026-02-28-home-ux-implementation.md` | 홈 UX 구현 계획 (10 Tasks, 5 Phases) |
 | `docs/plans/2026-02-28-gwansang-redesign.md` | 관상 재설계 구현 계획 (9 Tasks) |
+| `docs/guides/sprint-a-infra-setup.md` | **Sprint A 인프라 설정 체크리스트** (Apple/Google/Supabase) |
+| `docs/dev-log/2026-03-01-sprint-a-code-prep.md` | Sprint A 코드 사전 준비 상세 기록 |
 | `CLAUDE.md` | 개발자룰·아키텍처·에셋·라우팅 규칙 |
 
 ---
 
 ## 4. 연속 작업 시 체크리스트
 
-- [ ] **Sprint 0부터 시작** — 관상 시스템 재설계 (Auth 없이 진행 가능)
-- [ ] 구현 계획: `docs/plans/2026-02-28-gwansang-redesign.md` (9 Tasks)
-- [ ] F1+F2는 병렬 진행 가능 (엔티티 + DB 스키마)
-- [ ] Sprint 0 완료 후 Sprint A (Auth 실연동)
-- [ ] A1+A2+A6+A8은 병렬 진행 가능 (인프라 설정)
+- [x] ~~Sprint 0 — 관상 시스템 재설계~~ ✅ 완료
+- [x] ~~Sprint A 코드 사전 준비~~ ✅ 완료 (2026-03-01)
+- [ ] **Sprint A 인프라 설정** — 노아님이 `docs/guides/sprint-a-infra-setup.md` 체크리스트 수행
+- [ ] Sprint A BYPASS 제거 — 인프라 완료 후 A3~A10 순차 진행
+- [ ] **UX 고도화** — 유저 상세페이지 + 궁합 매칭 진입점 Wow 경험
 - [ ] 참조: `docs/dev-log/2026-02-26-debug-bypass.md` (바이패스 상세)
 - [ ] `lib/core/di/providers.dart` 확인 (새 Repository/DataSource 추가 시 반드시 등록)
 - [ ] 작업 완료 시 본 테스크 마스터 상태(⬜→✅) 및 dev-log 업데이트

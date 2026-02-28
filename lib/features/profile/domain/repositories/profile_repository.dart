@@ -25,6 +25,9 @@ abstract class ProfileRepository {
     Religion? religion,
   });
 
+  /// 프로필 이미지를 Storage에 업로드하고 공개 URL 목록을 반환
+  Future<List<String>> uploadProfileImages(List<String> localFilePaths);
+
   /// 프로필 업데이트
   Future<UserEntity> updateProfile(Map<String, dynamic> updates);
 

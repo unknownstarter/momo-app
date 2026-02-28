@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/constants/app_constants.dart';
@@ -91,6 +93,44 @@ class ProfileRepositoryImpl implements ProfileRepository {
       rethrow;
     } catch (e) {
       throw ServerFailure.unknown(e);
+    }
+  }
+
+  @override
+  Future<List<String>> uploadProfileImages(List<String> localFilePaths) async {
+    try {
+      final authId = _client.auth.currentUser?.id;
+      if (authId == null) throw AuthFailure.unauthenticated();
+
+      final urls = <String>[];
+      for (var i = 0; i < localFilePaths.length; i++) {
+        final file = File(localFilePaths[i]);
+        final ext = localFilePaths[i].split('.').last.toLowerCase();
+        final storagePath = '$authId/profile_$i.$ext';
+
+        await _client.storage
+            .from('profile-images')
+            .upload(
+              storagePath,
+              file,
+              fileOptions: const FileOptions(upsert: true),
+            );
+
+        final publicUrl = _client.storage
+            .from('profile-images')
+            .getPublicUrl(storagePath);
+        urls.add(publicUrl);
+      }
+
+      return urls;
+    } on Failure {
+      rethrow;
+    } catch (e) {
+      throw ServerFailure(
+        message: '이미지 업로드에 실패했어요. 다시 시도해 주세요.',
+        code: 'IMAGE_UPLOAD_FAILED',
+        originalException: e,
+      );
     }
   }
 
