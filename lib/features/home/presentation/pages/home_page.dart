@@ -18,7 +18,7 @@ import '../../../matching/presentation/providers/matching_provider.dart';
 /// 2. 오늘의 연애운 (신설)
 /// 3. 궁합 매칭 추천 2열 그리드 (★ 메인)
 /// 4. 받은 좋아요 + 카운트 뱃지
-/// 5. 동물상 매칭 (관상 넛지 대체)
+/// 5. 관상 매칭 (관상 케미)
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
@@ -199,12 +199,12 @@ class HomePage extends ConsumerWidget {
 
               const SizedBox(height: 28),
 
-              // ---- 5. 동물상 매칭 (관상 넛지 대체) ----
+              // ---- 5. 관상 매칭 (관상 케미) ----
               _FadeSlideSection(
                 delay: const Duration(milliseconds: 400),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: const _AnimalMatchSection(),
+                  child: const _GwansangMatchSection(),
                 ),
               ),
 
@@ -555,11 +555,11 @@ class _ReceivedLikesCard extends StatelessWidget {
 }
 
 // =============================================================================
-// 동물상 매칭 섹션 (관상 넛지 대체)
+// 관상 매칭 섹션 (관상 케미)
 // =============================================================================
 
-class _AnimalMatchSection extends StatelessWidget {
-  const _AnimalMatchSection();
+class _GwansangMatchSection extends StatelessWidget {
+  const _GwansangMatchSection();
 
   @override
   Widget build(BuildContext context) {
@@ -569,7 +569,7 @@ class _AnimalMatchSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('동물상 매칭', style: textTheme.titleLarge),
+        Text('관상 매칭', style: textTheme.titleLarge),
         const SizedBox(height: 14),
         GestureDetector(
           onTap: () => context.go(RoutePaths.matching),
@@ -598,8 +598,11 @@ class _AnimalMatchSection extends StatelessWidget {
                         color: AppTheme.firePastel.withValues(alpha: 0.4),
                       ),
                       child: const Center(
-                        child:
-                            Text('🦊', style: TextStyle(fontSize: 24)),
+                        child: Icon(
+                          Icons.face_retouching_natural,
+                          size: 24,
+                          color: AppTheme.fireColor,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -607,14 +610,14 @@ class _AnimalMatchSection extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '나는 여우상',
+                          '관상으로 보는 우리의 케미는?',
                           style: textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          '본능적으로 분위기를 읽는 매력가',
+                          '리더십 · 따뜻함 · 독립성 · 섬세함 · 에너지',
                           style: textTheme.bodySmall?.copyWith(
                             color: colors.textSecondary,
                           ),
@@ -625,7 +628,7 @@ class _AnimalMatchSection extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  '여우상과 찰떡인 동물상',
+                  '나와 케미 좋은 관상 TOP 3',
                   style: textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -633,18 +636,18 @@ class _AnimalMatchSection extends StatelessWidget {
                 const SizedBox(height: 10),
                 Row(
                   children: [
-                    _AnimalChip(emoji: '🐻', label: '곰상', count: 3),
+                    _TraitChip(icon: Icons.shield_outlined, label: '리더십', value: '높음'),
                     const SizedBox(width: 16),
-                    _AnimalChip(emoji: '🐱', label: '고양이상', count: 5),
+                    _TraitChip(icon: Icons.favorite_outline, label: '따뜻함', value: '높음'),
                     const SizedBox(width: 16),
-                    _AnimalChip(emoji: '🐰', label: '토끼상', count: 2),
+                    _TraitChip(icon: Icons.bolt_outlined, label: '에너지', value: '중간'),
                   ],
                 ),
                 const SizedBox(height: 16),
                 Row(
                   children: [
                     Text(
-                      '동물상 매칭 보러가기',
+                      '관상 매칭 보러가기',
                       style: textTheme.bodySmall?.copyWith(
                         color: colors.textSecondary,
                         fontWeight: FontWeight.w500,
@@ -667,16 +670,16 @@ class _AnimalMatchSection extends StatelessWidget {
   }
 }
 
-class _AnimalChip extends StatelessWidget {
-  const _AnimalChip({
-    required this.emoji,
+class _TraitChip extends StatelessWidget {
+  const _TraitChip({
+    required this.icon,
     required this.label,
-    required this.count,
+    required this.value,
   });
 
-  final String emoji;
+  final IconData icon;
   final String label;
-  final int count;
+  final String value;
 
   @override
   Widget build(BuildContext context) {
@@ -684,11 +687,11 @@ class _AnimalChip extends StatelessWidget {
 
     return Column(
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 20)),
+        Icon(icon, size: 20, color: context.sajuColors.textSecondary),
         const SizedBox(height: 4),
         Text(label, style: textTheme.labelSmall),
         Text(
-          '$count명',
+          value,
           style: textTheme.labelSmall?.copyWith(
             fontSize: 10,
             color: context.sajuColors.textTertiary,

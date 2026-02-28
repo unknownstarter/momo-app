@@ -90,7 +90,7 @@ class CompatibilityPreviewPage extends ConsumerWidget {
 
                   const SizedBox(height: 24),
 
-                  // --- 동물상 케미 ---
+                  // --- 관상 케미 ---
                   _buildAnimalChemi(context, textTheme),
 
                   const SizedBox(height: 28),
@@ -187,7 +187,7 @@ class CompatibilityPreviewPage extends ConsumerWidget {
     );
   }
 
-  /// 동물상 케미 섹션
+  /// 관상 케미 섹션
   ///
   /// 파트너의 동물상이 있으면 케미 CTA를 표시한다.
   /// - 파트너 animalType 없음 → 섹션 숨김
@@ -196,6 +196,13 @@ class CompatibilityPreviewPage extends ConsumerWidget {
     final partnerAnimal = partnerProfile.animalType;
 
     if (partnerAnimal == null) return const SizedBox.shrink();
+
+    // 새 필드가 있으면 modifier + korean 조합, 없으면 기존 animalType 사용
+    final animalDisplayText =
+        (partnerProfile.animalModifier != null &&
+                partnerProfile.animalTypeKorean != null)
+            ? '${partnerProfile.name}님은 ${partnerProfile.animalModifier} ${partnerProfile.animalTypeKorean}상'
+            : '${partnerProfile.name}님은 $partnerAnimal상';
 
     // 현재 유저는 관상 미완료로 가정 (provider 연동 시 분기 추가 예정)
     return Container(
@@ -210,14 +217,14 @@ class CompatibilityPreviewPage extends ConsumerWidget {
       child: Column(
         children: [
           Text(
-            '${partnerProfile.name}님은 $partnerAnimal상',
+            animalDisplayText,
             style: textTheme.titleSmall?.copyWith(
               color: Colors.white,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            '닮은 동물상끼리 찰떡궁합!\n내 동물상을 알면 케미도 확인할 수 있어요',
+            '관상으로 보는 케미를 확인해보세요\n내 관상을 알면 궁합도 확인할 수 있어요',
             textAlign: TextAlign.center,
             style: textTheme.bodySmall?.copyWith(
               color: Colors.white.withValues(alpha: 0.6),
@@ -226,7 +233,7 @@ class CompatibilityPreviewPage extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           SajuButton(
-            label: '내 동물상 알아보기',
+            label: '내 관상 알아보기',
             onPressed: () {
               Navigator.pop(context);
               context.go(RoutePaths.gwansangBridge);
