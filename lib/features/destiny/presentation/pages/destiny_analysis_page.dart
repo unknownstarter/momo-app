@@ -24,7 +24,6 @@ import '../../../../core/theme/theme_extensions.dart';
 import '../../../../core/theme/tokens/saju_colors.dart';
 import '../../../../core/theme/tokens/saju_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
-import '../../../gwansang/domain/entities/animal_type.dart';
 import '../../../gwansang/domain/entities/face_measurements.dart';
 import '../../../gwansang/domain/entities/gwansang_entity.dart';
 import '../../../gwansang/presentation/providers/gwansang_provider.dart';
@@ -590,7 +589,9 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
       profile: GwansangProfile(
         id: 'mock-gwansang-001',
         userId: 'dev-mock-user-001',
-        animalType: AnimalType.fox,
+        animalType: 'fox',
+        animalModifier: '봄바람의',
+        animalTypeKorean: '여우',
         measurements: const FaceMeasurements(
           faceShape: 'oval',
           upperThird: 0.33, middleThird: 0.34, lowerThird: 0.33,
@@ -603,17 +604,33 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
         ),
         photoUrls: const [],
         headline: '본능적으로 분위기를 읽는 타고난 매력가',
+        samjeong: const SamjeongReading(
+          upper: '넓은 이마가 총명함을 나타내요.',
+          middle: '코의 선이 반듯해 중년에 성취를 이룰 상이에요.',
+          lower: '턱선이 부드러워 말년에 화목한 가정을 이룰 상이에요.',
+        ),
+        ogwan: const OgwanReading(
+          eyes: '눈매가 날카로우면서도 깊이가 있어요.',
+          nose: '코가 오뚝해서 자존심이 강한 타입이에요.',
+          mouth: '입술이 도톰해서 표현력이 풍부해요.',
+          ears: '귀가 안정적인 형태로 경청의 복이 있어요.',
+          eyebrows: '눈썹이 깔끔해 의지가 강해요.',
+        ),
+        traits: const GwansangTraits(
+          leadership: 65,
+          warmth: 70,
+          independence: 75,
+          sensitivity: 72,
+          energy: 68,
+        ),
         personalitySummary: '첫인상은 차분하지만, 알수록 매력이 넘치는 스타일이에요. '
             '상대방의 감정을 잘 읽고 그에 맞는 반응을 하는 데 탁월해요. '
             '유머 감각이 뛰어나고, 대화를 이끄는 능력이 있어요.',
         romanceSummary: '밀당의 달인이라 불릴 만큼 연애 감각이 뛰어나요. '
             '한번 마음을 주면 깊이 빠지지만, 쉽게 다가가지 않는 타입이에요. '
             '상대방이 먼저 다가오게 만드는 묘한 매력이 있어요.',
-        sajuSynergy: '목(木)의 성장 에너지와 여우상의 예리한 관찰력이 만나 '
-            '사람을 꿰뚫어보는 직관력이 탁월해요. '
-            '새로운 인연 앞에서 본능적으로 "이 사람이다" 하는 감이 잘 맞아요.',
+        romanceKeyPoints: const ['밀당의 달인', '분위기를 읽는 감각', '은근한 카리스마'],
         charmKeywords: const ['밀당의 달인', '분위기 메이커', '감성 지능 만렙', '은근한 카리스마'],
-        elementModifier: '봄바람의',
         createdAt: DateTime.now(),
       ),
       isNewAnalysis: true,

@@ -16,7 +16,6 @@ import '../../../../core/theme/theme_extensions.dart';
 import '../../../../core/theme/tokens/saju_colors.dart';
 import '../../../../core/theme/tokens/saju_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
-import '../../domain/entities/animal_type.dart';
 import '../../domain/entities/face_measurements.dart';
 import '../../domain/entities/gwansang_entity.dart';
 import '../providers/gwansang_provider.dart';
@@ -48,10 +47,31 @@ class _GwansangResultPageState extends ConsumerState<GwansangResultPage> {
   static final _mockProfile = GwansangProfile(
     id: 'mock-id',
     userId: 'mock-user',
-    animalType: AnimalType.cat,
+    animalType: 'cat',
+    animalModifier: '신비로운',
+    animalTypeKorean: '고양이',
     measurements: FaceMeasurements.fromJson(const {}),
     photoUrls: const [],
     headline: '타고난 리더형 관상, 눈빛에 결단력이 서려 있어요',
+    samjeong: const SamjeongReading(
+      upper: '넓은 이마가 총명함과 학업운을 나타내요. 어릴 때부터 주변에서 인정받는 타입이에요.',
+      middle: '코의 선이 반듯해 중년에 안정적인 성취를 이룰 상이에요. 사회적 신뢰감이 높아요.',
+      lower: '턱선이 부드러워 말년에 화목한 가정을 이루고, 주변의 존경을 받을 상이에요.',
+    ),
+    ogwan: const OgwanReading(
+      eyes: '눈매가 고양이처럼 날카로우면서도 깊이가 있어요. 사람의 마음을 단번에 읽는 직관력이 돋보여요.',
+      nose: '코가 오뚝해서 자존심이 강하고, 자기 원칙에 충실한 타입이에요.',
+      mouth: '입술이 적당히 도톰해서 표현력이 풍부하고 사교적이에요.',
+      ears: '귀가 안정적인 형태로, 타인의 말에 귀 기울이는 경청의 복이 있어요.',
+      eyebrows: '눈썹이 깔끔하게 정리된 형태로 의지가 강하고 목표 지향적이에요.',
+    ),
+    traits: const GwansangTraits(
+      leadership: 72,
+      warmth: 65,
+      independence: 80,
+      sensitivity: 58,
+      energy: 68,
+    ),
     personalitySummary:
         '겉으로는 도도하지만 마음 한 켠에는 따뜻함을 품고 있는 타입이에요. '
         '첫인상은 다가가기 어렵지만, 한번 친해지면 끝없이 매력을 발산하는 스타일이죠. '
@@ -60,12 +80,8 @@ class _GwansangResultPageState extends ConsumerState<GwansangResultPage> {
         '연애에서는 밀당의 달인이에요. 쉽게 마음을 열지 않지만, '
         '한번 마음을 주면 깊고 진실한 사랑을 해요. '
         '상대방의 지적인 면에 끌리고, 서로 독립적이면서도 깊은 유대감을 나누는 관계를 선호해요.',
-    sajuSynergy:
-        '사주의 木 기운과 고양이상의 독립적 매력이 만나 '
-        '자기만의 세계를 가진 신비로운 존재감을 만들어요. '
-        '성장과 변화를 두려워하지 않는 당신의 관상은 사주의 기운과 완벽히 조화를 이루고 있어요.',
+    romanceKeyPoints: const ['밀당의 매력', '지적인 대화를 중시', '독립적이면서도 깊은 유대감'],
     charmKeywords: const ['밀당의 달인', '신비로운 눈빛', '도도한 매력'],
-    elementModifier: '木 기운의 신비로운 매력가',
     createdAt: DateTime.now(),
   );
 
@@ -198,10 +214,10 @@ class _ResultRevealContentState extends State<_ResultRevealContent>
       _buildSectionCard(context, '성격', profile.personalitySummary, colors),
       // 5. 연애 스타일 카드
       _buildSectionCard(context, '연애 스타일', profile.romanceSummary, colors),
-      // 6. 사주 x 관상 시너지
-      _buildSynergyCard(context, profile, colors),
-      // 7. 궁합 동물상
-      _buildCompatibleAnimals(context, profile, colors),
+      // 6. 연애 핵심 포인트
+      _buildRomanceKeyPointsCard(context, profile, colors),
+      // 7. 관상 궁합
+      _buildGwansangCompatCard(context, colors),
       // 8. 액션 버튼
       _buildActions(context, profile.photoUrls),
     ];
@@ -235,37 +251,36 @@ class _ResultRevealContentState extends State<_ResultRevealContent>
   ) {
     return Column(
       children: [
-        // 이모지 + 글로우
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            // 글로우 배경
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    AppTheme.mysticGlow.withValues(alpha: 0.15),
-                    AppTheme.mysticGlow.withValues(alpha: 0.02),
-                  ],
-                ),
+        // 글로우 배경 + 동물상 텍스트
+        Container(
+          width: 100,
+          height: 100,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: RadialGradient(
+              colors: [
+                AppTheme.mysticGlow.withValues(alpha: 0.15),
+                AppTheme.mysticGlow.withValues(alpha: 0.02),
+              ],
+            ),
+          ),
+          child: Center(
+            child: Text(
+              '${profile.animalTypeKorean}상',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+                color: colors.textPrimary,
               ),
             ),
-            // 이모지
-            Text(
-              profile.animalType.emoji,
-              style: const TextStyle(fontSize: 64),
-            ),
-          ],
+          ),
         ),
 
         SajuSpacing.gap16,
 
-        // 동물상 레이블
+        // 수식어 + 동물상 라벨
         Text(
-          profile.animalType.label,
+          profile.animalLabel,
           style: Theme.of(context).textTheme.displaySmall?.copyWith(
                 color: colors.textPrimary,
                 fontWeight: FontWeight.w700,
@@ -273,16 +288,6 @@ class _ResultRevealContentState extends State<_ResultRevealContent>
         ),
 
         SajuSpacing.gap8,
-
-        // 오행 보정자
-        if (profile.elementModifier != null)
-          Text(
-            profile.elementModifier!,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppTheme.mysticGlow,
-                  fontWeight: FontWeight.w500,
-                ),
-          ),
       ],
     );
   }
@@ -314,7 +319,7 @@ class _ResultRevealContentState extends State<_ResultRevealContent>
     BuildContext context,
     GwansangProfile profile,
   ) {
-    final elementColor = _elementToSajuColor(profile.animalType.element);
+    const elementColor = SajuColor.primary;
 
     return Wrap(
       spacing: SajuSpacing.space8,
@@ -367,10 +372,10 @@ class _ResultRevealContentState extends State<_ResultRevealContent>
   }
 
   // ===========================================================================
-  // 6. 사주 x 관상 시너지
+  // 6. 연애 핵심 포인트
   // ===========================================================================
 
-  Widget _buildSynergyCard(
+  Widget _buildRomanceKeyPointsCard(
     BuildContext context,
     GwansangProfile profile,
     SajuColors colors,
@@ -383,14 +388,10 @@ class _ResultRevealContentState extends State<_ResultRevealContent>
         children: [
           Row(
             children: [
-              Icon(
-                Icons.auto_awesome,
-                size: 18,
-                color: AppTheme.mysticGlow,
-              ),
+              Icon(Icons.favorite_outlined, size: 18, color: AppTheme.mysticGlow),
               SajuSpacing.hGap8,
               Text(
-                '사주 \u00D7 관상 시너지',
+                '연애 핵심 포인트',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: AppTheme.mysticGlow,
                       fontWeight: FontWeight.w600,
@@ -399,113 +400,59 @@ class _ResultRevealContentState extends State<_ResultRevealContent>
             ],
           ),
           SajuSpacing.gap12,
-          Text(
-            profile.sajuSynergy,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: colors.textSecondary,
-                  height: 1.7,
+          ...profile.romanceKeyPoints.map((point) => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('• ', style: TextStyle(color: AppTheme.mysticGlow, fontSize: 14)),
+                Expanded(
+                  child: Text(
+                    point,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: colors.textSecondary,
+                          height: 1.7,
+                        ),
+                  ),
                 ),
-          ),
+              ],
+            ),
+          )),
         ],
       ),
     );
   }
 
   // ===========================================================================
-  // 7. 궁합 동물상
+  // 7. 관상 궁합
   // ===========================================================================
 
-  Widget _buildCompatibleAnimals(
+  Widget _buildGwansangCompatCard(
     BuildContext context,
-    GwansangProfile profile,
     SajuColors colors,
   ) {
-    // 찰떡궁합 + 밀당궁합 찾기
-    AnimalType? bestMatch;
-    AnimalType? pushPull;
-
-    for (final entry in AnimalCompatibility.matrix.entries) {
-      final (a, b) = entry.key;
-      if (a == profile.animalType || b == profile.animalType) {
-        final other = a == profile.animalType ? b : a;
-        if (entry.value == 5 && bestMatch == null) {
-          bestMatch = other;
-        } else if (entry.value == 4 && pushPull == null) {
-          pushPull = other;
-        }
-      }
-    }
-
-    bestMatch ??= AnimalType.dog;
-    pushPull ??= AnimalType.wolf;
-
     return SajuCard(
       variant: SajuVariant.flat,
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '궁합 동물상',
+            '관상 궁합',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: colors.textPrimary,
                   fontWeight: FontWeight.w600,
                 ),
           ),
-          SajuSpacing.gap16,
-          // 찰떡궁합
-          _buildCompatRow(
-            context,
-            label: '찰떡궁합',
-            animal: bestMatch,
-            colors: colors,
-            accentColor: AppTheme.statusSuccess,
-          ),
-          SajuSpacing.gap12,
-          // 밀당궁합
-          _buildCompatRow(
-            context,
-            label: '밀당궁합',
-            animal: pushPull,
-            colors: colors,
-            accentColor: AppTheme.mysticGlow,
+          SajuSpacing.gap8,
+          Text(
+            '매칭된 상대방과의 관상 궁합은 매칭 화면에서 확인하세요!',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: colors.textSecondary,
+                  height: 1.5,
+                ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildCompatRow(
-    BuildContext context, {
-    required String label,
-    required AnimalType animal,
-    required SajuColors colors,
-    required Color accentColor,
-  }) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          decoration: BoxDecoration(
-            color: accentColor.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-          ),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: accentColor,
-            ),
-          ),
-        ),
-        SajuSpacing.hGap12,
-        Text(
-          '${animal.label} ${animal.emoji}',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: colors.textPrimary,
-              ),
-        ),
-      ],
     );
   }
 
@@ -546,17 +493,4 @@ class _ResultRevealContentState extends State<_ResultRevealContent>
     );
   }
 
-  // ===========================================================================
-  // 헬퍼
-  // ===========================================================================
-
-  SajuColor _elementToSajuColor(FiveElementType element) {
-    return switch (element) {
-      FiveElementType.wood => SajuColor.wood,
-      FiveElementType.fire => SajuColor.fire,
-      FiveElementType.earth => SajuColor.earth,
-      FiveElementType.metal => SajuColor.metal,
-      FiveElementType.water => SajuColor.water,
-    };
-  }
 }

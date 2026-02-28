@@ -10,7 +10,6 @@ import '../../../../core/widgets/widgets.dart';
 // NOTE: saju_provider 참조는 현재 유저의 오행 캐릭터 정보를 읽기 위한
 // presentation-level 크로스 피처 의존성입니다. 사주 분석 결과를
 // 공유 상태로 리팩토링할 때 해소 예정입니다.
-import '../../../gwansang/domain/entities/animal_type.dart';
 import '../../../saju/presentation/providers/saju_provider.dart';
 import '../../domain/entities/match_profile.dart';
 import '../providers/matching_provider.dart';
@@ -198,8 +197,6 @@ class CompatibilityPreviewPage extends ConsumerWidget {
 
     if (partnerAnimal == null) return const SizedBox.shrink();
 
-    final partnerType = AnimalType.fromString(partnerAnimal);
-
     // 현재 유저는 관상 미완료로 가정 (provider 연동 시 분기 추가 예정)
     return Container(
       padding: const EdgeInsets.all(20),
@@ -213,7 +210,7 @@ class CompatibilityPreviewPage extends ConsumerWidget {
       child: Column(
         children: [
           Text(
-            '${partnerProfile.name}님은 ${partnerType.emoji} ${partnerType.label}',
+            '${partnerProfile.name}님은 $partnerAnimal상',
             style: textTheme.titleSmall?.copyWith(
               color: Colors.white,
             ),
