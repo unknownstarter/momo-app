@@ -48,14 +48,14 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage>
       icon: null,
     ),
     _IntroSlide(
-      title: '3분이면 완성되는\n나만의 운명 프로필',
-      subtitle: 'AI가 사주 해석부터 동물상까지 알려드려요',
+      title: '3분이면 알 수 있는\n나의 연애 사주',
+      subtitle: '조상님 덕에 쌓인 사주, AI가 풀어드려요',
       accentColor: Color(0xFF89B0CB), // 쪽빛 하늘 (water)
       icon: Icons.auto_awesome_outlined,
     ),
     _IntroSlide(
-      title: '사주 궁합으로 만나는\n운명적 인연',
-      subtitle: '4,000년 동양 지혜 × AI 매칭',
+      title: '사주 궁합이 좋은 사람,\n먼저 만나볼래요?',
+      subtitle: '수천 년 이어진 인연의 지혜가 여기 있어요',
       accentColor: Color(0xFFD4918E), // 연지 핑크 (fire)
       icon: null,
     ),

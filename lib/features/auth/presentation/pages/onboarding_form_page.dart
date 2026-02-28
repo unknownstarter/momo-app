@@ -364,7 +364,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
           SajuSpacing.gap8,
           SajuCharacterBubble(
             characterName: '물결이',
-            message: '반가워! 이름이 뭐야~?',
+            message: '반가워요! 이름이 어떻게 돼요~?',
             elementColor: SajuColor.water,
             characterAssetPath: CharacterAssets.mulgyeoriWaterDefault,
             size: SajuSize.md,
@@ -407,7 +407,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
           SajuSpacing.gap8,
           SajuCharacterBubble(
             characterName: '물결이',
-            message: '$displayName, 성별을 알려줘!',
+            message: '$displayName 반가워요! 성별도 알려주실래요?',
             elementColor: SajuColor.water,
             characterAssetPath: CharacterAssets.mulgyeoriWaterDefault,
             size: SajuSize.md,
@@ -462,7 +462,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
           SajuSpacing.gap8,
           SajuCharacterBubble(
             characterName: '물결이',
-            message: '태어난 날짜를 알려줘~',
+            message: '태어난 날을 알려주면 사주를 펼쳐볼게요!',
             elementColor: SajuColor.water,
             characterAssetPath: CharacterAssets.mulgyeoriWaterDefault,
             size: SajuSize.md,
@@ -518,7 +518,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
           SajuSpacing.gap8,
           SajuCharacterBubble(
             characterName: '쇠동이',
-            message: '태어난 시간까지 알면 더 정확해져!\n몰라도 괜찮아~',
+            message: '태어난 시간까지 알면 훨씬 정확해져요!\n몰라도 전혀 괜찮아요~',
             elementColor: SajuColor.metal,
             characterAssetPath: CharacterAssets.soedongiMetalDefault,
             size: SajuSize.md,
@@ -679,7 +679,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
           SajuSpacing.gap8,
           SajuCharacterBubble(
             characterName: '불꼬리',
-            message: '당신의 얼굴에 어떤 동물이 숨어있을까?\n정면 사진 한 장이면 충분해!',
+            message: '얼굴에 숨은 동물상이 궁금하지 않아요?\n셀카 한 장이면 충분해요!',
             elementColor: SajuColor.fire,
             characterAssetPath: CharacterAssets.bulkkoriFireDefault,
             size: SajuSize.md,
@@ -837,7 +837,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
           SajuSpacing.gap8,
           SajuCharacterBubble(
             characterName: '물결이',
-            message: '좋아! 이제 사주와 관상을 함께 분석해볼까?',
+            message: '좋아요! 이제 조상님의 지혜를 빌려볼게요~',
             elementColor: SajuColor.water,
             characterAssetPath: CharacterAssets.mulgyeoriWaterDefault,
             size: SajuSize.md,

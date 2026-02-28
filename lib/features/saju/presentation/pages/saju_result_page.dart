@@ -372,7 +372,7 @@ class SajuResultPage extends ConsumerWidget {
     return Column(
       children: [
         SajuButton(
-          label: '운명의 인연 찾으러 가기',
+          label: '내 사주와 찰떡인 사람, 만나볼까요?',
           onPressed: () => context.go(
             RoutePaths.matchingProfile,
             extra: {'quickMode': true},

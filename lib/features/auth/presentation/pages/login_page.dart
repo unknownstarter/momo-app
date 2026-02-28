@@ -200,7 +200,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
 
         // 메인 카피 — 토스 스타일 큰 텍스트
         const Text(
-          '사주가 이끄는\n운명적 만남',
+          '사주가 알고 있는\n나의 인연',
           style: TextStyle(
             fontFamily: AppTheme.fontFamily,
             fontSize: 32,
@@ -215,7 +215,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
 
         // 서브 카피
         Text(
-          '당신의 사주팔자로 찾는, 진짜 인연',
+          '조상님 덕에 쌓인 사주 데이터, AI가 풀어드려요',
           style: TextStyle(
             fontFamily: AppTheme.fontFamily,
             fontSize: 16,
