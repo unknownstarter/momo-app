@@ -12,11 +12,14 @@ import '../../../matching/domain/entities/match_profile.dart';
 import '../../../matching/presentation/pages/compatibility_preview_page.dart';
 import '../../../matching/presentation/providers/matching_provider.dart';
 
-/// HomePage — 홈 탭 (토스 스타일 미니멀)
+/// HomePage — 홈 탭 (2026-02-28 리디자인)
 ///
-/// 타이포그래피 위계로 구조를 잡고, 여백으로 호흡을 주는 깔끔한 레이아웃.
-/// 아이콘/장식 최소화, 핵심 정보만 노출.
-/// 각 섹션은 스태거드 fadeIn + slideUp으로 등장한다.
+/// 섹션 순서:
+/// 1. 인사 + 캐릭터
+/// 2. 오늘의 연애운 (신설)
+/// 3. 궁합 매칭 추천 2열 그리드 (★ 메인)
+/// 4. 받은 좋아요 + 카운트 뱃지
+/// 5. 동물상 매칭 (관상 넛지 대체)
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
@@ -64,11 +67,10 @@ class HomePage extends ConsumerWidget {
                           ],
                         ),
                       ),
-                      // 나무리 캐릭터 — 은은하게
                       Image.asset(
                         CharacterAssets.namuriWoodDefault,
-                        width: 72,
-                        height: 72,
+                        width: 64,
+                        height: 64,
                         fit: BoxFit.contain,
                         errorBuilder: (_, _, _) => const SizedBox.shrink(),
                       ),
@@ -77,44 +79,58 @@ class HomePage extends ConsumerWidget {
                 ),
               ),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
 
-              // ---- 2. 오늘의 추천 ----
+              // ---- 2. 오늘의 연애운 (신설) ----
               _FadeSlideSection(
                 delay: const Duration(milliseconds: 100),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: const _DailyLoveFortuneCard(),
+                ),
+              ),
+
+              const SizedBox(height: 32),
+
+              // ---- 3. 궁합 매칭 추천 2열 그리드 (★ 메인) ----
+              _FadeSlideSection(
+                delay: const Duration(milliseconds: 200),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Text(
-                        '오늘의 추천',
-                        style: textTheme.titleLarge,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '궁합 매칭 추천 이성',
+                            style: textTheme.titleLarge,
+                          ),
+                          GestureDetector(
+                            onTap: () => context.go(RoutePaths.matching),
+                            child: Text(
+                              '더보기',
+                              style: textTheme.bodySmall?.copyWith(
+                                color: textTheme.bodySmall?.color
+                                    ?.withValues(alpha: 0.5),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 14),
                     recommendations.when(
-                      loading: () => SizedBox(
-                        height: 260,
-                        child: ListView.separated(
-                          scrollDirection: Axis.horizontal,
-                          padding:
-                              const EdgeInsets.symmetric(horizontal: 20),
-                          itemCount: 3,
-                          separatorBuilder: (_, _) =>
-                              const SizedBox(width: 12),
-                          itemBuilder: (_, _) => const SkeletonCard(),
-                        ),
-                      ),
+                      loading: () => _buildGridSkeleton(context),
                       error: (_, _) => Padding(
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 20),
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: _EmptyState(
                           message: '추천을 불러오지 못했어요',
                           height: 200,
                         ),
                       ),
-                      data: (profiles) => _RecommendationList(
+                      data: (profiles) => _RecommendationGrid(
                         profiles: profiles,
                         ref: ref,
                       ),
@@ -123,20 +139,9 @@ class HomePage extends ConsumerWidget {
                 ),
               ),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 28),
 
-              // ---- 관상 넛지 배너 ----
-              _FadeSlideSection(
-                delay: const Duration(milliseconds: 200),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: const _GwansangNudgeBanner(),
-                ),
-              ),
-
-              const SizedBox(height: 32),
-
-              // ---- 3. 받은 좋아요 ----
+              // ---- 4. 받은 좋아요 ----
               _FadeSlideSection(
                 delay: const Duration(milliseconds: 300),
                 child: Padding(
@@ -144,16 +149,43 @@ class HomePage extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        '받은 좋아요',
-                        style: textTheme.titleLarge,
+                      Row(
+                        children: [
+                          Text('받은 좋아요', style: textTheme.titleLarge),
+                          const SizedBox(width: 8),
+                          receivedLikes.when(
+                            loading: () => const SizedBox.shrink(),
+                            error: (_, _) => const SizedBox.shrink(),
+                            data: (likes) => likes.isNotEmpty
+                                ? Container(
+                                    width: 20,
+                                    height: 20,
+                                    decoration: const BoxDecoration(
+                                      color: AppTheme.fireColor,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        '${likes.length}',
+                                        style: const TextStyle(
+                                          fontFamily: AppTheme.fontFamily,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                : const SizedBox.shrink(),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 14),
                       receivedLikes.when(
                         loading: () => Container(
                           height: 64,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF0EDE8),
+                            color: context.sajuColors.bgSecondary,
                             borderRadius:
                                 BorderRadius.circular(AppTheme.radiusLg),
                           ),
@@ -167,24 +199,14 @@ class HomePage extends ConsumerWidget {
                 ),
               ),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 28),
 
-              // ---- 4. 오늘의 한마디 ----
+              // ---- 5. 동물상 매칭 (관상 넛지 대체) ----
               _FadeSlideSection(
                 delay: const Duration(milliseconds: 400),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '오늘의 한마디',
-                        style: textTheme.titleLarge,
-                      ),
-                      const SizedBox(height: 14),
-                      const _FortuneCard(),
-                    ],
-                  ),
+                  child: const _AnimalMatchSection(),
                 ),
               ),
 
@@ -196,14 +218,32 @@ class HomePage extends ConsumerWidget {
       ),
     );
   }
+
+  static Widget _buildGridSkeleton(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 14,
+          mainAxisSpacing: 14,
+          childAspectRatio: 0.72,
+        ),
+        itemCount: 4,
+        itemBuilder: (_, _) => const SkeletonCard(),
+      ),
+    );
+  }
 }
 
 // =============================================================================
-// 추천 매칭 가로 스크롤
+// 추천 매칭 2열 그리드 (★ 메인 콘텐츠)
 // =============================================================================
 
-class _RecommendationList extends StatelessWidget {
-  const _RecommendationList({
+class _RecommendationGrid extends StatelessWidget {
+  const _RecommendationGrid({
     required this.profiles,
     required this.ref,
   });
@@ -214,21 +254,31 @@ class _RecommendationList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (profiles.isEmpty) {
-      return const _EmptyState(
-        message: '아직 추천이 준비되지 않았어요',
-        height: 200,
+      return const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 20),
+        child: _EmptyState(
+          message: '아직 추천이 준비되지 않았어요',
+          height: 200,
+        ),
       );
     }
 
-    return SizedBox(
-      height: 260,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: profiles.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 12),
+    final displayProfiles = profiles.take(6).toList();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 14,
+          mainAxisSpacing: 14,
+          childAspectRatio: 0.72,
+        ),
+        itemCount: displayProfiles.length,
         itemBuilder: (context, index) {
-          final profile = profiles[index];
+          final profile = displayProfiles[index];
           return SajuMatchCard(
             name: profile.name,
             age: profile.age,
@@ -238,11 +288,196 @@ class _RecommendationList extends StatelessWidget {
             characterAssetPath: profile.characterAssetPath,
             elementType: profile.elementType,
             compatibilityScore: profile.compatibilityScore,
-            width: 180,
-            height: 260,
+            showCharacterInstead: true,
             onTap: () => showCompatibilityPreview(context, ref, profile),
           );
         },
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// 오늘의 연애운 카드 (기존 _FortuneCard 대체)
+// =============================================================================
+
+class _DailyLoveFortuneCard extends StatelessWidget {
+  const _DailyLoveFortuneCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final colors = context.sajuColors;
+    // TODO(PROD): 유저 오행에 따라 동적으로 변경
+    const elementColor = AppTheme.woodColor;
+    const elementPastel = AppTheme.woodPastel;
+    final characterAssetPath = CharacterAssets.namuriWoodDefault;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('오늘의 연애운', style: textTheme.titleLarge),
+        const SizedBox(height: 14),
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: colors.bgElevated,
+            borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+            border: Border.all(color: colors.borderDefault),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 캐릭터 + 라벨
+              Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: elementPastel.withValues(alpha: 0.5),
+                    ),
+                    child: Center(
+                      child: Image.asset(
+                        characterAssetPath,
+                        width: 28,
+                        height: 28,
+                        errorBuilder: (_, _, _) =>
+                            const Text('🌳', style: TextStyle(fontSize: 16)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    '나무리의 연애운',
+                    style: textTheme.titleSmall?.copyWith(
+                      color: elementColor.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              // 에너지 바
+              Row(
+                children: [
+                  const Text('💘', style: TextStyle(fontSize: 14)),
+                  const SizedBox(width: 6),
+                  Text(
+                    '연애 에너지',
+                    style: textTheme.labelSmall?.copyWith(
+                      color: colors.textTertiary,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(3),
+                      child: const LinearProgressIndicator(
+                        value: 0.82,
+                        minHeight: 6,
+                        backgroundColor: Color(0xFFF0EDE8),
+                        valueColor: AlwaysStoppedAnimation(elementColor),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '82%',
+                    style: textTheme.labelSmall?.copyWith(
+                      color: colors.textTertiary,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              // 운세 메시지
+              Text(
+                '오늘은 목(木)의 생기가 강해요.\n자연스러운 대화가 좋은 인연으로 이어질 수 있는 날이에요.',
+                style: textTheme.bodyMedium?.copyWith(
+                  height: 1.6,
+                  color: colors.textPrimary.withValues(alpha: 0.75),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // 하단 칩
+              Row(
+                children: [
+                  _FortuneChip(
+                    icon: '🌊',
+                    label: '상생 오행',
+                    value: '수(水)',
+                    color: elementColor,
+                    pastel: elementPastel,
+                  ),
+                  const SizedBox(width: 8),
+                  _FortuneChip(
+                    icon: '❤️',
+                    label: '추천 행동',
+                    value: '산책 데이트',
+                    color: elementColor,
+                    pastel: elementPastel,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _FortuneChip extends StatelessWidget {
+  const _FortuneChip({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.color,
+    required this.pastel,
+  });
+
+  final String icon;
+  final String label;
+  final String value;
+  final Color color;
+  final Color pastel;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: pastel.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+        border: Border.all(color: color.withValues(alpha: 0.15)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(icon, style: const TextStyle(fontSize: 14)),
+          const SizedBox(width: 6),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: textTheme.labelSmall?.copyWith(
+                  fontSize: 10,
+                  color: context.sajuColors.textTertiary,
+                ),
+              ),
+              Text(
+                value,
+                style: textTheme.labelSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -321,146 +556,146 @@ class _ReceivedLikesCard extends StatelessWidget {
 }
 
 // =============================================================================
-// 오늘의 한마디 카드
+// 동물상 매칭 섹션 (관상 넛지 대체)
 // =============================================================================
 
-class _FortuneCard extends StatelessWidget {
-  const _FortuneCard();
+class _AnimalMatchSection extends StatelessWidget {
+  const _AnimalMatchSection();
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final colors = context.sajuColors;
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: context.sajuColors.bgElevated,
-        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-        border: Border.all(
-          color: context.sajuColors.borderDefault,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppTheme.waterPastel.withValues(alpha: 0.5),
-                ),
-                child: Center(
-                  child: characterAssetPath != null
-                      ? Image.asset(
-                          characterAssetPath!,
-                          width: 28,
-                          height: 28,
-                          errorBuilder: (_, _, _) => Text(
-                            '물',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.waterColor,
-                            ),
-                          ),
-                        )
-                      : Text(
-                          '물',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.waterColor,
-                          ),
-                        ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                '물결이의 한마디',
-                style: textTheme.titleSmall?.copyWith(
-                  color: AppTheme.waterColor.withValues(alpha: 0.8),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Text(
-            '오늘은 새로운 인연이 다가올 기운이 느껴져요.\n마음을 열고 자연스럽게 대화해보세요.',
-            style: textTheme.bodyMedium?.copyWith(
-              height: 1.6,
-              color: textTheme.bodyMedium?.color?.withValues(alpha: 0.75),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String? get characterAssetPath => CharacterAssets.mulgyeoriWaterDefault;
-}
-
-// =============================================================================
-// 관상 넛지 배너
-// =============================================================================
-
-class _GwansangNudgeBanner extends StatelessWidget {
-  const _GwansangNudgeBanner();
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-
-    return GestureDetector(
-      onTap: () => context.go(RoutePaths.gwansangBridge),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              AppTheme.firePastel.withValues(alpha: 0.4),
-              AppTheme.waterPastel.withValues(alpha: 0.3),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-          border: Border.all(
-            color: context.sajuColors.borderDefault,
-          ),
-        ),
-        child: Row(
-          children: [
-            Text('🦊🐻', style: TextStyle(fontSize: 32)),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '닮은 동물상끼리 잘 맞는대요!',
-                    style: textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '내 동물상을 알면 찰떡궁합을 찾아줄게요',
-                    style: textTheme.bodySmall?.copyWith(
-                      color: textTheme.bodySmall?.color?.withValues(alpha: 0.7),
-                    ),
-                  ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('동물상 매칭', style: textTheme.titleLarge),
+        const SizedBox(height: 14),
+        GestureDetector(
+          onTap: () => context.go(RoutePaths.matching),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppTheme.firePastel.withValues(alpha: 0.25),
+                  AppTheme.waterPastel.withValues(alpha: 0.2),
                 ],
               ),
+              borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+              border: Border.all(color: colors.borderDefault),
             ),
-            Icon(
-              Icons.chevron_right_rounded,
-              size: 20,
-              color: textTheme.bodySmall?.color?.withValues(alpha: 0.4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppTheme.firePastel.withValues(alpha: 0.4),
+                      ),
+                      child: const Center(
+                        child:
+                            Text('🦊', style: TextStyle(fontSize: 24)),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '나는 여우상',
+                          style: textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '본능적으로 분위기를 읽는 매력가',
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  '여우상과 찰떡인 동물상',
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    _AnimalChip(emoji: '🐻', label: '곰상', count: 3),
+                    const SizedBox(width: 16),
+                    _AnimalChip(emoji: '🐱', label: '고양이상', count: 5),
+                    const SizedBox(width: 16),
+                    _AnimalChip(emoji: '🐰', label: '토끼상', count: 2),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Text(
+                      '동물상 매칭 보러가기',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colors.textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      size: 16,
+                      color: colors.textTertiary,
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
+      ],
+    );
+  }
+}
+
+class _AnimalChip extends StatelessWidget {
+  const _AnimalChip({
+    required this.emoji,
+    required this.label,
+    required this.count,
+  });
+
+  final String emoji;
+  final String label;
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return Column(
+      children: [
+        Text(emoji, style: const TextStyle(fontSize: 20)),
+        const SizedBox(height: 4),
+        Text(label, style: textTheme.labelSmall),
+        Text(
+          '$count명',
+          style: textTheme.labelSmall?.copyWith(
+            fontSize: 10,
+            color: context.sajuColors.textTertiary,
+          ),
+        ),
+      ],
     );
   }
 }
