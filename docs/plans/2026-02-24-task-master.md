@@ -135,6 +135,11 @@
 | UX3 | 전체 유저 플로우 도식화 + 와우 모먼트 3곳 정의 | ✅ |
 | UX4 | 설계 문서 작성: `docs/plans/2026-02-28-home-ux-redesign-design.md` | ✅ |
 | UX5 | PRD 업데이트: 홈 화면 구성(§6) + 온보딩 대사(§3.2) + 분석 페이즈(§3.3) | ✅ |
+| UX6 | 온보딩 전체 문구 해요체+위트 코드 적용 (Phase 1: 로그인/온보딩/분석/결과 6개 파일) | ✅ |
+| UX7 | SajuMatchCard v2 — showCharacterInstead + isNew 뱃지 | ✅ |
+| UX8 | 홈 페이지 리디자인 구현 — 2컬럼 그리드 + 연애운 + 동물상 | ✅ |
+| UX9 | ProfileDetailPage — 블러 사진 + 캐릭터 + 궁합 + 라우트 등록 | ✅ |
+| UX10 | 전체 통합 검증 (flutter analyze + iOS build) | ✅ |
 
 ### 🚨 Sprint A — 바이패스 제거 + Auth 실연동 (전체 블로커)
 
