@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -7,7 +8,6 @@ import '../../../../core/theme/tokens/saju_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../domain/entities/match_profile.dart';
 import '../providers/matching_provider.dart';
-import 'compatibility_preview_page.dart';
 
 /// MatchingPage — 매칭 탭 (토스 스타일 미니멀)
 ///
@@ -148,7 +148,15 @@ class _MatchingPageState extends ConsumerState<MatchingPage> {
           characterAssetPath: profile.characterAssetPath,
           elementType: profile.elementType,
           compatibilityScore: profile.compatibilityScore,
-          onTap: () => showCompatibilityPreview(context, ref, profile),
+          heroTag: 'match_char_${profile.userId}_$index',
+          showCharacterInstead: true,
+          onTap: () => context.push(
+            RoutePaths.profileDetail,
+            extra: {
+              'profile': profile,
+              'heroTag': 'match_char_${profile.userId}_$index',
+            },
+          ),
         );
       },
     );

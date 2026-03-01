@@ -346,8 +346,10 @@ GoRouter appRouter(Ref ref) {
         path: RoutePaths.profileDetail,
         name: RouteNames.profileDetail,
         builder: (context, state) {
-          final profile = state.extra as MatchProfile;
-          return ProfileDetailPage(profile: profile);
+          final data = state.extra as Map<String, dynamic>;
+          final profile = data['profile'] as MatchProfile;
+          final heroTag = data['heroTag'] as String?;
+          return ProfileDetailPage(profile: profile, heroTag: heroTag);
         },
       ),
 

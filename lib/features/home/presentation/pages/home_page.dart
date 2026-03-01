@@ -78,7 +78,7 @@ class HomePage extends ConsumerWidget {
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
 
               // ---- 2. 오늘의 연애운 (신설) ----
               _FadeSlideSection(
@@ -137,7 +137,7 @@ class HomePage extends ConsumerWidget {
                 ),
               ),
 
-              const SizedBox(height: 28),
+              const SizedBox(height: 32),
 
               // ---- 4. 받은 좋아요 ----
               _FadeSlideSection(
@@ -197,7 +197,7 @@ class HomePage extends ConsumerWidget {
                 ),
               ),
 
-              const SizedBox(height: 28),
+              const SizedBox(height: 32),
 
               // ---- 5. 관상 매칭 (관상 케미) ----
               _FadeSlideSection(
@@ -227,7 +227,7 @@ class HomePage extends ConsumerWidget {
           crossAxisCount: 2,
           crossAxisSpacing: 14,
           mainAxisSpacing: 14,
-          childAspectRatio: 0.72,
+          childAspectRatio: 0.78,
         ),
         itemCount: 4,
         itemBuilder: (_, _) => const SkeletonCard(),
@@ -270,7 +270,7 @@ class _RecommendationGrid extends StatelessWidget {
           crossAxisCount: 2,
           crossAxisSpacing: 14,
           mainAxisSpacing: 14,
-          childAspectRatio: 0.72,
+          childAspectRatio: 0.78,
         ),
         itemCount: displayProfiles.length,
         itemBuilder: (context, index) {
@@ -285,9 +285,13 @@ class _RecommendationGrid extends StatelessWidget {
             elementType: profile.elementType,
             compatibilityScore: profile.compatibilityScore,
             showCharacterInstead: true,
+            heroTag: 'home_char_${profile.userId}_$index',
             onTap: () => context.push(
               RoutePaths.profileDetail,
-              extra: profile,
+              extra: {
+                'profile': profile,
+                'heroTag': 'home_char_${profile.userId}_$index',
+              },
             ),
           );
         },

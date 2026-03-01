@@ -63,6 +63,7 @@ class SajuMatchCard extends StatefulWidget {
     this.isLoading = false,
     this.showCharacterInstead = false,
     this.isNew = false,
+    this.heroTag,
     this.onTap,
     this.width,
     this.height,
@@ -81,6 +82,7 @@ class SajuMatchCard extends StatefulWidget {
   final bool isLoading;
   final bool showCharacterInstead;
   final bool isNew;
+  final String? heroTag;
   final VoidCallback? onTap;
   final double? width;
   final double? height;
@@ -264,15 +266,31 @@ class _SajuMatchCardState extends State<SajuMatchCard> {
       ),
       child: Center(
         child: widget.characterAssetPath != null
-            ? Image.asset(
-                widget.characterAssetPath!,
-                width: 72,
-                height: 72,
-                fit: BoxFit.contain,
-                errorBuilder: (_, _, _) => Icon(Icons.person_rounded, size: 40, color: elementColor.withValues(alpha: 0.25)),
+            ? _wrapHero(
+                Image.asset(
+                  widget.characterAssetPath!,
+                  width: 72,
+                  height: 72,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, _, _) => Icon(Icons.person_rounded, size: 40, color: elementColor.withValues(alpha: 0.25)),
+                ),
               )
             : Icon(Icons.person_rounded, size: 40, color: elementColor.withValues(alpha: 0.25)),
       ),
+    );
+  }
+
+  Widget _wrapHero(Widget child) {
+    if (widget.heroTag == null) return child;
+    return Hero(
+      tag: widget.heroTag!,
+      flightShuttleBuilder: (_, animation, direction, fromContext, toContext) {
+        return AnimatedBuilder(
+          animation: animation,
+          builder: (context, _) => toContext.widget,
+        );
+      },
+      child: child,
     );
   }
 

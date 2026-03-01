@@ -1,6 +1,6 @@
-# 테스크 마스터 — 2026-03-01 (v9)
+# 테스크 마스터 — 2026-03-02 (v10)
 
-> **작성일**: 2026-02-24 | **갱신**: 2026-03-01
+> **작성일**: 2026-02-24 | **갱신**: 2026-03-02
 > **목적**: 다음에 할 일을 한곳에 정리해, 다른 디바이스에서 보고 연속으로 작업할 수 있게 함.
 > **참조**: PRD `docs/plans/2026-02-24-app-design.md`, 개선 제안서 `docs/plans/2026-02-24-saju-궁합-engine-improvement-proposal.md`, dev-log `docs/dev-log/2026-02-24-progress.md`
 
@@ -90,13 +90,13 @@ flutter build ios --no-codesign --debug   # iOS 빌드 확인
 | BYPASS-5 | `matching_profile_page.dart:320` | 프로필 저장 실패 → 매칭 직행 |
 | BYPASS-6 | `app_router.dart:93-95` | matching/chat/profile 비로그인 접근 허용 |
 
-### 현재 앱 상태 요약 (2026-03-01)
+### 현재 앱 상태 요약 (2026-03-02)
 
-- **작동하는 것**: 온보딩 → 사주+관상 통합 분석(Mock) → 결과(탭) → 홈(추천 그리드) → 프로필 상세(블러) → 궁합 프리뷰(실연동 가능)
+- **작동하는 것**: 온보딩 → 사주+관상 통합 분석(Mock) → 결과(탭) → 홈(추천 그리드) → **프로필 상세(즉시 표시, 인라인 궁합, Hero 트랜지션)** → 궁합 프리뷰(실연동 가능)
 - **Mock인 것**: 로그인, 프로필 저장, 사주/관상 AI 분석, 추천 목록, 좋아요
 - **실연동된 것**: `calculate-compatibility` Edge Function (궁합 계산, Mock 파트너일 때는 로컬 Mock 사용)
-- **직전 완료**: Sprint A 코드 사전 준비 (entitlements, URL scheme, 딥링크, Storage, OAuth config)
-- **다음 작업**: Sprint A 인프라 설정(노아님) → BYPASS 제거 → UX 고도화(상세페이지/궁합 진입점)
+- **직전 완료**: Hero 태그 크래시 수정 + 스크롤 reveal 제거(즉시 표시) + 홈 간격 32px 통일
+- **다음 작업**: Sprint A 인프라 설정(노아님) → BYPASS 제거
 
 ---
 
@@ -237,6 +237,28 @@ flutter build ios --no-codesign --debug   # iOS 빌드 확인
 | UX8 | 홈 페이지 리디자인 구현 — 2컬럼 그리드 + 연애운 + 동물상 | ✅ |
 | UX9 | ProfileDetailPage — 블러 사진 + 캐릭터 + 궁합 + 라우트 등록 | ✅ |
 | UX10 | 전체 통합 검증 (flutter analyze + iOS build) | ✅ |
+
+### 2026-03-01
+
+| # | 항목 | 상태 |
+|---|------|------|
+| WOW1 | **Hero 섹션** — SliverAppBar(0.55) + 패럴랙스 블러 + 캐릭터 96px 스케일 등장 + bounce chevron | ✅ |
+| WOW2 | **첫인상 섹션** — 캐릭터 말풍선 소개 + bio 확장 + 기본 정보 칩 + scroll reveal | ✅ |
+| WOW3 | **궁합 인라인** — 게이지 140px 카운트업 + 등급 딜레이 + 강점/도전 스태거드 등장 | ✅ |
+| WOW4 | **관상 케미** — 조건부 동물상 + traits 미니 바 차트 + 넛지 CTA | ✅ |
+| WOW5 | **고정 액션** — 하단 고정 LikeButton + ghost 건너뛰기 + 스와이프 업 제스처 | ✅ |
+| WOW6 | **RevealSection** — 스크롤 위치 기반 섹션 자동 등장 (fade+slide, 단방향) | ✅ |
+| WOW7 | **Hero 트랜지션** — 홈 카드 heroTag → 상세 Hero, 캐릭터 이동 효과 | ✅ |
+| WOW8 | **문서 업데이트** — dev-log + task-master | ✅ |
+
+### 2026-03-02
+
+| # | 항목 | 상태 |
+|---|------|------|
+| FIX1 | **Hero 태그 중복 크래시 수정** — heroTag에 소스 prefix + index 추가, extra를 Map으로 변경 | ✅ |
+| FIX2 | **스크롤 reveal 제거** — 모든 섹션 즉시 표시, RevealSection/BouncingChevron/DelayedFadeIn 삭제 | ✅ |
+| FIX3 | **홈 섹션 간격 32px 통일** — 기존 24/32/28/28px → 전체 32px, 그리드 aspect ratio 0.72→0.78 | ✅ |
+| FIX4 | **문서 업데이트** — dev-log + task-master v10 | ✅ |
 
 ### 🔥 Sprint 0 — 관상 시스템 재설계 ("진짜 관상학 + 동적 동물 도감")
 
@@ -395,7 +417,7 @@ flutter build ios --no-codesign --debug   # iOS 빌드 확인
 - [x] ~~Sprint A 코드 사전 준비~~ ✅ 완료 (2026-03-01)
 - [ ] **Sprint A 인프라 설정** — 노아님이 `docs/guides/sprint-a-infra-setup.md` 체크리스트 수행
 - [ ] Sprint A BYPASS 제거 — 인프라 완료 후 A3~A10 순차 진행
-- [ ] **UX 고도화** — 유저 상세페이지 + 궁합 매칭 진입점 Wow 경험
+- [x] ~~**UX 고도화** — 유저 상세페이지 + 궁합 매칭 진입점 Wow 경험~~ ✅ 완료 (2026-03-02)
 - [ ] 참조: `docs/dev-log/2026-02-26-debug-bypass.md` (바이패스 상세)
 - [ ] `lib/core/di/providers.dart` 확인 (새 Repository/DataSource 추가 시 반드시 등록)
 - [ ] 작업 완료 시 본 테스크 마스터 상태(⬜→✅) 및 dev-log 업데이트
