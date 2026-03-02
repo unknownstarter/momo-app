@@ -157,13 +157,9 @@ class _SajuMatchCardState extends State<SajuMatchCard> {
               child: Column(
                 children: [
                   Expanded(
-                    flex: 3,
                     child: _buildPhotoArea(elementColor, elementPastel, isDark),
                   ),
-                  Expanded(
-                    flex: 2,
-                    child: _buildInfoArea(context, elementColor),
-                  ),
+                  _buildInfoArea(context, elementColor),
                 ],
               ),
             ),
@@ -309,13 +305,11 @@ class _SajuMatchCardState extends State<SajuMatchCard> {
             overflow: TextOverflow.ellipsis,
           ),
           SajuSpacing.gap4,
-          Expanded(
-            child: Text(
-              widget.bio,
-              style: textTheme.bodySmall?.copyWith(height: 1.4),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
+          Text(
+            widget.bio,
+            style: textTheme.bodySmall?.copyWith(height: 1.4),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
@@ -335,21 +329,18 @@ class _SajuMatchCardState extends State<SajuMatchCard> {
       ),
       child: Column(
         children: [
-          Expanded(flex: 3, child: Container(color: shimmerBase)),
-          Expanded(
-            flex: 2,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(width: 100, height: 14, decoration: BoxDecoration(color: shimmerBase, borderRadius: BorderRadius.circular(4))),
-                  SajuSpacing.gap8,
-                  Container(width: double.infinity, height: 10, decoration: BoxDecoration(color: shimmerBase, borderRadius: BorderRadius.circular(4))),
-                  SajuSpacing.gap4,
-                  Container(width: 140, height: 10, decoration: BoxDecoration(color: shimmerBase, borderRadius: BorderRadius.circular(4))),
-                ],
-              ),
+          Expanded(child: Container(color: shimmerBase)),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(width: 100, height: 14, decoration: BoxDecoration(color: shimmerBase, borderRadius: BorderRadius.circular(4))),
+                SajuSpacing.gap8,
+                Container(width: double.infinity, height: 10, decoration: BoxDecoration(color: shimmerBase, borderRadius: BorderRadius.circular(4))),
+                SajuSpacing.gap4,
+                Container(width: 140, height: 10, decoration: BoxDecoration(color: shimmerBase, borderRadius: BorderRadius.circular(4))),
+              ],
             ),
           ),
         ],

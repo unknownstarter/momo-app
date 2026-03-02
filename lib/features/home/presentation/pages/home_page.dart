@@ -227,7 +227,7 @@ class HomePage extends ConsumerWidget {
           crossAxisCount: 2,
           crossAxisSpacing: 14,
           mainAxisSpacing: 14,
-          childAspectRatio: 0.78,
+          childAspectRatio: 0.72,
         ),
         itemCount: 4,
         itemBuilder: (_, _) => const SkeletonCard(),
@@ -270,7 +270,7 @@ class _RecommendationGrid extends StatelessWidget {
           crossAxisCount: 2,
           crossAxisSpacing: 14,
           mainAxisSpacing: 14,
-          childAspectRatio: 0.78,
+          childAspectRatio: 0.72,
         ),
         itemCount: displayProfiles.length,
         itemBuilder: (context, index) {
