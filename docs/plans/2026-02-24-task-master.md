@@ -90,13 +90,13 @@ flutter build ios --no-codesign --debug   # iOS 빌드 확인
 | BYPASS-5 | `matching_profile_page.dart:320` | 프로필 저장 실패 → 매칭 직행 |
 | BYPASS-6 | `app_router.dart:93-95` | matching/chat/profile 비로그인 접근 허용 |
 
-### 현재 앱 상태 요약 (2026-03-03)
+### 현재 앱 상태 요약 (2026-03-03 v2)
 
-- **작동하는 것**: 온보딩 → 사주+관상 통합 분석(Mock) → 결과(탭) → 홈(추천 그리드) → **프로필 상세(즉시 표시, 인라인 궁합, Hero 트랜지션)** → 궁합 프리뷰(실연동 가능)
-- **Mock인 것**: 로그인, 프로필 저장, 사주/관상 AI 분석, 추천 목록, 좋아요
+- **작동하는 것**: 온보딩(7스텝, SMS 필수) → 사주+관상 통합 분석(Mock) → 결과(탭) → 데이팅 프로필(8필드) → 추천 리스트 → 홈(추천 그리드) → **프로필 상세(즉시 표시, 인라인 궁합, Hero 트랜지션)** → 궁합 프리뷰(실연동 가능)
+- **Mock인 것**: 로그인, 프로필 저장, 사주/관상 AI 분석, 추천 목록, 좋아요, SMS 인증(BYPASS-6/7)
 - **실연동된 것**: `calculate-compatibility` Edge Function (궁합 계산, Mock 파트너일 때는 로컬 Mock 사용)
-- **직전 완료**: 온보딩 & 인증 리디자인 설계 (5개 직군 종합 — 마스터 플랜 + 백엔드 아키텍처 + UX 스펙 문서)
-- **다음 작업**: **온보딩 리디자인 구현** (Google→Kakao, SMS 인증, 데이팅 프로필 8필드) → Sprint A 인프라(노아님) → BYPASS 제거
+- **직전 완료**: Sprint ON (온보딩 리디자인 구현) + SMS 필수화 + Send SMS Hook + CoolSMS 아키텍처 확정
+- **다음 작업**: **Sprint A — 노아님 인프라 설정** (Apple/Kakao/CoolSMS/Supabase) → **아리 BYPASS 제거** (A3~A10)
 
 ---
 
@@ -130,8 +130,8 @@ flutter build ios --no-codesign --debug   # iOS 빌드 확인
 
 ## 2. 다음에 할 일 (우선순위순)
 
-> **현재 최우선**: 온보딩 리디자인 구현 (Sprint ON) → Sprint A 인프라(노아님) → BYPASS 제거
-> 온보딩 리디자인 설계 완료 (2026-03-03). 구현 승인 대기 중.
+> **현재 최우선**: ⭐ **Sprint A 인프라 설정 (노아님)** → BYPASS 제거 (아리)
+> Sprint ON 완료 (2026-03-03). SMS 필수화 + Send SMS Hook + CoolSMS 아키텍처 확정.
 
 ### 🔥 즉시 (Highest) — AI 관상 + 동물상 Feature 구현 + 온보딩 리팩토링
 
@@ -311,7 +311,7 @@ flutter build ios --no-codesign --debug   # iOS 빌드 확인
 |---|------|------|--------|------|
 | ON1 | **pubspec.yaml 변경** — `google_sign_in` 제거, `kakao_flutter_sdk_user: ^1.9.6` 추가 | 아리 | 없음 | ✅ |
 | ON2 | **로그인 페이지 리디자인** — Google 버튼 → Kakao 버튼 (#FEE500), auth_remote_datasource에 `signInWithKakao()` | 아리 | ON1 | ✅ |
-| ON3 | **SMS 인증 백엔드** — Edge Function (`send-sms-verification`, `verify-sms-code`), `phone_verifications` 테이블 | 아리 | 없음 | ✅ |
+| ON3 | **SMS 인증 백엔드** — ~~Edge Function 2개~~ → Supabase Phone Auth + Send SMS Hook + CoolSMS 확정 | 아리 | 없음 | ✅ |
 | ON4 | **온보딩 폼 SMS 스텝 추가** — Step 4에 전화번호 입력 + OTP 인증 UI | 아리 | ON3 | ✅ |
 | ON5 | **데이팅 프로필 페이지 재설계** — 8필드 (자기소개/키/체형/지역/종교/직업/취미/이상형), 최소 필수: 키+직업+지역 | 아리 | 없음 | ✅ |
 | ON6 | **엔티티/모델 업데이트** — `UserEntity` + `MatchProfile`에 body_type, ideal_type, is_phone_verified 등 필드 추가 | 아리 | 없음 | ✅ |
@@ -322,6 +322,9 @@ flutter build ios --no-codesign --debug   # iOS 빌드 확인
 **Sprint ON 완료 기준:**
 - ✅ 로그인 화면에 Apple + Kakao 버튼만 표시
 - ✅ 온보딩 Step 4에서 SMS 인증 플로우 동작 (Mock 가능)
+- ✅ SMS 인증 **필수화** — "나중에 할게요" 스킵 제거, `_smsVerified` 게이트
+- ✅ SMS 아키텍처 확정 — Supabase Phone Auth + Send SMS Hook + CoolSMS (한국 010번호)
+- ✅ `send-sms-hook` Edge Function 작성 완료
 - ✅ 분석 결과 후 데이팅 프로필 8필드 입력 페이지 표시
 - ✅ 프로필 완성 → 추천 리스트 → 홈 전체 플로우 동작
 - ✅ 매칭 카드에 인증 뱃지 표시
@@ -452,9 +455,9 @@ flutter build ios --no-codesign --debug   # iOS 빌드 확인
 - [x] ~~Sprint 0 — 관상 시스템 재설계~~ ✅ 완료
 - [x] ~~Sprint A 코드 사전 준비~~ ✅ 완료 (2026-03-01)
 - [x] ~~온보딩 리디자인 설계~~ ✅ 완료 (2026-03-03) — 마스터 플랜 + 백엔드 아키텍처 + UX 스펙
-- [ ] **Sprint ON — 온보딩 리디자인 구현** (ON1~ON9)
-- [ ] **Sprint A 인프라 설정** — 노아님이 Apple Developer + **Kakao Developer** + **CoolSMS** + Supabase 설정
-- [ ] Sprint A BYPASS 제거 — 인프라 완료 후 A3~A10 순차 진행
+- [x] ~~Sprint ON — 온보딩 리디자인 구현~~ ✅ 완료 (2026-03-03) — ON1~ON9 + SMS 필수화 + Send SMS Hook
+- [ ] **⭐ Sprint A 인프라 설정 (노아님)** — Apple Developer + Kakao Developer + CoolSMS + Supabase Phone Auth + Send SMS Hook 연결. 가이드: `docs/guides/sprint-a-infra-setup.md`
+- [ ] **Sprint A BYPASS 제거 (아리)** — 인프라 완료 후 A3~A10 순차 진행
 - [x] ~~**UX 고도화** — 유저 상세페이지 + 궁합 매칭 진입점 Wow 경험~~ ✅ 완료 (2026-03-02)
 - [ ] 참조: `docs/dev-log/2026-02-26-debug-bypass.md` (바이패스 상세)
 - [ ] `lib/core/di/providers.dart` 확인 (새 Repository/DataSource 추가 시 반드시 등록)
