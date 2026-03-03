@@ -88,11 +88,12 @@ GoRouter appRouter(Ref ref) {
       const publicPaths = [
         RoutePaths.splash,
         RoutePaths.login,
+        RoutePaths.loginCallback, // Kakao OAuth 딥링크 콜백
         RoutePaths.onboarding,
         RoutePaths.home, // 둘러보기 모드
-        RoutePaths.matching, // TODO(PROD): [BYPASS-6] 인증 연결 후 제거 — 비로그인 접근 차단
-        RoutePaths.chat, // TODO(PROD): [BYPASS-6] 인증 연결 후 제거 — 비로그인 접근 차단
-        RoutePaths.profile, // TODO(PROD): [BYPASS-6] 인증 연결 후 제거 — 비로그인 접근 차단
+        RoutePaths.matching, // TODO(PROD): [BYPASS-8] 인증 연결 후 제거 — 비로그인 접근 차단
+        RoutePaths.chat, // TODO(PROD): [BYPASS-8] 인증 연결 후 제거 — 비로그인 접근 차단
+        RoutePaths.profile, // TODO(PROD): [BYPASS-8] 인증 연결 후 제거 — 비로그인 접근 차단
         RoutePaths.sajuAnalysis,
         RoutePaths.sajuResult,
         RoutePaths.destinyAnalysis,
@@ -112,9 +113,24 @@ GoRouter appRouter(Ref ref) {
         return RoutePaths.login;
       }
 
-      // 로그인한 상태에서 로그인/스플래시 페이지 접근 시 → 홈으로
-      if (isLoggedIn && (currentPath == RoutePaths.login || currentPath == RoutePaths.splash)) {
-        return RoutePaths.home;
+      // 로그인한 상태에서 로그인/스플래시/콜백 페이지 접근 시 → 프로필 유무에 따라 분기
+      if (isLoggedIn &&
+          (currentPath == RoutePaths.login ||
+           currentPath == RoutePaths.splash ||
+           currentPath == RoutePaths.loginCallback)) {
+        final profileState = ref.read(currentUserProfileProvider);
+        if (profileState.hasValue) {
+          // 프로필 로딩 완료 — 유무에 따라 홈/온보딩 분기
+          return profileState.valueOrNull != null
+              ? RoutePaths.home
+              : RoutePaths.onboarding;
+        }
+        // 프로필 아직 로딩 중 → 콜백 페이지에서 대기
+        // (currentUserProfileProvider 로딩 완료 시 RouterAuthNotifier가 재평가)
+        if (currentPath != RoutePaths.loginCallback) {
+          return RoutePaths.loginCallback;
+        }
+        return null;
       }
 
       // --- 퍼널 게이트: 매칭 탭 접근 제어 ---
@@ -157,6 +173,13 @@ GoRouter appRouter(Ref ref) {
         path: RoutePaths.login,
         name: RouteNames.login,
         builder: (context, state) => const LoginPage(),
+      ),
+
+      // OAuth 로그인 콜백 (카카오 등 — 딥링크 복귀 후 세션 처리 대기)
+      GoRoute(
+        path: RoutePaths.loginCallback,
+        name: RouteNames.loginCallback,
+        builder: (context, state) => const _AuthCallbackPage(),
       ),
 
       // SMS 인증
@@ -349,7 +372,19 @@ GoRouter appRouter(Ref ref) {
           final data = state.extra as Map<String, dynamic>;
           final profile = data['profile'] as MatchProfile;
           final heroTag = data['heroTag'] as String?;
-          return ProfileDetailPage(profile: profile, heroTag: heroTag);
+          final sourceStr = data['source'] as String?;
+          final likeId = data['likeId'] as String?;
+          final source = switch (sourceStr) {
+            'sent' => ProfileDetailSource.sent,
+            'received' => ProfileDetailSource.received,
+            _ => ProfileDetailSource.recommendation,
+          };
+          return ProfileDetailPage(
+            profile: profile,
+            heroTag: heroTag,
+            source: source,
+            likeId: likeId,
+          );
         },
       ),
 
@@ -835,6 +870,57 @@ class _SplashPageState extends ConsumerState<_SplashPage> {
             ),
             const SizedBox(height: 40),
             const MomoLoading(size: 48),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// OAuth 콜백 대기 페이지
+// =============================================================================
+
+/// Kakao OAuth 등 브라우저 기반 소셜 로그인 후 딥링크로 앱 복귀 시
+/// Supabase가 세션을 설정하는 동안 표시되는 로딩 페이지.
+///
+/// authStateProvider 변경 → RouterAuthNotifier → redirect가
+/// 자동으로 홈/온보딩으로 이동시킵니다.
+class _AuthCallbackPage extends ConsumerStatefulWidget {
+  const _AuthCallbackPage();
+
+  @override
+  ConsumerState<_AuthCallbackPage> createState() => _AuthCallbackPageState();
+}
+
+class _AuthCallbackPageState extends ConsumerState<_AuthCallbackPage> {
+  @override
+  void initState() {
+    super.initState();
+    // 타임아웃 안전장치: 5초 후에도 여기 있으면 로그인으로
+    Future.delayed(const Duration(seconds: 5), () {
+      if (mounted) context.go(RoutePaths.login);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: context.sajuColors.bgPrimary,
+      body: const Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            MomoLoading(size: 48),
+            SizedBox(height: 20),
+            Text(
+              '로그인 중이에요...',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF8A8A8E),
+              ),
+            ),
           ],
         ),
       ),

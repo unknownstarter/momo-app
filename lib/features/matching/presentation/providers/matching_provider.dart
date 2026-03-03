@@ -7,14 +7,23 @@
 /// - [DailyRecommendations]: 오늘의 추천 프로필 목록 (AsyncNotifier)
 /// - [CompatibilityPreview]: 궁합 프리뷰 상태 관리 (AsyncNotifier)
 /// - [ReceivedLikes]: 받은 좋아요 목록 (AsyncNotifier)
+/// - [SentLikes]: 보낸 좋아요 목록 (AsyncNotifier)
+/// - [ActiveMatches]: 활성 매칭 목록 (AsyncNotifier)
+/// - [ReceivedLikesWithProfiles]: 받은 좋아요 + 프로필 (AsyncNotifier)
+/// - [matchingTabSegmentProvider]: UI 세그먼트 상태 (StateProvider)
+/// - [activeMatchIdsProvider]: 매칭 확정 유저 ID Set
+/// - [filteredRecommendationsProvider]: 중복 제거된 추천
 library;
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/di/providers.dart';
 import '../../../../core/domain/entities/compatibility_entity.dart';
 import '../../domain/entities/like_entity.dart';
+import '../../domain/entities/match_entity.dart';
 import '../../domain/entities/match_profile.dart';
+import '../../domain/entities/sent_like.dart';
 
 part 'matching_provider.g.dart';
 
@@ -89,3 +98,106 @@ class ReceivedLikes extends _$ReceivedLikes {
     );
   }
 }
+
+// =============================================================================
+// 보낸 좋아요 (Sent Likes)
+// =============================================================================
+
+/// 보낸 좋아요 목록 상태 관리
+@riverpod
+class SentLikes extends _$SentLikes {
+  @override
+  Future<List<SentLike>> build() async {
+    final repo = ref.watch(matchingRepositoryProvider);
+    return repo.getSentLikes();
+  }
+
+  /// 목록 새로고침
+  Future<void> refresh() async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(
+      () => ref.read(matchingRepositoryProvider).getSentLikes(),
+    );
+  }
+}
+
+// =============================================================================
+// 활성 매칭 (Active Matches)
+// =============================================================================
+
+/// 활성 매칭 목록 상태 관리
+@riverpod
+class ActiveMatches extends _$ActiveMatches {
+  @override
+  Future<List<Match>> build() async {
+    final repo = ref.watch(matchingRepositoryProvider);
+    return repo.getActiveMatches();
+  }
+
+  /// 목록 새로고침
+  Future<void> refresh() async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(
+      () => ref.read(matchingRepositoryProvider).getActiveMatches(),
+    );
+  }
+}
+
+// =============================================================================
+// 받은 좋아요 + 프로필 (Received Likes With Profiles)
+// =============================================================================
+
+/// 받은 좋아요 + 프로필 정보 함께 관리
+@riverpod
+class ReceivedLikesWithProfiles extends _$ReceivedLikesWithProfiles {
+  @override
+  Future<List<({Like like, MatchProfile profile})>> build() async {
+    final repo = ref.watch(matchingRepositoryProvider);
+    return repo.getReceivedLikesWithProfiles();
+  }
+
+  /// 새로고침
+  Future<void> refresh() async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(
+      () => ref.read(matchingRepositoryProvider).getReceivedLikesWithProfiles(),
+    );
+  }
+}
+
+// =============================================================================
+// 파생 Provider들 (중복 제거, 세그먼트 상태 등)
+// =============================================================================
+
+/// 매칭 탭 세그먼트 인덱스 (0: 추천, 1: 보낸, 2: 받은)
+final matchingTabSegmentProvider = StateProvider<int>((ref) => 0);
+
+/// 매칭 확정 유저 ID Set — 추천/보낸/받은에서 중복 제거에 사용
+final activeMatchIdsProvider = Provider<Set<String>>((ref) {
+  final matches = ref.watch(activeMatchesProvider).valueOrNull ?? [];
+  return matches
+      .where((m) => m.isActive)
+      .expand((m) => [m.user1Id, m.user2Id])
+      .toSet();
+});
+
+/// 중복 제거된 추천 목록
+///
+/// 보낸 좋아요 + 받은 좋아요 + 활성 매칭 유저를 추천에서 제거
+final filteredRecommendationsProvider =
+    Provider<AsyncValue<List<MatchProfile>>>((ref) {
+  final recommendations = ref.watch(dailyRecommendationsProvider);
+  final sentLikes = ref.watch(sentLikesProvider).valueOrNull ?? [];
+  final receivedLikes = ref.watch(receivedLikesProvider).valueOrNull ?? [];
+  final matchIds = ref.watch(activeMatchIdsProvider);
+
+  return recommendations.whenData((profiles) {
+    final sentUserIds = sentLikes.map((s) => s.profile.userId).toSet();
+    final receivedUserIds = receivedLikes.map((l) => l.senderId).toSet();
+    final excludeIds = {...sentUserIds, ...receivedUserIds, ...matchIds};
+
+    return profiles
+        .where((p) => !excludeIds.contains(p.userId))
+        .toList();
+  });
+});

@@ -1,4 +1,3 @@
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -13,7 +12,7 @@ class AuthRemoteDatasource {
 
   GoTrueClient get _auth => _client.auth;
 
-  /// Apple Sign In → Supabase Auth
+  /// Apple Sign In → Supabase Auth (네이티브 SDK → signInWithIdToken)
   Future<AuthResponse> signInWithApple() async {
     try {
       final credential = await SignInWithApple.getAppleIDCredential(
@@ -39,48 +38,19 @@ class AuthRemoteDatasource {
     }
   }
 
-  /// Google Sign In → Supabase Auth
-  Future<AuthResponse> signInWithGoogle() async {
+  /// Kakao Sign In → Supabase OAuth (브라우저 기반, PKCE 플로우)
+  ///
+  /// 브라우저에서 카카오 로그인 완료 후 딥링크로 앱 복귀 시
+  /// Supabase SDK가 자동으로 세션을 설정합니다.
+  /// 반환값: 브라우저 오픈 성공 여부
+  Future<bool> signInWithKakao() async {
     try {
-      const webClientId = String.fromEnvironment('GOOGLE_WEB_CLIENT_ID');
-      const iosClientId = String.fromEnvironment('GOOGLE_IOS_CLIENT_ID');
-
-      // Client ID 미설정 시 네이티브 크래시 방지
-      if (iosClientId.isEmpty && webClientId.isEmpty) {
-        throw AuthFailure.socialLoginFailed(
-          'Google',
-          'Google OAuth Client ID가 설정되지 않았습니다. '
-          '--dart-define으로 GOOGLE_IOS_CLIENT_ID를 전달하세요.',
-        );
-      }
-
-      final googleSignIn = GoogleSignIn(
-        clientId: iosClientId.isNotEmpty ? iosClientId : null,
-        serverClientId: webClientId.isNotEmpty ? webClientId : null,
+      return await _auth.signInWithOAuth(
+        OAuthProvider.kakao,
+        redirectTo: 'com.nworld.momo://login-callback',
       );
-
-      final googleUser = await googleSignIn.signIn();
-      if (googleUser == null) {
-        throw AuthFailure.socialLoginFailed('Google');
-      }
-
-      final googleAuth = await googleUser.authentication;
-      final idToken = googleAuth.idToken;
-      final accessToken = googleAuth.accessToken;
-
-      if (idToken == null) {
-        throw AuthFailure.socialLoginFailed('Google');
-      }
-
-      return await _auth.signInWithIdToken(
-        provider: OAuthProvider.google,
-        idToken: idToken,
-        accessToken: accessToken,
-      );
-    } on AuthFailure {
-      rethrow;
     } catch (e) {
-      throw AuthFailure.socialLoginFailed('Google', e);
+      throw AuthFailure.socialLoginFailed('Kakao', e);
     }
   }
 

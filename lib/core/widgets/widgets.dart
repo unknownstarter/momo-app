@@ -15,6 +15,7 @@ export 'saju_avatar.dart';
 export 'saju_card.dart';
 export 'saju_character_bubble.dart';
 export 'saju_input.dart';
+export 'saju_otp_input.dart';
 export 'saju_badge.dart';
 export 'saju_match_card.dart';
 export 'compatibility_gauge.dart';

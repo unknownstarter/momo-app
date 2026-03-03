@@ -31,8 +31,8 @@ dependencies:
 
   # --- 소셜 로그인 ---
   sign_in_with_apple: ^6.1.4
-  google_sign_in: ^6.2.2
-  # kakao_flutter_sdk_user: ^1.9.6  # TODO: Kakao 개발자 등록 후 활성화
+  # Kakao 로그인은 Supabase OAuth Provider를 통해 처리 (별도 SDK 불필요)
+  # app_links / uni_links 는 supabase_flutter 에 이미 포함
 
   # --- UI ---
   cupertino_icons: ^1.0.8

@@ -9,7 +9,9 @@ import '../../../../core/domain/entities/compatibility_entity.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/supabase_client.dart';
 import '../../domain/entities/like_entity.dart';
+import '../../domain/entities/match_entity.dart';
 import '../../domain/entities/match_profile.dart';
+import '../../domain/entities/sent_like.dart';
 import '../../domain/repositories/matching_repository.dart';
 import '../../../auth/domain/repositories/auth_repository.dart';
 import '../../../saju/domain/repositories/saju_repository.dart';
@@ -33,6 +35,11 @@ const _mockProfiles = <MatchProfile>[
     animalModifier: '깊은 눈의',
     animalTypeKorean: '늑대',
     gwansangTraits: {'leadership': 45, 'warmth': 80, 'independence': 70, 'sensitivity': 85, 'energy': 40},
+    height: 168,
+    location: '서울 마포구',
+    occupation: '디자이너',
+    bodyType: '마른',
+    isPhoneVerified: true,
   ),
   MatchProfile(
     userId: 'mock-user-002',
@@ -47,6 +54,11 @@ const _mockProfiles = <MatchProfile>[
     animalModifier: '장난기 가득한',
     animalTypeKorean: '여우',
     gwansangTraits: {'leadership': 60, 'warmth': 75, 'independence': 55, 'sensitivity': 70, 'energy': 85},
+    height: 163,
+    location: '서울 강남구',
+    occupation: '마케터',
+    bodyType: '보통',
+    isPhoneVerified: true,
   ),
   MatchProfile(
     userId: 'mock-user-003',
@@ -57,6 +69,10 @@ const _mockProfiles = <MatchProfile>[
     characterAssetPath: CharacterAssets.namuriWoodDefault,
     elementType: 'wood',
     compatibilityScore: 65,
+    height: 165,
+    location: '서울 송파구',
+    occupation: '개발자',
+    isPhoneVerified: false,
   ),
   MatchProfile(
     userId: 'mock-user-004',
@@ -71,6 +87,11 @@ const _mockProfiles = <MatchProfile>[
     animalModifier: '수줍은',
     animalTypeKorean: '토끼',
     gwansangTraits: {'leadership': 35, 'warmth': 90, 'independence': 40, 'sensitivity': 80, 'energy': 50},
+    height: 160,
+    location: '경기 성남시',
+    occupation: '간호사',
+    bodyType: '보통',
+    isPhoneVerified: true,
   ),
   MatchProfile(
     userId: 'mock-user-005',
@@ -85,6 +106,11 @@ const _mockProfiles = <MatchProfile>[
     animalModifier: '당당한',
     animalTypeKorean: '호랑이',
     gwansangTraits: {'leadership': 90, 'warmth': 40, 'independence': 85, 'sensitivity': 30, 'energy': 80},
+    height: 170,
+    location: '서울 서초구',
+    occupation: '변호사',
+    bodyType: '마른',
+    isPhoneVerified: true,
   ),
   MatchProfile(
     userId: 'mock-user-006',
@@ -95,6 +121,10 @@ const _mockProfiles = <MatchProfile>[
     characterAssetPath: CharacterAssets.goldTokkiDefault,
     elementType: 'metal',
     compatibilityScore: 88,
+    height: 162,
+    location: '서울 용산구',
+    occupation: '뮤지션',
+    isPhoneVerified: false,
   ),
   MatchProfile(
     userId: 'mock-user-007',
@@ -109,6 +139,11 @@ const _mockProfiles = <MatchProfile>[
     animalModifier: '신비로운',
     animalTypeKorean: '뱀',
     gwansangTraits: {'leadership': 50, 'warmth': 55, 'independence': 75, 'sensitivity': 90, 'energy': 35},
+    height: 167,
+    location: '서울 종로구',
+    occupation: '작가',
+    bodyType: '살짝 통통',
+    isPhoneVerified: true,
   ),
 ];
 
@@ -312,28 +347,102 @@ class MatchingRepositoryImpl implements MatchingRepository {
   }
 
   @override
+  Future<void> rejectLike(String likeId) async {
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+  }
+
+  @override
   Future<List<Like>> getReceivedLikes() async {
     await Future<void>.delayed(const Duration(milliseconds: 600));
-    return [
-      Like(
-        id: 'like-001',
-        senderId: 'mock-user-001',
-        receiverId: 'mock-current-user',
-        isPremium: true,
-        status: LikeStatus.pending,
-        sentAt: DateTime.now().subtract(const Duration(hours: 2)),
-      ),
-      Like(
-        id: 'like-002',
-        senderId: 'mock-user-002',
-        receiverId: 'mock-current-user',
-        isPremium: false,
-        status: LikeStatus.pending,
-        sentAt: DateTime.now().subtract(const Duration(hours: 5)),
-      ),
-    ];
+    return _mockReceivedLikes;
+  }
+
+  @override
+  Future<List<SentLike>> getSentLikes() async {
+    await Future<void>.delayed(const Duration(milliseconds: 600));
+    return _mockSentLikes;
+  }
+
+  @override
+  Future<List<Match>> getActiveMatches() async {
+    await Future<void>.delayed(const Duration(milliseconds: 400));
+    return _mockActiveMatches;
+  }
+
+  @override
+  Future<List<({Like like, MatchProfile profile})>> getReceivedLikesWithProfiles() async {
+    await Future<void>.delayed(const Duration(milliseconds: 600));
+    return _mockReceivedLikes.map((like) {
+      final profile = _mockProfiles.firstWhere(
+        (p) => p.userId == like.senderId,
+        orElse: () => _mockProfiles.first,
+      );
+      return (like: like, profile: profile);
+    }).toList();
   }
 }
+
+// =============================================================================
+// Mock 상태별 데이터 (추천 4명, 보낸 2명, 받은 2명, 활성 매칭 1명)
+// =============================================================================
+
+/// 보낸 좋아요 Mock — mock-user-003(대기중), mock-user-006(수락됨)
+final _mockSentLikes = <SentLike>[
+  SentLike(
+    like: Like(
+      id: 'sent-like-001',
+      senderId: 'mock-current-user',
+      receiverId: 'mock-user-003',
+      isPremium: false,
+      status: LikeStatus.pending,
+      sentAt: DateTime.now().subtract(const Duration(hours: 12)),
+    ),
+    profile: _mockProfiles.firstWhere((p) => p.userId == 'mock-user-003'),
+  ),
+  SentLike(
+    like: Like(
+      id: 'sent-like-002',
+      senderId: 'mock-current-user',
+      receiverId: 'mock-user-006',
+      isPremium: true,
+      status: LikeStatus.accepted,
+      sentAt: DateTime.now().subtract(const Duration(days: 1)),
+      respondedAt: DateTime.now().subtract(const Duration(hours: 3)),
+    ),
+    profile: _mockProfiles.firstWhere((p) => p.userId == 'mock-user-006'),
+  ),
+];
+
+/// 받은 좋아요 Mock — mock-user-001, mock-user-002
+final _mockReceivedLikes = <Like>[
+  Like(
+    id: 'like-001',
+    senderId: 'mock-user-001',
+    receiverId: 'mock-current-user',
+    isPremium: true,
+    status: LikeStatus.pending,
+    sentAt: DateTime.now().subtract(const Duration(hours: 2)),
+  ),
+  Like(
+    id: 'like-002',
+    senderId: 'mock-user-002',
+    receiverId: 'mock-current-user',
+    isPremium: false,
+    status: LikeStatus.pending,
+    sentAt: DateTime.now().subtract(const Duration(hours: 5)),
+  ),
+];
+
+/// 활성 매칭 Mock — mock-user-006 (보낸 좋아요 accepted → 매칭 확정)
+final _mockActiveMatches = <Match>[
+  Match(
+    id: 'match-001',
+    user1Id: 'mock-current-user',
+    user2Id: 'mock-user-006',
+    likeId: 'sent-like-002',
+    matchedAt: DateTime.now().subtract(const Duration(hours: 3)),
+  ),
+];
 
 // =============================================================================
 // Mock Repository 구현
@@ -345,7 +454,6 @@ class MatchingRepositoryImpl implements MatchingRepository {
 class MockMatchingRepository implements MatchingRepository {
   @override
   Future<List<MatchProfile>> getDailyRecommendations() async {
-    // 네트워크 지연 시뮬레이션
     await Future<void>.delayed(const Duration(milliseconds: 800));
     return _mockProfiles;
   }
@@ -354,7 +462,6 @@ class MockMatchingRepository implements MatchingRepository {
   Future<Compatibility> getCompatibilityPreview(String partnerId) async {
     await Future<void>.delayed(const Duration(milliseconds: 600));
 
-    // 해당 프로필 찾기
     final profile = _mockProfiles.firstWhere(
       (p) => p.userId == partnerId,
       orElse: () => _mockProfiles.first,
@@ -391,39 +498,46 @@ class MockMatchingRepository implements MatchingRepository {
 
   @override
   Future<void> sendLike(String receiverId, {bool isPremium = false}) async {
-    // 네트워크 지연 시뮬레이션
     await Future<void>.delayed(const Duration(milliseconds: 500));
-    // Mock: 실제 저장 없이 성공 반환
   }
 
   @override
   Future<void> acceptLike(String likeId) async {
-    // 네트워크 지연 시뮬레이션
     await Future<void>.delayed(const Duration(milliseconds: 500));
-    // Mock: 실제 처리 없이 성공 반환
+  }
+
+  @override
+  Future<void> rejectLike(String likeId) async {
+    await Future<void>.delayed(const Duration(milliseconds: 500));
   }
 
   @override
   Future<List<Like>> getReceivedLikes() async {
     await Future<void>.delayed(const Duration(milliseconds: 600));
+    return _mockReceivedLikes;
+  }
 
-    return [
-      Like(
-        id: 'like-001',
-        senderId: 'mock-user-001',
-        receiverId: 'mock-current-user',
-        isPremium: true,
-        status: LikeStatus.pending,
-        sentAt: DateTime.now().subtract(const Duration(hours: 2)),
-      ),
-      Like(
-        id: 'like-002',
-        senderId: 'mock-user-002',
-        receiverId: 'mock-current-user',
-        isPremium: false,
-        status: LikeStatus.pending,
-        sentAt: DateTime.now().subtract(const Duration(hours: 5)),
-      ),
-    ];
+  @override
+  Future<List<SentLike>> getSentLikes() async {
+    await Future<void>.delayed(const Duration(milliseconds: 600));
+    return _mockSentLikes;
+  }
+
+  @override
+  Future<List<Match>> getActiveMatches() async {
+    await Future<void>.delayed(const Duration(milliseconds: 400));
+    return _mockActiveMatches;
+  }
+
+  @override
+  Future<List<({Like like, MatchProfile profile})>> getReceivedLikesWithProfiles() async {
+    await Future<void>.delayed(const Duration(milliseconds: 600));
+    return _mockReceivedLikes.map((like) {
+      final profile = _mockProfiles.firstWhere(
+        (p) => p.userId == like.senderId,
+        orElse: () => _mockProfiles.first,
+      );
+      return (like: like, profile: profile);
+    }).toList();
   }
 }

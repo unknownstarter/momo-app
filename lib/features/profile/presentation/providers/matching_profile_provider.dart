@@ -22,6 +22,8 @@ class MatchingProfileNotifier extends StateNotifier<AsyncValue<void>> {
     SmokingStatus? smoking,
     String? datingStyle,
     Religion? religion,
+    BodyType? bodyType,
+    String? idealType,
   }) async {
     state = const AsyncValue.loading();
     try {
@@ -38,6 +40,8 @@ class MatchingProfileNotifier extends StateNotifier<AsyncValue<void>> {
         smoking: smoking,
         datingStyle: datingStyle,
         religion: religion,
+        bodyType: bodyType,
+        idealType: idealType,
       );
       state = const AsyncValue.data(null);
       return user;

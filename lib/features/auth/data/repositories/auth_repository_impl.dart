@@ -19,12 +19,9 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<UserEntity?> signInWithGoogle() async {
-    final response = await _datasource.signInWithGoogle();
-    final userId = response.user?.id;
-    if (userId == null) return null;
-
-    return _fetchOrNull(userId);
+  Future<bool> signInWithKakao() async {
+    // Supabase OAuth — 브라우저 오픈만 하고, 세션은 딥링크 콜백으로 비동기 설정
+    return await _datasource.signInWithKakao();
   }
 
   @override

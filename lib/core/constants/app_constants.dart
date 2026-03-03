@@ -14,6 +14,7 @@ abstract final class RoutePaths {
   static const splash = '/';
   static const onboarding = '/onboarding';
   static const login = '/login';
+  static const loginCallback = '/login-callback'; // Kakao OAuth 딥링크 콜백
   static const phoneVerification = '/phone-verification';
 
   // --- 메인 탭 (ShellRoute) ---
@@ -59,6 +60,7 @@ abstract final class RouteNames {
   static const splash = 'splash';
   static const onboarding = 'onboarding';
   static const login = 'login';
+  static const loginCallback = 'login-callback';
   static const phoneVerification = 'phone-verification';
   static const home = 'home';
   static const matching = 'matching';

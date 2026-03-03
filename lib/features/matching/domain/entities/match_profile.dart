@@ -17,6 +17,12 @@ class MatchProfile {
     this.animalModifier,
     this.animalTypeKorean,
     this.gwansangTraits,
+    this.height,
+    this.location,
+    this.occupation,
+    this.bodyType,
+    this.religion,
+    this.isPhoneVerified = false,
   });
 
   /// 사용자 고유 ID
@@ -57,6 +63,26 @@ class MatchProfile {
 
   /// 관상 traits 5축 (궁합 계산용)
   final Map<String, int>? gwansangTraits;
+
+  // --- 데이팅 프로필 정보 (프로필 상세, 매칭 카드 표시용) ---
+
+  /// 키 (cm)
+  final int? height;
+
+  /// 활동 지역
+  final String? location;
+
+  /// 직업
+  final String? occupation;
+
+  /// 체형
+  final String? bodyType;
+
+  /// 종교
+  final String? religion;
+
+  /// SMS 전화번호 인증 완료 여부 (진심 마크 뱃지)
+  final bool isPhoneVerified;
 
   @override
   bool operator ==(Object other) =>

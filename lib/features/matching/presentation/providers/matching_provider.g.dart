@@ -60,5 +60,61 @@ final receivedLikesProvider =
 );
 
 typedef _$ReceivedLikes = AutoDisposeAsyncNotifier<List<Like>>;
+String _$sentLikesHash() => r'sentLikes';
+
+/// 보낸 좋아요 목록 상태 관리
+///
+/// Copied from [SentLikes].
+@ProviderFor(SentLikes)
+final sentLikesProvider =
+    AutoDisposeAsyncNotifierProvider<SentLikes, List<SentLike>>.internal(
+  SentLikes.new,
+  name: r'sentLikesProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$sentLikesHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$SentLikes = AutoDisposeAsyncNotifier<List<SentLike>>;
+String _$activeMatchesHash() => r'activeMatches';
+
+/// 활성 매칭 목록 상태 관리
+///
+/// Copied from [ActiveMatches].
+@ProviderFor(ActiveMatches)
+final activeMatchesProvider =
+    AutoDisposeAsyncNotifierProvider<ActiveMatches, List<Match>>.internal(
+  ActiveMatches.new,
+  name: r'activeMatchesProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$activeMatchesHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$ActiveMatches = AutoDisposeAsyncNotifier<List<Match>>;
+String _$receivedLikesWithProfilesHash() => r'receivedLikesWithProfiles';
+
+/// 받은 좋아요 + 프로필 정보 함께 관리
+///
+/// Copied from [ReceivedLikesWithProfiles].
+@ProviderFor(ReceivedLikesWithProfiles)
+final receivedLikesWithProfilesProvider = AutoDisposeAsyncNotifierProvider<
+    ReceivedLikesWithProfiles,
+    List<({Like like, MatchProfile profile})>>.internal(
+  ReceivedLikesWithProfiles.new,
+  name: r'receivedLikesWithProfilesProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$receivedLikesWithProfilesHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$ReceivedLikesWithProfiles
+    = AutoDisposeAsyncNotifier<List<({Like like, MatchProfile profile})>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

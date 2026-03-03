@@ -1,6 +1,6 @@
-# 테스크 마스터 — 2026-03-02 (v10)
+# 테스크 마스터 — 2026-03-03 (v11)
 
-> **작성일**: 2026-02-24 | **갱신**: 2026-03-02
+> **작성일**: 2026-02-24 | **갱신**: 2026-03-03
 > **목적**: 다음에 할 일을 한곳에 정리해, 다른 디바이스에서 보고 연속으로 작업할 수 있게 함.
 > **참조**: PRD `docs/plans/2026-02-24-app-design.md`, 개선 제안서 `docs/plans/2026-02-24-saju-궁합-engine-improvement-proposal.md`, dev-log `docs/dev-log/2026-02-24-progress.md`
 
@@ -56,7 +56,7 @@ flutter build ios --no-codesign --debug   # iOS 빌드 확인
 | 관상 ML | `google_mlkit_face_detection` | ^0.13.2 |
 | 이미지 | `image_picker` / `image_cropper` | ^1.1.2 / ^8.0.2 |
 | 결제 | `purchases_flutter` (RevenueCat) | ^8.4.1 |
-| 소셜로그인 | `sign_in_with_apple` / `google_sign_in` | ^6.1.4 / ^6.2.2 |
+| 소셜로그인 | `sign_in_with_apple` / `kakao_flutter_sdk_user` | ^6.1.4 / ^1.9.6 |
 
 ### 플랫폼 설정
 
@@ -90,13 +90,13 @@ flutter build ios --no-codesign --debug   # iOS 빌드 확인
 | BYPASS-5 | `matching_profile_page.dart:320` | 프로필 저장 실패 → 매칭 직행 |
 | BYPASS-6 | `app_router.dart:93-95` | matching/chat/profile 비로그인 접근 허용 |
 
-### 현재 앱 상태 요약 (2026-03-02)
+### 현재 앱 상태 요약 (2026-03-03)
 
 - **작동하는 것**: 온보딩 → 사주+관상 통합 분석(Mock) → 결과(탭) → 홈(추천 그리드) → **프로필 상세(즉시 표시, 인라인 궁합, Hero 트랜지션)** → 궁합 프리뷰(실연동 가능)
 - **Mock인 것**: 로그인, 프로필 저장, 사주/관상 AI 분석, 추천 목록, 좋아요
 - **실연동된 것**: `calculate-compatibility` Edge Function (궁합 계산, Mock 파트너일 때는 로컬 Mock 사용)
-- **직전 완료**: Hero 태그 크래시 수정 + 스크롤 reveal 제거(즉시 표시) + 홈 간격 32px 통일
-- **다음 작업**: Sprint A 인프라 설정(노아님) → BYPASS 제거
+- **직전 완료**: 온보딩 & 인증 리디자인 설계 (5개 직군 종합 — 마스터 플랜 + 백엔드 아키텍처 + UX 스펙 문서)
+- **다음 작업**: **온보딩 리디자인 구현** (Google→Kakao, SMS 인증, 데이팅 프로필 8필드) → Sprint A 인프라(노아님) → BYPASS 제거
 
 ---
 
@@ -130,8 +130,8 @@ flutter build ios --no-codesign --debug   # iOS 빌드 확인
 
 ## 2. 다음에 할 일 (우선순위순)
 
-> **현재 최우선**: Sprint A 인프라(노아님) → BYPASS 제거 → UX 고도화(상세페이지/궁합 Wow 진입점)
-> Sprint A 코드 준비 완료. 인프라 설정 대기 중. 병렬로 UX 고도화 진행 가능.
+> **현재 최우선**: 온보딩 리디자인 구현 (Sprint ON) → Sprint A 인프라(노아님) → BYPASS 제거
+> 온보딩 리디자인 설계 완료 (2026-03-03). 구현 승인 대기 중.
 
 ### 🔥 즉시 (Highest) — AI 관상 + 동물상 Feature 구현 + 온보딩 리팩토링
 
@@ -299,11 +299,41 @@ flutter build ios --no-codesign --debug   # iOS 빌드 확인
 
 ---
 
+### 🔥 Sprint ON — 온보딩 & 인증 리디자인 (Sprint A 전 선행)
+
+> **핵심**: Google 로그인 제거 → Apple + Kakao, SMS 인증 추가 (데이팅 사기 방지), 데이팅 프로필 8필드 추가
+> **설계 문서**:
+> - 마스터 플랜: `docs/plans/2026-03-03-onboarding-redesign-master.md`
+> - 백엔드 아키텍처: `docs/plans/2026-03-03-auth-backend-architecture.md`
+> - UX 스펙: `docs/design/2026-03-03-full-flow-ux-spec.md`
+
+| # | Task | 담당 | 의존성 | 상태 |
+|---|------|------|--------|------|
+| ON1 | **pubspec.yaml 변경** — `google_sign_in` 제거, `kakao_flutter_sdk_user: ^1.9.6` 추가 | 아리 | 없음 | ✅ |
+| ON2 | **로그인 페이지 리디자인** — Google 버튼 → Kakao 버튼 (#FEE500), auth_remote_datasource에 `signInWithKakao()` | 아리 | ON1 | ✅ |
+| ON3 | **SMS 인증 백엔드** — Edge Function (`send-sms-verification`, `verify-sms-code`), `phone_verifications` 테이블 | 아리 | 없음 | ✅ |
+| ON4 | **온보딩 폼 SMS 스텝 추가** — Step 4에 전화번호 입력 + OTP 인증 UI | 아리 | ON3 | ✅ |
+| ON5 | **데이팅 프로필 페이지 재설계** — 8필드 (자기소개/키/체형/지역/종교/직업/취미/이상형), 최소 필수: 키+직업+지역 | 아리 | 없음 | ✅ |
+| ON6 | **엔티티/모델 업데이트** — `UserEntity` + `MatchProfile`에 body_type, ideal_type, is_phone_verified 등 필드 추가 | 아리 | 없음 | ✅ |
+| ON7 | **라우터 + 플로우 연결** — 분석결과 → 데이팅 프로필 → 추천 리스트 → 홈 라우팅 | 아리 | ON5 | ✅ |
+| ON8 | **인증 뱃지 시스템** — 매칭 카드에 "진심 마크" 뱃지 표시 (SMS 인증 완료 유저) | 아리 | ON6 | ✅ |
+| ON9 | **통합 검증** — flutter analyze 0 errors + iOS build | QA | ON1~ON8 | ✅ |
+
+**Sprint ON 완료 기준:**
+- ✅ 로그인 화면에 Apple + Kakao 버튼만 표시
+- ✅ 온보딩 Step 4에서 SMS 인증 플로우 동작 (Mock 가능)
+- ✅ 분석 결과 후 데이팅 프로필 8필드 입력 페이지 표시
+- ✅ 프로필 완성 → 추천 리스트 → 홈 전체 플로우 동작
+- ✅ 매칭 카드에 인증 뱃지 표시
+
+---
+
 ### 🚨 Sprint A — 바이패스 제거 + Auth 실연동 (전체 블로커)
 
 > **핵심 인사이트**: Auth 하나만 뚫으면 BYPASS-2→3→4→5→6이 도미노처럼 제거됨.
-> **코드 준비 완료 (2026-03-01)**: entitlements, URL scheme, 딥링크, Storage 마이그레이션, Google OAuth config, 이미지 업로드 코드 모두 세팅됨.
-> **남은 것**: 노아님의 인프라 설정(Apple Developer / Google Cloud Console / Supabase Dashboard) → BYPASS 제거.
+> **코드 준비 완료 (2026-03-01)**: entitlements, URL scheme, 딥링크, Storage 마이그레이션, 이미지 업로드 코드 세팅됨.
+> **변경 (2026-03-03)**: Google 로그인 → Kakao 로그인으로 전환 (Sprint ON에서 처리). SMS 인증 추가.
+> **남은 것**: 노아님의 인프라 설정(Apple Developer / **Kakao Developer Console** / Supabase Dashboard / **CoolSMS**) → BYPASS 제거.
 > **인프라 가이드**: `docs/guides/sprint-a-infra-setup.md`
 
 ```
@@ -320,7 +350,8 @@ flutter build ios --no-codesign --debug   # iOS 빌드 확인
 |---|------|------|--------|------|
 | A0 | **코드 사전 준비** — entitlements, URL scheme, 딥링크, Storage SQL, OAuth config, 이미지 업로드 | 아리 | 없음 | ✅ |
 | A1 | **Apple Sign In 인프라** — Apple Developer에서 Service ID + Key 발급, Supabase에서 Apple Provider 활성화 | 노아님 | A0 | ⬜ |
-| A2 | **Google Sign In 인프라** — Google Cloud Console OAuth Client ID, Supabase Google Provider 활성화 | 노아님 | A0 | ⬜ |
+| A2 | **Kakao 로그인 인프라** — Kakao Developer Console 앱 등록, Supabase Kakao Provider 활성화 | 노아님 | A0 + ON2 | ⬜ |
+| A2.5 | **CoolSMS 인프라** — CoolSMS 계정 생성, API Key 발급, Supabase 시크릿 등록 | 노아님 | ON3 | ⬜ |
 | A3 | **BYPASS-1 제거** — Auth 연결 검증 후 `login_page.dart` bypass 블록 삭제 | 아리 | A1 또는 A2 | ⬜ |
 | A4 | **profiles 테이블 컬럼 마이그레이션** — `saju_profile_id`, `is_saju_complete`, `is_profile_complete` 등 누락 컬럼 추가 | 아리 | A3 | ⬜ |
 | A5 | **BYPASS-2 제거** — 온보딩 프로필 저장 실연동 검증 후 `onboarding_page.dart` bypass 삭제 | 아리 | A4 | ⬜ |
@@ -331,7 +362,8 @@ flutter build ios --no-codesign --debug   # iOS 빌드 확인
 | A10 | **BYPASS-6 제거** — `app_router.dart` publicPaths에서 matching/chat/profile 제거 | 아리 | A3~A9 전체 | ⬜ |
 
 **Sprint A 완료 기준 (데모 가능):**
-- ✅ 실기기 Apple/Google 로그인 → `auth.users` 레코드 생성
+- ✅ 실기기 Apple/Kakao 로그인 → `auth.users` 레코드 생성
+- ✅ SMS 인증 → `phone_verifications` 레코드 생성
 - ✅ 온보딩 → `profiles` 테이블 레코드 생성
 - ✅ 사주 분석 → 실제 Edge Function 응답 → `saju_profiles` 저장
 - ✅ 비로그인 → `/login` 리다이렉트
@@ -405,7 +437,10 @@ flutter build ios --no-codesign --debug   # iOS 빌드 확인
 | `docs/plans/2026-02-28-home-ux-redesign-design.md` | 홈 UX 리디자인 설계 (12 섹션) |
 | `docs/plans/2026-02-28-home-ux-implementation.md` | 홈 UX 구현 계획 (10 Tasks, 5 Phases) |
 | `docs/plans/2026-02-28-gwansang-redesign.md` | 관상 재설계 구현 계획 (9 Tasks) |
-| `docs/guides/sprint-a-infra-setup.md` | **Sprint A 인프라 설정 체크리스트** (Apple/Google/Supabase) |
+| `docs/plans/2026-03-03-onboarding-redesign-master.md` | **온보딩 리디자인 마스터 플랜** (5개 직군 종합) |
+| `docs/plans/2026-03-03-auth-backend-architecture.md` | **인증 백엔드 아키텍처** (Kakao OAuth, CoolSMS, DB 스키마) |
+| `docs/design/2026-03-03-full-flow-ux-spec.md` | **전체 플로우 UX 스펙** (12섹션 와이어프레임) |
+| `docs/guides/sprint-a-infra-setup.md` | **Sprint A 인프라 설정 체크리스트** (Apple/Kakao/CoolSMS/Supabase) |
 | `docs/dev-log/2026-03-01-sprint-a-code-prep.md` | Sprint A 코드 사전 준비 상세 기록 |
 | `CLAUDE.md` | 개발자룰·아키텍처·에셋·라우팅 규칙 |
 
@@ -415,7 +450,9 @@ flutter build ios --no-codesign --debug   # iOS 빌드 확인
 
 - [x] ~~Sprint 0 — 관상 시스템 재설계~~ ✅ 완료
 - [x] ~~Sprint A 코드 사전 준비~~ ✅ 완료 (2026-03-01)
-- [ ] **Sprint A 인프라 설정** — 노아님이 `docs/guides/sprint-a-infra-setup.md` 체크리스트 수행
+- [x] ~~온보딩 리디자인 설계~~ ✅ 완료 (2026-03-03) — 마스터 플랜 + 백엔드 아키텍처 + UX 스펙
+- [ ] **Sprint ON — 온보딩 리디자인 구현** (ON1~ON9)
+- [ ] **Sprint A 인프라 설정** — 노아님이 Apple Developer + **Kakao Developer** + **CoolSMS** + Supabase 설정
 - [ ] Sprint A BYPASS 제거 — 인프라 완료 후 A3~A10 순차 진행
 - [x] ~~**UX 고도화** — 유저 상세페이지 + 궁합 매칭 진입점 Wow 경험~~ ✅ 완료 (2026-03-02)
 - [ ] 참조: `docs/dev-log/2026-02-26-debug-bypass.md` (바이패스 상세)

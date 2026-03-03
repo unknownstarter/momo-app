@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -9,9 +11,10 @@ import '../../../../core/services/haptic_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/tokens/saju_animation.dart';
 import '../../../../core/theme/tokens/saju_spacing.dart';
+import '../../../../core/utils/phone_formatter.dart';
 import '../../../../core/widgets/widgets.dart';
 
-/// OnboardingFormPage -- 5단계 사주 정보 온보딩 폼 (토스 스타일)
+/// OnboardingFormPage -- 7단계 사주 정보 온보딩 폼 (토스 스타일)
 ///
 /// "한 화면에 하나의 질문" 패턴으로 사주 분석에 필요한 기본 정보를 수집한다.
 /// 선택형 입력(성별, 시진)은 탭 후 0.3초 자동 진행,
@@ -23,8 +26,9 @@ import '../../../../core/widgets/widgets.dart';
 /// | 1 | 물결이(水) | 성별 | 자동 진행 |
 /// | 2 | 물결이(水) | 생년월일 | 버튼 활성화 |
 /// | 3 | 쇠동이(金) | 생시(시진) | 자동 진행 |
-/// | 4 | 불꼬리(火) | 사진(정면) | 버튼 활성화 |
-/// | 5 | 물결이(水) | 확인 요약 | CTA 버튼 |
+/// | 4 | 흙순이(土) | SMS 인증 | 버튼/자동 |
+/// | 5 | 불꼬리(火) | 사진(정면) | 버튼 활성화 |
+/// | 6 | 물결이(水) | 확인 요약 | CTA 버튼 |
 class OnboardingFormPage extends StatefulWidget {
   const OnboardingFormPage({
     super.key,
@@ -39,7 +43,7 @@ class OnboardingFormPage extends StatefulWidget {
 }
 
 class _OnboardingFormPageState extends State<OnboardingFormPage> {
-  static const _totalSteps = 6;
+  static const _totalSteps = 7;
 
   final _pageController = PageController();
   int _currentStep = 0;
@@ -67,7 +71,20 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
   bool _siJinIsUnknown = false;
 
   // ---------------------------------------------------------------------------
-  // Step 4: 사진(정면)
+  // Step 4: SMS 인증
+  // ---------------------------------------------------------------------------
+  final _phoneController = TextEditingController();
+  bool _smsPhase2 = false; // false=전화번호 입력, true=OTP 입력
+  bool _smsSending = false;
+  bool _smsVerifying = false;
+  bool _smsVerified = false;
+  bool _otpError = false;
+  Timer? _otpTimer;
+  int _otpSecondsLeft = 0;
+  final _otpKey = GlobalKey<SajuOtpInputState>();
+
+  // ---------------------------------------------------------------------------
+  // Step 5: 사진(정면)
   // ---------------------------------------------------------------------------
   String? _photoPath; // 로컬 파일 경로
 
@@ -122,6 +139,12 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
       asset: CharacterAssets.soedongiMetalDefault,
       color: SajuColor.metal,
     ),
+    // Step 4: SMS 인증
+    _StepCharacter(
+      name: '흙순이',
+      asset: CharacterAssets.heuksuniEarthDefault,
+      color: SajuColor.earth,
+    ),
     _StepCharacter(
       name: '불꼬리',
       asset: CharacterAssets.bulkkoriFireDefault,
@@ -138,6 +161,8 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
   void dispose() {
     _pageController.dispose();
     _nameController.dispose();
+    _phoneController.dispose();
+    _otpTimer?.cancel();
     super.dispose();
   }
 
@@ -166,6 +191,19 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
   }
 
   void _prevStep() {
+    if (_currentStep == 4 && _smsPhase2) {
+      // SMS Phase 2에서 뒤로가면 Phase 1으로
+      setState(() {
+        _smsPhase2 = false;
+        _otpError = false;
+        _otpTimer?.cancel();
+      });
+      return;
+    }
+    // [FIX: I3] Step 4를 완전히 빠져나갈 때 타이머 정리
+    if (_currentStep == 4) {
+      _otpTimer?.cancel();
+    }
     if (_currentStep > 0) {
       _goToStep(_currentStep - 1);
     }
@@ -187,9 +225,11 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
         return _birthDate != null;
       case 3: // 시진 — 모르겠어요 허용이므로 항상 통과
         return true;
-      case 4: // 사진 — 선택 필수
+      case 4: // SMS — 인증 완료 or 스킵
+        return true;
+      case 5: // 사진 — 선택 필수
         return _photoPath != null;
-      case 5: // 확인 — 항상 통과
+      case 6: // 확인 — 항상 통과
         return true;
       default:
         return true;
@@ -200,8 +240,9 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
   bool get _isCurrentStepValid => switch (_currentStep) {
     0 => _nameController.text.trim().length >= 2,
     2 => _birthDate != null,
-    4 => _photoPath != null,
-    5 => true,
+    4 => !_smsPhase2, // Phase 1에서는 "나중에 할게요" 스킵 가능이므로 항상 활성화
+    5 => _photoPath != null,
+    6 => true,
     _ => true,
   };
 
@@ -216,6 +257,10 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
           ? _siJinToHHmm(_selectedSiJinIndex!)
           : null,
       'photoPath': _photoPath,
+      'phone': _smsVerified
+          ? PhoneUtils.toE164(_phoneController.text)
+          : null,
+      'isPhoneVerified': _smsVerified,
     };
 
     widget.onComplete(formData);
@@ -225,12 +270,132 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
   // 자동 진행 헬퍼 (선택형 입력)
   // ---------------------------------------------------------------------------
 
+  // [FIX: C3] 호출 시점의 step을 캡처하여 stale advance 방지
   void _autoAdvance() {
+    final targetStep = _currentStep + 1;
     Future.delayed(const Duration(milliseconds: 300), () {
       if (!mounted) return;
+      if (_currentStep != targetStep - 1) return; // 이미 이동됨
       HapticService.light();
-      _goToStep(_currentStep + 1);
+      _goToStep(targetStep);
     });
+  }
+
+  // ---------------------------------------------------------------------------
+  // SMS 인증 로직
+  // ---------------------------------------------------------------------------
+
+  bool get _isPhoneValid =>
+      PhoneUtils.isValidKorean(_phoneController.text);
+
+  // [FIX: C4] 동기적으로 플래그 세팅 → 더블탭 방지
+  Future<void> _sendSmsCode() async {
+    if (!_isPhoneValid || _smsSending) return;
+    _smsSending = true; // 동기적 세팅 (async gap 전)
+    FocusScope.of(context).unfocus();
+    setState(() {});
+
+    try {
+      // TODO(PROD): 디버그 바이패스 제거 — CoolSMS Edge Function 연결 후 실제 발송
+      // [BYPASS-6] SMS 발송 mock
+      if (kDebugMode) {
+        await Future.delayed(const Duration(milliseconds: 800));
+        if (!mounted) return;
+        setState(() {
+          _smsSending = false;
+          _smsPhase2 = true;
+          _otpError = false;
+        });
+        _startOtpTimer();
+        return;
+      }
+
+      // TODO: Supabase Edge Function 호출
+      // final response = await supabase.functions.invoke(
+      //   'send-sms-verification',
+      //   body: {'phone': PhoneUtils.toE164(_phoneController.text)},
+      // );
+    } catch (e) {
+      if (!mounted) return;
+      _showSnack('인증번호 발송에 실패했어요. 다시 시도해주세요.');
+    } finally {
+      if (mounted) setState(() => _smsSending = false);
+    }
+  }
+
+  // [FIX: I5] _smsVerified 체크 추가 → 인증 성공 후 중복 호출 차단
+  Future<void> _verifySmsCode(String code) async {
+    if (_smsVerifying || _smsVerified || _otpSecondsLeft <= 0) return;
+    setState(() {
+      _smsVerifying = true;
+      _otpError = false;
+    });
+
+    try {
+      // TODO(PROD): 디버그 바이패스 제거 — CoolSMS Edge Function 연결 후 실제 검증
+      // [BYPASS-7] SMS 인증 검증 mock — 코드 "000000" 또는 아무 6자리 성공
+      if (kDebugMode) {
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (!mounted) return;
+        _otpTimer?.cancel();
+        setState(() {
+          _smsVerifying = false;
+          _smsVerified = true;
+        });
+        HapticService.success();
+        // 성공 애니메이션 후 자동 진행
+        await Future.delayed(const Duration(milliseconds: 600));
+        if (mounted) _nextStep();
+        return;
+      }
+
+      // TODO: Supabase Edge Function 호출
+      // final response = await supabase.functions.invoke(
+      //   'verify-sms-code',
+      //   body: {
+      //     'phone': PhoneUtils.toE164(_phoneController.text),
+      //     'code': code,
+      //   },
+      // );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _smsVerifying = false;
+        _otpError = true;
+      });
+      _otpKey.currentState?.clear();
+    }
+  }
+
+  void _startOtpTimer() {
+    _otpTimer?.cancel();
+    setState(() => _otpSecondsLeft = 180); // 3분
+    _otpTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      setState(() {
+        _otpSecondsLeft--;
+        if (_otpSecondsLeft <= 0) timer.cancel();
+      });
+    });
+  }
+
+  String get _timerDisplay {
+    final min = _otpSecondsLeft ~/ 60;
+    final sec = _otpSecondsLeft % 60;
+    return '${min.toString().padLeft(2, '0')}:${sec.toString().padLeft(2, '0')}';
+  }
+
+  void _showSnack(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   // ---------------------------------------------------------------------------
@@ -240,8 +405,6 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
   @override
   Widget build(BuildContext context) {
     // Scaffold를 사용하지 않음 — 부모(OnboardingPage)의 Scaffold가 배경을 담당.
-    // FadeTransition 안에 Scaffold가 있으면 saveLayer 합성 시
-    // 한 프레임 동안 검은 Surface가 노출되는 플리커 발생.
     return ColoredBox(
       color: const Color(0xFFF7F3EE),
       child: SafeArea(
@@ -265,6 +428,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
                   _buildStepGender(),
                   _buildStepBirthDate(),
                   _buildStepSiJin(),
+                  _buildStepSms(),
                   _buildStepPhoto(),
                   _buildStepConfirm(),
                 ],
@@ -291,7 +455,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
       ),
       child: Row(
         children: [
-          if (_currentStep > 0)
+          if (_currentStep > 0 || (_currentStep == 4 && _smsPhase2))
             GestureDetector(
               onTap: _prevStep,
               child: Container(
@@ -666,8 +830,267 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
     _autoAdvance();
   }
 
+  // ===========================================================================
+  // Step 4: SMS 인증 (2-Phase)
+  // ===========================================================================
+
+  Widget _buildStepSms() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: SajuSpacing.space24),
+      child: AnimatedSwitcher(
+        duration: SajuAnimation.normal,
+        child: _smsVerified
+            ? _buildSmsSuccess()
+            : _smsPhase2
+                ? _buildSmsPhase2()
+                : _buildSmsPhase1(),
+      ),
+    );
+  }
+
+  /// Phase 1: 전화번호 입력
+  Widget _buildSmsPhase1() {
+    return Column(
+      key: const ValueKey('sms-phase1'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SajuSpacing.gap8,
+        SajuCharacterBubble(
+          characterName: '흙순이',
+          message: '거의 다 왔어요!\n인연을 찾으려면 연락처가 필요해요~',
+          elementColor: SajuColor.earth,
+          characterAssetPath: CharacterAssets.heuksuniEarthDefault,
+          size: SajuSize.md,
+        ),
+        SajuSpacing.gap32,
+
+        SajuInput(
+          label: '전화번호',
+          hint: '010-0000-0000',
+          controller: _phoneController,
+          keyboardType: TextInputType.phone,
+          autofocus: true,
+          inputFormatters: [PhoneNumberFormatter()],
+          size: SajuSize.lg,
+          onChanged: (_) => setState(() {}),
+        ),
+        SajuSpacing.gap24,
+
+        SajuButton(
+          label: _smsSending ? '발송 중...' : '인증번호 받기',
+          onPressed: _isPhoneValid && !_smsSending ? _sendSmsCode : null,
+          color: SajuColor.earth,
+          size: SajuSize.xl,
+        ),
+        SajuSpacing.gap24,
+
+        // 안내 텍스트
+        Container(
+          padding: const EdgeInsets.all(SajuSpacing.space16),
+          decoration: BoxDecoration(
+            color: AppTheme.earthPastel.withValues(alpha: 0.4),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.info_outline,
+                size: 18,
+                color: AppTheme.earthColor.withValues(alpha: 0.7),
+              ),
+              SajuSpacing.hGap8,
+              Expanded(
+                child: Text(
+                  '매칭된 상대와의 연락을 위해 전화번호 인증이 필요해요. '
+                  '인증 외 목적으로 사용되지 않아요.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: const Color(0xFF6B6B6B),
+                    height: 1.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Phase 2: OTP 코드 입력
+  Widget _buildSmsPhase2() {
+    final phone = _phoneController.text;
+
+    return Column(
+      key: const ValueKey('sms-phase2'),
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        SajuSpacing.gap8,
+        Align(
+          alignment: Alignment.centerLeft,
+          child: SajuCharacterBubble(
+            characterName: '흙순이',
+            message: _otpError
+                ? '앗, 번호가 맞지 않는 것 같아요.\n다시 한 번 확인해봐요~'
+                : '인증번호를 보냈어요!\n빨리 확인해봐요~',
+            elementColor: SajuColor.earth,
+            characterAssetPath: CharacterAssets.heuksuniEarthDefault,
+            size: SajuSize.md,
+          ),
+        ),
+        SajuSpacing.gap24,
+
+        // 전화번호 표시 + 변경 버튼
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              phone,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF2D2D2D),
+              ),
+            ),
+            SajuSpacing.hGap8,
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  _smsPhase2 = false;
+                  _otpError = false;
+                  _otpTimer?.cancel();
+                });
+              },
+              child: Text(
+                '변경',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: AppTheme.earthColor,
+                  decoration: TextDecoration.underline,
+                  decorationColor: AppTheme.earthColor,
+                ),
+              ),
+            ),
+          ],
+        ),
+        SajuSpacing.gap32,
+
+        // OTP 입력 박스
+        SajuOtpInput(
+          key: _otpKey,
+          color: SajuColor.earth,
+          hasError: _otpError,
+          onCompleted: _verifySmsCode,
+        ),
+        SajuSpacing.gap24,
+
+        // 타이머 + 재발송
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (_otpSecondsLeft > 0) ...[
+              Icon(
+                Icons.timer_outlined,
+                size: 16,
+                color: _otpSecondsLeft < 30
+                    ? AppTheme.fireColor
+                    : const Color(0xFF6B6B6B),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                _timerDisplay,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: _otpSecondsLeft < 30
+                      ? AppTheme.fireColor
+                      : const Color(0xFF6B6B6B),
+                ),
+              ),
+              SajuSpacing.hGap16,
+            ],
+            GestureDetector(
+              onTap: _otpSecondsLeft <= 0 ? _sendSmsCode : null,
+              child: Text(
+                '인증번호 재발송',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: _otpSecondsLeft <= 0
+                      ? AppTheme.earthColor
+                      : const Color(0xFFA0A0A0),
+                  decoration: _otpSecondsLeft <= 0
+                      ? TextDecoration.underline
+                      : null,
+                  decorationColor: AppTheme.earthColor,
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        if (_smsVerifying) ...[
+          SajuSpacing.gap24,
+          SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(
+              strokeWidth: 2.5,
+              color: AppTheme.earthColor,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  /// 인증 성공 표시
+  Widget _buildSmsSuccess() {
+    return Column(
+      key: const ValueKey('sms-success'),
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        SajuSpacing.gap8,
+        Align(
+          alignment: Alignment.centerLeft,
+          child: SajuCharacterBubble(
+            characterName: '흙순이',
+            message: '완벽해요!\n이제 진짜 인연을 찾을 준비가 됐어요!',
+            elementColor: SajuColor.earth,
+            characterAssetPath: CharacterAssets.heuksuniEarthDefault,
+            size: SajuSize.md,
+          ),
+        ),
+        const SizedBox(height: SajuSpacing.space48),
+        Container(
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppTheme.earthColor.withValues(alpha: 0.12),
+          ),
+          child: Icon(
+            Icons.check_circle,
+            size: 48,
+            color: AppTheme.earthColor,
+          ),
+        ),
+        SajuSpacing.gap16,
+        Text(
+          '전화번호 인증 완료',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.earthColor,
+          ),
+        ),
+      ],
+    );
+  }
+
   // ---------------------------------------------------------------------------
-  // Step 4: 사진(정면) — 이미지 피커
+  // Step 5: 사진(정면) — 이미지 피커
   // ---------------------------------------------------------------------------
 
   Widget _buildStepPhoto() {
@@ -825,7 +1248,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
   }
 
   // ---------------------------------------------------------------------------
-  // Step 5: 입력 확인 요약
+  // Step 6: 입력 확인 요약
   // ---------------------------------------------------------------------------
 
   Widget _buildStepConfirm() {
@@ -859,19 +1282,9 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
       ),
       child: Column(
         children: [
-          _summaryRow(
-            Icons.person,
-            '이름',
-            _nameController.text.trim(),
-            0,
-          ),
+          _summaryRow(Icons.person, '이름', _nameController.text.trim(), 0),
           const Divider(height: 24),
-          _summaryRow(
-            Icons.wc,
-            '성별',
-            _selectedGender ?? '',
-            1,
-          ),
+          _summaryRow(Icons.wc, '성별', _selectedGender ?? '', 1),
           const Divider(height: 24),
           _summaryRow(
             Icons.cake,
@@ -889,6 +1302,13 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
                 ? '${_siJinList[_selectedSiJinIndex!].name} (${_siJinList[_selectedSiJinIndex!].timeRange})'
                 : '모르겠어요',
             3,
+          ),
+          const Divider(height: 24),
+          _summaryRow(
+            Icons.phone_android,
+            '전화번호',
+            _smsVerified ? '${_phoneController.text} (인증완료)' : '미인증',
+            4,
           ),
           const Divider(height: 24),
           _summaryPhotoRow(),
@@ -940,7 +1360,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
 
   Widget _summaryPhotoRow() {
     return GestureDetector(
-      onTap: () => _goToStep(4),
+      onTap: () => _goToStep(5),
       child: Row(
         children: [
           Icon(Icons.camera_alt, size: 20, color: AppTheme.fireColor),
@@ -992,13 +1412,20 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
   }
 
   // ---------------------------------------------------------------------------
-  // 하단 버튼 — 자동 진행 스텝에서는 숨김
+  // 하단 버튼 — 자동 진행 스텝 & SMS Phase 2에서는 숨김
   // ---------------------------------------------------------------------------
 
   Widget _buildBottomButtons() {
     // 성별(1), 시진(3) 스텝은 자동 진행이므로 하단 버튼 숨김
     final isAutoAdvanceStep = _currentStep == 1 || _currentStep == 3;
-    if (isAutoAdvanceStep) return const SizedBox(height: SajuSpacing.space16);
+    // SMS Phase 2 (OTP 입력)에서는 자동 검증이므로 버튼 숨김
+    final isSmsOtpPhase = _currentStep == 4 && _smsPhase2;
+    // SMS Phase 1에서는 "인증번호 받기" 버튼이 콘텐츠에 있으므로 하단 버튼은 "나중에 할게요"
+    final isSmsPhase1 = _currentStep == 4 && !_smsPhase2 && !_smsVerified;
+
+    if (isAutoAdvanceStep || isSmsOtpPhase) {
+      return const SizedBox(height: SajuSpacing.space16);
+    }
 
     final isLastStep = _currentStep == _totalSteps - 1;
     final isValid = _isCurrentStepValid;
@@ -1020,12 +1447,28 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
           ),
         ],
       ),
-      child: SajuButton(
-        label: isLastStep ? '운명 분석하기' : '다음',
-        onPressed: isValid ? _nextStep : null,
-        color: _stepCharacters[_currentStep].color,
-        size: SajuSize.xl,
-        leadingIcon: isLastStep ? Icons.auto_awesome : null,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (!isSmsPhase1)
+            SajuButton(
+              label: isLastStep ? '운명 분석하기' : '다음',
+              onPressed: isValid ? _nextStep : null,
+              color: _stepCharacters[_currentStep].color,
+              size: SajuSize.xl,
+              leadingIcon: isLastStep ? Icons.auto_awesome : null,
+            ),
+          // SMS Phase 1: "나중에 할게요" 스킵 버튼
+          if (isSmsPhase1) ...[
+            SajuButton(
+              label: '나중에 할게요',
+              onPressed: _nextStep,
+              variant: SajuVariant.ghost,
+              color: SajuColor.primary,
+              size: SajuSize.md,
+            ),
+          ],
+        ],
       ),
     );
   }

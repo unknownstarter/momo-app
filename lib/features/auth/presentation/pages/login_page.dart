@@ -16,7 +16,7 @@ import '../providers/auth_provider.dart';
 /// - 한지 아이보리 배경, 깔끔한 화이트 기반
 /// - 캐릭터 없음 — 타이포 위계만으로 브랜드 전달
 /// - 상단 60%: 카피 영역 (큰 제목 + 서브카피로 시선 집중)
-/// - 하단 40%: CTA 영역 (버튼 위계: filled → outlined → text)
+/// - 하단 40%: CTA 영역 (버튼 위계: filled(Apple) → filled(Kakao) → text)
 /// - 넉넉한 여백, 절제된 컬러, 명확한 정보 위계
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -26,9 +26,10 @@ class LoginPage extends ConsumerStatefulWidget {
 }
 
 class _LoginPageState extends ConsumerState<LoginPage>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   bool _isAppleLoading = false;
-  bool _isGoogleLoading = false;
+  bool _isKakaoLoading = false;
+  bool _awaitingKakaoCallback = false;
 
   late final AnimationController _fadeController;
   late final Animation<double> _fadeAnimation;
@@ -36,6 +37,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _fadeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
@@ -49,31 +51,40 @@ class _LoginPageState extends ConsumerState<LoginPage>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _fadeController.dispose();
     super.dispose();
   }
 
-  bool get _isLoading => _isAppleLoading || _isGoogleLoading;
+  /// 카카오 OAuth 브라우저에서 앱 복귀 시 스피너 해제
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _awaitingKakaoCallback) {
+      // 사용자가 브라우저에서 돌아옴
+      // Supabase가 딥링크를 처리할 시간을 준 뒤 스피너 해제
+      Future.delayed(const Duration(milliseconds: 1500), () {
+        if (mounted && _isKakaoLoading) {
+          setState(() {
+            _isKakaoLoading = false;
+            _awaitingKakaoCallback = false;
+          });
+        }
+      });
+    }
+  }
 
-  Future<void> _handleSignIn({required bool isApple}) async {
+  bool get _isLoading => _isAppleLoading || _isKakaoLoading;
+
+  /// Apple 로그인 — 네이티브 SDK, 동기적 결과
+  Future<void> _handleAppleSignIn() async {
     if (_isLoading) return;
     HapticFeedback.lightImpact();
 
-    setState(() {
-      if (isApple) {
-        _isAppleLoading = true;
-      } else {
-        _isGoogleLoading = true;
-      }
-    });
+    setState(() => _isAppleLoading = true);
 
     try {
       final notifier = ref.read(authNotifierProvider.notifier);
-      if (isApple) {
-        await notifier.signInWithApple();
-      } else {
-        await notifier.signInWithGoogle();
-      }
+      await notifier.signInWithApple();
 
       if (!mounted) return;
       final hasProfile = await ref.read(hasProfileProvider.future);
@@ -92,12 +103,47 @@ class _LoginPageState extends ConsumerState<LoginPage>
 
       _showErrorSnackBar(_friendlyErrorMessage(e));
     } finally {
-      if (mounted) {
-        setState(() {
-          _isAppleLoading = false;
-          _isGoogleLoading = false;
-        });
+      if (mounted) setState(() => _isAppleLoading = false);
+    }
+  }
+
+  /// Kakao 로그인 — Supabase OAuth, 브라우저 기반
+  ///
+  /// 브라우저 오픈 후 카카오 인증 → 딥링크로 앱 복귀 →
+  /// Supabase가 세션 자동 설정 → authStateProvider 변경 → 라우터 자동 리다이렉트
+  Future<void> _handleKakaoSignIn() async {
+    if (_isLoading) return;
+    HapticFeedback.lightImpact();
+
+    setState(() => _isKakaoLoading = true);
+
+    try {
+      final notifier = ref.read(authNotifierProvider.notifier);
+      final launched = await notifier.signInWithKakao();
+
+      if (!mounted) return;
+
+      if (launched) {
+        // 브라우저 오픈 성공 → 사용자가 카카오에서 인증 후 앱 복귀 대기
+        // 스피너는 didChangeAppLifecycleState에서 앱 resumed 시 해제
+        _awaitingKakaoCallback = true;
+      } else {
+        setState(() => _isKakaoLoading = false);
+        _showErrorSnackBar('카카오 로그인 페이지를 열 수 없어요');
       }
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() => _isKakaoLoading = false);
+
+      // TODO(PROD): 디버그 바이패스 제거 — 실제 인증 연결 후 이 블록 삭제
+      // [BYPASS-1] 로그인 인증 실패 시 온보딩으로 직행 (Apple/Kakao 공통)
+      if (kDebugMode) {
+        context.go(RoutePaths.onboarding);
+        return;
+      }
+
+      _showErrorSnackBar(_friendlyErrorMessage(e));
     }
   }
 
@@ -133,8 +179,8 @@ class _LoginPageState extends ConsumerState<LoginPage>
     if (msg.contains('network') || msg.contains('socket')) {
       return '네트워크 연결을 확인해 주세요';
     }
-    if (msg.contains('client id') || msg.contains('설정되지')) {
-      return 'Google 로그인이 아직 설정되지 않았어요';
+    if (msg.contains('kakao')) {
+      return '카카오 로그인에 문제가 발생했어요';
     }
     return '로그인 중 문제가 발생했어요. 다시 시도해 주세요';
   }
@@ -228,7 +274,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
     );
   }
 
-  /// CTA 섹션 — 버튼 위계: Apple(filled) → Google(outlined) → 둘러보기(text)
+  /// CTA 섹션 — 버튼 위계: Apple(검정 filled) → Kakao(옐로우 filled) → 둘러보기(text)
   Widget _buildCTASection() {
     return Column(
       children: [
@@ -237,8 +283,8 @@ class _LoginPageState extends ConsumerState<LoginPage>
 
         const SizedBox(height: 10),
 
-        // Google — Secondary CTA (아웃라인)
-        _buildGoogleButton(),
+        // Kakao — Secondary CTA (카카오 옐로우 filled)
+        _buildKakaoButton(),
 
         const SizedBox(height: 20),
 
@@ -294,7 +340,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
         opacity: disabled ? 0.4 : 1.0,
         duration: const Duration(milliseconds: 200),
         child: ElevatedButton(
-          onPressed: (_isAppleLoading || disabled) ? null : () => _handleSignIn(isApple: true),
+          onPressed: (_isAppleLoading || disabled) ? null : _handleAppleSignIn,
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF2D2D2D),
             foregroundColor: Colors.white,
@@ -339,8 +385,10 @@ class _LoginPageState extends ConsumerState<LoginPage>
     );
   }
 
-  Widget _buildGoogleButton() {
-    final disabled = _isLoading && !_isGoogleLoading;
+  /// 카카오 로그인 버튼 — 카카오 브랜드 가이드라인 준수
+  /// 배경: #FEE500 (카카오 옐로우), 텍스트: #191919
+  Widget _buildKakaoButton() {
+    final disabled = _isLoading && !_isKakaoLoading;
 
     return SizedBox(
       width: double.infinity,
@@ -348,26 +396,26 @@ class _LoginPageState extends ConsumerState<LoginPage>
       child: AnimatedOpacity(
         opacity: disabled ? 0.4 : 1.0,
         duration: const Duration(milliseconds: 200),
-        child: OutlinedButton(
-          onPressed: (_isGoogleLoading || disabled) ? null : () => _handleSignIn(isApple: false),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: const Color(0xFF2D2D2D),
-            side: BorderSide(
-              color: const Color(0xFF2D2D2D).withValues(alpha: 0.12),
-            ),
+        child: ElevatedButton(
+          onPressed: (_isKakaoLoading || disabled) ? null : _handleKakaoSignIn,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFFFEE500), // 카카오 옐로우
+            foregroundColor: const Color(0xFF191919), // 카카오 텍스트
+            disabledBackgroundColor: const Color(0xFFFEE500),
+            disabledForegroundColor: const Color(0xFF191919).withValues(alpha: 0.7),
+            elevation: 0,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
             ),
-            elevation: 0,
           ),
-          child: _isGoogleLoading
+          child: _isKakaoLoading
               ? SizedBox(
                   width: 20,
                   height: 20,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      const Color(0xFF2D2D2D).withValues(alpha: 0.4),
+                      const Color(0xFF191919).withValues(alpha: 0.4),
                     ),
                   ),
                 )
@@ -375,13 +423,13 @@ class _LoginPageState extends ConsumerState<LoginPage>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     SvgPicture.asset(
-                      'assets/images/icons/google_logo.svg',
+                      'assets/images/icons/kakao_logo.svg',
                       width: 18,
                       height: 18,
                     ),
                     const SizedBox(width: 8),
                     const Text(
-                      'Google로 계속하기',
+                      '카카오로 계속하기',
                       style: TextStyle(
                         fontFamily: AppTheme.fontFamily,
                         fontSize: 15,

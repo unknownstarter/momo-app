@@ -189,11 +189,12 @@ class PostAnalysisMatchListPage extends ConsumerWidget {
         child: SafeArea(
           top: false,
           child: SajuButton(
-            label: '처음으로 돌아가기',
-            onPressed: () => context.go(RoutePaths.home),
-            variant: SajuVariant.outlined,
+            label: '매칭 탭에서 확인하기',
+            onPressed: () => context.go(RoutePaths.matching),
+            variant: SajuVariant.filled,
             color: SajuColor.primary,
             size: SajuSize.lg,
+            leadingIcon: Icons.favorite_rounded,
           ),
         ),
       ),

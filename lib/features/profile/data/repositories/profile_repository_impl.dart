@@ -61,6 +61,8 @@ class ProfileRepositoryImpl implements ProfileRepository {
     SmokingStatus? smoking,
     String? datingStyle,
     Religion? religion,
+    BodyType? bodyType,
+    String? idealType,
   }) async {
     try {
       final authId = _client.auth.currentUser?.id;
@@ -78,6 +80,8 @@ class ProfileRepositoryImpl implements ProfileRepository {
         'smoking': smoking?.name,
         'dating_style': datingStyle,
         'religion': religion?.name,
+        'body_type': bodyType?.name,
+        'ideal_type': idealType,
         'is_profile_complete': true,
       };
 

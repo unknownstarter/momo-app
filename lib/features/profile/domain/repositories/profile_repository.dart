@@ -23,6 +23,8 @@ abstract class ProfileRepository {
     SmokingStatus? smoking,
     String? datingStyle,
     Religion? religion,
+    BodyType? bodyType,
+    String? idealType,
   });
 
   /// 프로필 이미지를 Storage에 업로드하고 공개 URL 목록을 반환

@@ -54,7 +54,19 @@ grep -rn "TODO(PROD)" lib/ --include="*.dart"
 - **동작**: 프로필 저장 실패 시 → `RoutePaths.home`으로 직행
 - **원복**: Supabase `profiles` 테이블 (matching profile 컬럼들) 연결 후 kDebugMode 블록 삭제
 
-### BYPASS-6: 라우터 publicPaths 확장
+### BYPASS-6: SMS 인증번호 발송 mock
+- **파일**: `lib/features/auth/presentation/pages/onboarding_form_page.dart`
+- **검색**: `TODO(PROD)` + `BYPASS-6`
+- **동작**: SMS 인증번호 발송 API 호출을 800ms delay mock으로 대체
+- **원복**: 실제 Supabase `auth.signInWithOtp()` 또는 Edge Function 호출로 교체 필요
+
+### BYPASS-7: SMS 인증번호 검증 mock
+- **파일**: `lib/features/auth/presentation/pages/onboarding_form_page.dart`
+- **검색**: `TODO(PROD)` + `BYPASS-7`
+- **동작**: OTP 검증을 500ms delay mock으로 대체 (아무 코드나 성공)
+- **원복**: 실제 Supabase `auth.verifyOTP()` 또는 Edge Function 호출로 교체 필요
+
+### BYPASS-8: 라우터 publicPaths 확장
 - **파일**: `lib/app/routes/app_router.dart`
 - **위치**: `publicPaths` 리스트
 - **동작**: matching, chat, profile 경로를 비인증 접근 허용

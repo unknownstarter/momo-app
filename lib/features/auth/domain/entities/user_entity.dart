@@ -65,6 +65,22 @@ enum Religion {
   }
 }
 
+/// 체형
+enum BodyType {
+  slim('마른'),
+  average('보통'),
+  slightlyChubby('살짝 통통'),
+  chubby('통통');
+
+  const BodyType(this.label);
+  final String label;
+
+  static BodyType? fromString(String? value) {
+    if (value == null) return null;
+    return BodyType.values.where((e) => e.name == value).firstOrNull;
+  }
+}
+
 /// 사용자 프로필 완성도 상태
 enum ProfileCompletionStatus {
   /// 기본 정보만 입력 (소셜 로그인 직후)
@@ -108,6 +124,9 @@ class UserEntity {
     this.smoking,
     this.datingStyle,
     this.religion,
+    this.bodyType,
+    this.idealType,
+    this.isPhoneVerified = false,
     this.isSelfieVerified = false,
     this.isProfileComplete = false,
     this.isSajuComplete = false,
@@ -160,7 +179,7 @@ class UserEntity {
   /// 첫 번째 사진이 대표 사진으로 사용됩니다.
   final List<String> profileImageUrls;
 
-  /// 자기소개 (10~300자)
+  /// 자기소개 (최대 1,000자)
   final String? bio;
 
   /// 관심사/취미 태그 (최대 10개)
@@ -189,6 +208,15 @@ class UserEntity {
 
   /// 종교
   final Religion? religion;
+
+  /// 체형/스타일
+  final BodyType? bodyType;
+
+  /// 이상형 설명 (자유 텍스트, 최대 200자)
+  final String? idealType;
+
+  /// 전화번호 SMS 인증 완료 여부 (데이팅 사기 방지)
+  final bool isPhoneVerified;
 
   /// 셀카 인증 완료 여부
   final bool isSelfieVerified;
@@ -305,7 +333,8 @@ class UserEntity {
       height != null &&
       occupation != null &&
       location != null &&
-      bio != null;
+      bio != null &&
+      bio!.isNotEmpty;
 
   // ===========================================================================
   // copyWith
@@ -332,6 +361,9 @@ class UserEntity {
     SmokingStatus? smoking,
     String? datingStyle,
     Religion? religion,
+    BodyType? bodyType,
+    String? idealType,
+    bool? isPhoneVerified,
     bool? isSelfieVerified,
     bool? isProfileComplete,
     bool? isSajuComplete,
@@ -360,6 +392,9 @@ class UserEntity {
       smoking: smoking ?? this.smoking,
       datingStyle: datingStyle ?? this.datingStyle,
       religion: religion ?? this.religion,
+      bodyType: bodyType ?? this.bodyType,
+      idealType: idealType ?? this.idealType,
+      isPhoneVerified: isPhoneVerified ?? this.isPhoneVerified,
       isSelfieVerified: isSelfieVerified ?? this.isSelfieVerified,
       isProfileComplete: isProfileComplete ?? this.isProfileComplete,
       isSajuComplete: isSajuComplete ?? this.isSajuComplete,

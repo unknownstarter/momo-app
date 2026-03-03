@@ -3,16 +3,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/di/providers.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/theme_extensions.dart';
 import '../../../../core/theme/tokens/saju_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../domain/entities/match_profile.dart';
 import '../providers/matching_provider.dart';
+import '../widgets/matching_segment_control.dart';
+import '../widgets/received_like_tile.dart';
+import '../widgets/sent_like_tile.dart';
 
-/// MatchingPage — 매칭 탭 (토스 스타일 미니멀)
+/// MatchingPage — 매칭 탭 (3-Segment: 추천 / 보낸 / 받은)
 ///
-/// 오행 필터 + 2열 프로필 그리드. 깔끔한 헤더, 넉넉한 그리드 간격,
-/// 절제된 컬러 사용.
+/// 세그먼트 컨트롤로 상태별 분류, 추천 탭에만 오행 필터 제공.
 class MatchingPage extends ConsumerStatefulWidget {
   const MatchingPage({super.key});
 
@@ -34,7 +38,9 @@ class _MatchingPageState extends ConsumerState<MatchingPage> {
 
   @override
   Widget build(BuildContext context) {
-    final recommendations = ref.watch(dailyRecommendationsProvider);
+    final segment = ref.watch(matchingTabSegmentProvider);
+    final receivedCount =
+        ref.watch(receivedLikesProvider).valueOrNull?.length ?? 0;
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
@@ -57,34 +63,60 @@ class _MatchingPageState extends ConsumerState<MatchingPage> {
               ),
             ),
 
-            const SizedBox(height: 18),
-
-            // ---- 필터 칩 ----
-            _buildFilterRow(),
-
             const SizedBox(height: 16),
 
-            // ---- 프로필 그리드 ----
+            // ---- 세그먼트 컨트롤 ----
+            MatchingSegmentControl(
+              selectedIndex: segment,
+              onChanged: (index) =>
+                  ref.read(matchingTabSegmentProvider.notifier).state = index,
+              receivedBadge: receivedCount > 0 ? receivedCount : null,
+            ),
+
+            const SizedBox(height: 14),
+
+            // ---- 추천 탭: 오행 필터 칩 ----
+            if (segment == 0) ...[
+              _buildFilterRow(),
+              const SizedBox(height: 12),
+            ],
+
+            // ---- 콘텐츠 영역 ----
             Expanded(
-              child: recommendations.when(
-                loading: () => const MomoLoading(),
-                error: (_, _) => _buildErrorState(),
-                data: (profiles) {
-                  final filtered = _selectedFilter == null
-                      ? profiles
-                      : profiles
-                          .where((p) => p.elementType == _selectedFilter)
-                          .toList();
-                  return _buildGrid(context, filtered, textTheme);
-                },
-              ),
+              child: switch (segment) {
+                0 => _buildRecommendationTab(context, textTheme),
+                1 => _buildSentTab(context),
+                2 => _buildReceivedTab(context),
+                _ => const SizedBox.shrink(),
+              },
             ),
 
             // ---- 하단 무료 좋아요 잔여 ----
-            _buildBottomBar(context, textTheme),
+            if (segment == 0) _buildBottomBar(context, textTheme),
           ],
         ),
       ),
+    );
+  }
+
+  // ===========================================================================
+  // 추천 탭
+  // ===========================================================================
+
+  Widget _buildRecommendationTab(BuildContext context, TextTheme textTheme) {
+    final recommendations = ref.watch(filteredRecommendationsProvider);
+
+    return recommendations.when(
+      loading: () => const MomoLoading(),
+      error: (_, _) => _buildErrorState(),
+      data: (profiles) {
+        final filtered = _selectedFilter == null
+            ? profiles
+            : profiles
+                .where((p) => p.elementType == _selectedFilter)
+                .toList();
+        return _buildGrid(context, filtered, textTheme);
+      },
     );
   }
 
@@ -124,43 +156,204 @@ class _MatchingPageState extends ConsumerState<MatchingPage> {
       );
     }
 
-    return GridView.builder(
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        bottom: MediaQuery.of(context).padding.bottom + 88,
+    return RefreshIndicator(
+      onRefresh: () async {
+        await ref.read(dailyRecommendationsProvider.notifier).refresh();
+      },
+      color: AppTheme.waterColor,
+      child: GridView.builder(
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          bottom: MediaQuery.of(context).padding.bottom + 88,
+        ),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 14,
+          mainAxisSpacing: 14,
+          childAspectRatio: 0.62,
+        ),
+        itemCount: profiles.length,
+        itemBuilder: (context, index) {
+          final profile = profiles[index];
+          return SajuMatchCard(
+            name: profile.name,
+            age: profile.age,
+            bio: profile.bio,
+            photoUrl: profile.photoUrl,
+            characterName: profile.characterName,
+            characterAssetPath: profile.characterAssetPath,
+            elementType: profile.elementType,
+            compatibilityScore: profile.compatibilityScore,
+            isPhoneVerified: profile.isPhoneVerified,
+            heroTag: 'match_char_${profile.userId}_$index',
+            showCharacterInstead: true,
+            onTap: () => context.push(
+              RoutePaths.profileDetail,
+              extra: {
+                'profile': profile,
+                'heroTag': 'match_char_${profile.userId}_$index',
+                'source': 'recommendation',
+              },
+            ),
+          );
+        },
       ),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 14,
-        mainAxisSpacing: 14,
-        childAspectRatio: 0.62,
+    );
+  }
+
+  // ===========================================================================
+  // 보낸 탭
+  // ===========================================================================
+
+  Widget _buildSentTab(BuildContext context) {
+    final sentLikes = ref.watch(sentLikesProvider);
+
+    return sentLikes.when(
+      loading: () => const MomoLoading(),
+      error: (_, _) => SajuErrorState(
+        message: '보낸 좋아요를 불러오지 못했어요',
+        onRetry: () => ref.read(sentLikesProvider.notifier).refresh(),
       ),
-      itemCount: profiles.length,
-      itemBuilder: (context, index) {
-        final profile = profiles[index];
-        return SajuMatchCard(
-          name: profile.name,
-          age: profile.age,
-          bio: profile.bio,
-          photoUrl: profile.photoUrl,
-          characterName: profile.characterName,
-          characterAssetPath: profile.characterAssetPath,
-          elementType: profile.elementType,
-          compatibilityScore: profile.compatibilityScore,
-          heroTag: 'match_char_${profile.userId}_$index',
-          showCharacterInstead: true,
-          onTap: () => context.push(
-            RoutePaths.profileDetail,
-            extra: {
-              'profile': profile,
-              'heroTag': 'match_char_${profile.userId}_$index',
+      data: (items) {
+        if (items.isEmpty) {
+          return const SajuEmptyState(
+            message: '아직 좋아요를 보내지 않았어요',
+            subtitle: '추천 탭에서 마음에 드는 상대에게\n좋아요를 보내보세요',
+            characterAssetPath: CharacterAssets.bulkkoriFireDefault,
+            characterName: '불꼬리',
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: () async {
+            await ref.read(sentLikesProvider.notifier).refresh();
+          },
+          color: AppTheme.waterColor,
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 4,
+            ),
+            itemCount: items.length,
+            separatorBuilder: (_, _) => SajuSpacing.gap12,
+            itemBuilder: (context, index) {
+              final sentLike = items[index];
+              return SentLikeTile(
+                sentLike: sentLike,
+                animationDelay: Duration(milliseconds: 80 * index),
+                onTap: () => context.push(
+                  RoutePaths.profileDetail,
+                  extra: {
+                    'profile': sentLike.profile,
+                    'source': 'sent',
+                  },
+                ),
+              );
             },
           ),
         );
       },
     );
   }
+
+  // ===========================================================================
+  // 받은 탭
+  // ===========================================================================
+
+  Widget _buildReceivedTab(BuildContext context) {
+    final receivedLikes = ref.watch(receivedLikesWithProfilesProvider);
+
+    return receivedLikes.when(
+      loading: () => const MomoLoading(),
+      error: (_, _) => SajuErrorState(
+        message: '받은 좋아요를 불러오지 못했어요',
+        onRetry: () =>
+            ref.read(receivedLikesWithProfilesProvider.notifier).refresh(),
+      ),
+      data: (items) {
+        if (items.isEmpty) {
+          return const SajuEmptyState(
+            message: '아직 받은 좋아요가 없어요',
+            subtitle: '프로필을 완성하면 더 많은\n좋아요를 받을 수 있어요',
+            characterAssetPath: CharacterAssets.mulgyeoriWaterDefault,
+            characterName: '물결이',
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: () async {
+            await ref
+                .read(receivedLikesWithProfilesProvider.notifier)
+                .refresh();
+          },
+          color: AppTheme.waterColor,
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 4,
+            ),
+            itemCount: items.length,
+            separatorBuilder: (_, _) => SajuSpacing.gap12,
+            itemBuilder: (context, index) {
+              final item = items[index];
+              return ReceivedLikeTile(
+                like: item.like,
+                profile: item.profile,
+                animationDelay: Duration(milliseconds: 80 * index),
+                onAccept: () => _handleAcceptLike(context, item.like.id, item.profile),
+                onReject: () => _handleRejectLike(item.like.id),
+                onTap: () => context.push(
+                  RoutePaths.profileDetail,
+                  extra: {
+                    'profile': item.profile,
+                    'source': 'received',
+                    'likeId': item.like.id,
+                  },
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  // ===========================================================================
+  // 액션 핸들러
+  // ===========================================================================
+
+  Future<void> _handleAcceptLike(
+    BuildContext context,
+    String likeId,
+    MatchProfile profile,
+  ) async {
+    final repo = ref.read(matchingRepositoryProvider);
+    await repo.acceptLike(likeId);
+
+    if (!context.mounted) return;
+
+    // 매칭 축하 시트 표시
+    await showMutualMatchCelebration(context, profile);
+
+    // 데이터 새로고침
+    ref.read(receivedLikesWithProfilesProvider.notifier).refresh();
+    ref.read(receivedLikesProvider.notifier).refresh();
+    ref.read(activeMatchesProvider.notifier).refresh();
+  }
+
+  Future<void> _handleRejectLike(String likeId) async {
+    final repo = ref.read(matchingRepositoryProvider);
+    await repo.rejectLike(likeId);
+
+    // 데이터 새로고침
+    ref.read(receivedLikesWithProfilesProvider.notifier).refresh();
+    ref.read(receivedLikesProvider.notifier).refresh();
+  }
+
+  // ===========================================================================
+  // 공통 위젯
+  // ===========================================================================
 
   Widget _buildErrorState() {
     return SajuErrorState(
@@ -217,4 +410,158 @@ class _Filter {
   final String label;
   final String? value;
   final SajuColor? color;
+}
+
+/// 상호 매칭 축하 바텀시트 표시
+Future<void> showMutualMatchCelebration(
+  BuildContext context,
+  MatchProfile profile,
+) {
+  return showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: Colors.transparent,
+    isScrollControlled: true,
+    builder: (context) => _MutualMatchCelebrationSheet(profile: profile),
+  );
+}
+
+/// 매칭 성사 축하 바텀시트
+class _MutualMatchCelebrationSheet extends StatelessWidget {
+  const _MutualMatchCelebrationSheet({required this.profile});
+
+  final MatchProfile profile;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.sajuColors;
+    final textTheme = Theme.of(context).textTheme;
+    final elementColor = AppTheme.fiveElementColor(profile.elementType);
+    final elementPastel = AppTheme.fiveElementPastel(profile.elementType);
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
+    return Container(
+      padding: EdgeInsets.fromLTRB(24, 12, 24, bottomPadding + 24),
+      decoration: BoxDecoration(
+        color: colors.bgElevated,
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(20),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 드래그 핸들
+          Container(
+            width: 36,
+            height: 4,
+            decoration: BoxDecoration(
+              color: colors.textTertiary.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+
+          const SizedBox(height: 32),
+
+          // 축하 아이콘
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  AppTheme.mysticGlow.withValues(alpha: 0.2),
+                  AppTheme.mysticGlow.withValues(alpha: 0.05),
+                ],
+              ),
+            ),
+            child: Center(
+              child: Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: elementPastel.withValues(alpha: 0.3),
+                  border: Border.all(
+                    color: elementColor.withValues(alpha: 0.4),
+                    width: 2,
+                  ),
+                ),
+                child: ClipOval(
+                  child: profile.characterAssetPath != null
+                      ? Image.asset(
+                          profile.characterAssetPath!,
+                          width: 64,
+                          height: 64,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => Icon(
+                            Icons.favorite_rounded,
+                            size: 28,
+                            color: elementColor,
+                          ),
+                        )
+                      : Icon(
+                          Icons.favorite_rounded,
+                          size: 28,
+                          color: elementColor,
+                        ),
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          Text(
+            '매칭 성사!',
+            style: textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: colors.textPrimary,
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          Text(
+            '${profile.name}님과 서로 좋아요를 보냈어요\n지금 바로 대화를 시작해보세요',
+            textAlign: TextAlign.center,
+            style: textTheme.bodyMedium?.copyWith(
+              color: colors.textSecondary,
+              height: 1.5,
+            ),
+          ),
+
+          const SizedBox(height: 28),
+
+          // 채팅 시작 버튼
+          SizedBox(
+            width: double.infinity,
+            child: SajuButton(
+              label: '채팅 시작하기',
+              onPressed: () {
+                Navigator.of(context).pop();
+                // TODO(PROD): 실제 채팅방으로 라우팅
+                context.go(RoutePaths.chat);
+              },
+              variant: SajuVariant.filled,
+              color: SajuColor.primary,
+              size: SajuSize.lg,
+              leadingIcon: Icons.chat_bubble_outline_rounded,
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // 나중에 버튼
+          SajuButton(
+            label: '나중에 할게요',
+            onPressed: () => Navigator.of(context).pop(),
+            variant: SajuVariant.ghost,
+            color: SajuColor.primary,
+            size: SajuSize.md,
+          ),
+        ],
+      ),
+    );
+  }
 }

@@ -63,6 +63,7 @@ class SajuMatchCard extends StatefulWidget {
     this.isLoading = false,
     this.showCharacterInstead = false,
     this.isNew = false,
+    this.isPhoneVerified = false,
     this.heroTag,
     this.onTap,
     this.width,
@@ -82,6 +83,9 @@ class SajuMatchCard extends StatefulWidget {
   final bool isLoading;
   final bool showCharacterInstead;
   final bool isNew;
+
+  /// SMS 인증 완료 유저 → "진심" 뱃지 표시
+  final bool isPhoneVerified;
   final String? heroTag;
   final VoidCallback? onTap;
   final double? width;
@@ -292,24 +296,67 @@ class _SajuMatchCardState extends State<SajuMatchCard> {
 
   Widget _buildInfoArea(BuildContext context, Color elementColor) {
     final textTheme = Theme.of(context).textTheme;
+    final bioStyle = textTheme.bodySmall?.copyWith(height: 1.4);
+    // bio 영역을 항상 2줄 높이로 고정 → 카드 레이아웃 통일
+    final bioLineHeight = (bioStyle?.fontSize ?? 12) * (bioStyle?.height ?? 1.4);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '${widget.name}, ${widget.age}',
-            style: textTheme.titleSmall,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+          Row(
+            children: [
+              Flexible(
+                child: Text(
+                  '${widget.name}, ${widget.age}',
+                  style: textTheme.titleSmall,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              // 진심 마크 — SMS 인증 완료 유저
+              if (widget.isPhoneVerified) ...[
+                const SizedBox(width: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: AppTheme.woodColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.verified_rounded,
+                        size: 10,
+                        color: AppTheme.woodColor,
+                      ),
+                      const SizedBox(width: 2),
+                      Text(
+                        '진심',
+                        style: TextStyle(
+                          fontFamily: AppTheme.fontFamily,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.woodColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
           ),
           SajuSpacing.gap4,
-          Text(
-            widget.bio,
-            style: textTheme.bodySmall?.copyWith(height: 1.4),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+          SizedBox(
+            height: bioLineHeight * 2,
+            child: Text(
+              widget.bio,
+              style: bioStyle,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),

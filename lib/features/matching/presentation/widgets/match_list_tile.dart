@@ -134,13 +134,45 @@ class _MatchListTileState extends State<MatchListTile>
                               crossAxisAlignment:
                                   CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  '${profile.name}, ${profile.age}',
-                                  style: textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                                Row(
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        '${profile.name}, ${profile.age}',
+                                        style: textTheme.titleSmall?.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    if (profile.isPhoneVerified) ...[
+                                      const SizedBox(width: 4),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                        decoration: BoxDecoration(
+                                          color: AppTheme.woodColor.withValues(alpha: 0.12),
+                                          borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(Icons.verified_rounded, size: 10, color: AppTheme.woodColor),
+                                            const SizedBox(width: 2),
+                                            Text(
+                                              '진심',
+                                              style: TextStyle(
+                                                fontFamily: AppTheme.fontFamily,
+                                                fontSize: 9,
+                                                fontWeight: FontWeight.w600,
+                                                color: AppTheme.woodColor,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ],
                                 ),
                                 SajuSpacing.gap4,
                                 Text(

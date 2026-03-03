@@ -86,12 +86,13 @@
 | **Backend** | Supabase | PostgreSQL + Edge Functions + Auth + Storage + Realtime |
 | **사주 엔진** | @fullstackfamily/manseryeok (Edge Function) | 한국천문연구원(KASI) 데이터 기반 만세력, 절기·음력·진태양시 보정 |
 | **AI** | Claude API | 사주 해석, 개인화 인사이트, 궁합 스토리텔링 |
-| **인증** | Supabase Auth | Apple, Google, Kakao 소셜 로그인 + SMS 인증 |
+| **관상 ML** | Google ML Kit | 온디바이스 얼굴 측정 (삼정/오관) |
+| **인증** | Supabase Auth | Apple, Google 소셜 로그인 (Kakao 예정) |
 | **결제** | RevenueCat | iOS App Store + Google Play 인앱 결제 통합 |
 | **상태관리** | Riverpod 2.x | code generation 사용 |
 | **라우팅** | go_router | 선언적 라우팅 + 딥링크 |
 | **코드 생성** | freezed + json_serializable | 불변 모델 + JSON 직렬화 |
-| **분석** | Supabase Analytics + Mixpanel | 이벤트 트래킹, 퍼널 분석 |
+| **분석** | Supabase Analytics | 이벤트 트래킹 (Mixpanel 예정) |
 
 ---
 
@@ -99,25 +100,30 @@
 
 ```
 lib/
-├── app/                    # 앱 진입점, 라우팅, DI
+├── app/                    # 앱 진입점, 라우팅, 글로벌 프로바이더
 │   ├── app.dart
 │   ├── routes/
-│   └── di/
-├── core/                   # 공유 유틸, 상수, 테마, 에러
+│   └── providers/
+├── core/                   # 공유 유틸, 상수, 테마, 에러, DI
 │   ├── constants/
+│   ├── di/                 # 중앙 DI 레이어
+│   ├── domain/             # 공유 엔티티 (UserEntity, Compatibility)
 │   ├── errors/
 │   ├── network/
+│   ├── services/           # HapticService 등 글로벌 서비스
 │   ├── theme/
-│   └── utils/
+│   ├── utils/
+│   └── widgets/            # 17개 코어 UI 컴포넌트
 ├── features/               # 피처별 클린 아키텍처
 │   ├── auth/               # 인증 (소셜 로그인, SMS)
 │   ├── saju/               # 사주 분석 (만세력, AI 해석)
 │   ├── gwansang/           # 관상 분석 (ML Kit + AI 동물상)
 │   ├── destiny/            # 통합 운명 분석 (사주+관상 통합 퍼널)
 │   ├── matching/           # 매칭 (궁합 계산, 추천)
+│   ├── home/               # 홈 대시보드 (추천 그리드, 연애운)
 │   ├── profile/            # 프로필 관리
 │   ├── chat/               # 1:1 채팅
-│   └── payment/            # 인앱 결제
+│   └── points/             # 포인트 시스템
 └── main.dart
 ```
 
@@ -253,6 +259,28 @@ feature/
 - RevenueCat 통합 인앱 결제
 - 구독 (프리미엄 매칭, 무제한 궁합 분석)
 - 개별 과금 (상세 궁합 리포트, 슈퍼 매칭)
+
+### 7. Gwansang (관상 분석)
+- 정면 사진 → ML Kit 얼굴 측정 (삼정/오관)
+- AI 기반 관상학 해석 + 동적 동물상 ("나른한 고양이상")
+- Traits 5축 (leadership/warmth/independence/sensitivity/energy)
+- 사주 연계: 관상 traits 기반 궁합 보강
+
+### 8. Destiny (통합 운명 분석)
+- 사주+관상을 하나의 온보딩 퍼널로 통합
+- 10초 로딩 연출 (사주→관상 순차 분석)
+- TabBar 결과 페이지 [사주 | 관상]
+- CTA: "운명의 인연 찾으러 가기"
+
+### 9. Home (홈 대시보드)
+- 섹션형 스크롤: 인사, 연애운, 추천 그리드(2열), 받은 좋아요, 동물상 매칭
+- 캐릭터 모드 카드 (사진 대신 오행 캐릭터)
+- 스태거드 페이드인 애니메이션
+
+### 10. Points (포인트 시스템)
+- 좋아요/수락/프리미엄 좋아요 등 액션별 포인트 소비
+- 일일 무료 한도 (좋아요 3회, 수락 3회)
+- 포인트 구매 (인앱 결제 연동 예정)
 
 ---
 

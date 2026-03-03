@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/di/providers.dart';
 import '../../../../core/services/haptic_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/theme_extensions.dart';
@@ -12,6 +13,7 @@ import '../../../../core/widgets/widgets.dart';
 import '../../../saju/presentation/providers/saju_provider.dart';
 import '../../domain/entities/match_profile.dart';
 import '../providers/matching_provider.dart';
+import 'matching_page.dart' show showMutualMatchCelebration;
 
 /// ProfileDetailPage — 5섹션 스크롤 스토리텔링 (다크 모드)
 ///
@@ -21,15 +23,33 @@ import '../providers/matching_provider.dart';
 /// 3. 궁합: 인라인 게이지 카운트업 + 강점/도전 스태거드
 /// 4. 관상 케미: 동물상 + traits 미니 바 (조건부)
 /// 5. 액션: 고정 하단 좋아요 + 건너뛰기
+/// 프로필 상세 페이지 진입 소스
+///
+/// 어디서 진입했느냐에 따라 하단 액션바가 달라진다.
+enum ProfileDetailSource {
+  /// 추천 탭 → 좋아요 보내기 + 건너뛰기
+  recommendation,
+
+  /// 보낸 탭 → 상태 표시만
+  sent,
+
+  /// 받은 탭 → 수락 + 건너뛰기
+  received,
+}
+
 class ProfileDetailPage extends ConsumerStatefulWidget {
   const ProfileDetailPage({
     super.key,
     required this.profile,
     this.heroTag,
+    this.source = ProfileDetailSource.recommendation,
+    this.likeId,
   });
 
   final MatchProfile profile;
   final String? heroTag;
+  final ProfileDetailSource source;
+  final String? likeId;
 
   @override
   ConsumerState<ProfileDetailPage> createState() => _ProfileDetailPageState();
@@ -158,7 +178,11 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  child: _BottomActionBar(profile: profile),
+                  child: _BottomActionBar(
+                    profile: profile,
+                    source: widget.source,
+                    likeId: widget.likeId,
+                  ),
                 ),
               ],
             ),
@@ -1149,70 +1173,155 @@ class _TraitsBars extends StatelessWidget {
 // SECTION 5: 고정 하단 액션 바
 // =============================================================================
 
-class _BottomActionBar extends StatelessWidget {
-  const _BottomActionBar({required this.profile});
+class _BottomActionBar extends ConsumerWidget {
+  const _BottomActionBar({
+    required this.profile,
+    required this.source,
+    this.likeId,
+  });
 
   final MatchProfile profile;
+  final ProfileDetailSource source;
+  final String? likeId;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.sajuColors;
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
+    return Container(
+      padding: EdgeInsets.fromLTRB(24, 16, 24, bottomPadding + 16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            colors.bgPrimary.withValues(alpha: 0.0),
+            colors.bgPrimary.withValues(alpha: 0.9),
+            colors.bgPrimary,
+          ],
+          stops: const [0.0, 0.3, 0.5],
+        ),
+      ),
+      child: switch (source) {
+        ProfileDetailSource.recommendation =>
+          _buildRecommendationActions(context, ref),
+        ProfileDetailSource.sent =>
+          _buildSentActions(context),
+        ProfileDetailSource.received =>
+          _buildReceivedActions(context, ref),
+      },
+    );
+  }
+
+  /// 추천 탭: 좋아요 보내기 + 건너뛰기
+  Widget _buildRecommendationActions(BuildContext context, WidgetRef ref) {
     return GestureDetector(
       onVerticalDragEnd: (details) {
-        // 스와이프 업 = 좋아요
         if (details.velocity.pixelsPerSecond.dy < -500) {
           HapticService.medium();
-          _handleLike(context);
+          _handleSendLike(context, ref);
         }
       },
-      child: Container(
-        padding: EdgeInsets.fromLTRB(24, 16, 24, bottomPadding + 16),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              colors.bgPrimary.withValues(alpha: 0.0),
-              colors.bgPrimary.withValues(alpha: 0.9),
-              colors.bgPrimary,
-            ],
-            stops: const [0.0, 0.3, 0.5],
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: double.infinity,
+            child: LikeButton(
+              onPressed: () async {
+                _handleSendLike(context, ref);
+                return true;
+              },
+              label: '좋아요 보내기',
+            ),
           ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // 좋아요 버튼
-            SizedBox(
-              width: double.infinity,
-              child: LikeButton(
-                onPressed: () async {
-                  _handleLike(context);
-                  return true;
-                },
-                label: '좋아요 보내기',
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
-            // 건너뛰기
-            SajuButton(
-              label: '건너뛰기',
-              onPressed: () => Navigator.of(context).pop(),
-              variant: SajuVariant.ghost,
-              color: SajuColor.primary,
-              size: SajuSize.md,
-            ),
-          ],
-        ),
+          const SizedBox(height: 8),
+          SajuButton(
+            label: '건너뛰기',
+            onPressed: () => Navigator.of(context).pop(),
+            variant: SajuVariant.ghost,
+            color: SajuColor.primary,
+            size: SajuSize.md,
+          ),
+        ],
       ),
     );
   }
 
-  void _handleLike(BuildContext context) {
+  /// 보낸 탭: 상태 표시 + 뒤로가기
+  Widget _buildSentActions(BuildContext context) {
+    final colors = context.sajuColors;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: BoxDecoration(
+            color: colors.bgSecondary,
+            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+          ),
+          child: Center(
+            child: Text(
+              '좋아요를 보냈어요',
+              style: textTheme.bodyMedium?.copyWith(
+                color: colors.textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        SajuButton(
+          label: '돌아가기',
+          onPressed: () => Navigator.of(context).pop(),
+          variant: SajuVariant.ghost,
+          color: SajuColor.primary,
+          size: SajuSize.md,
+        ),
+      ],
+    );
+  }
+
+  /// 받은 탭: 수락 + 건너뛰기
+  Widget _buildReceivedActions(BuildContext context, WidgetRef ref) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          width: double.infinity,
+          child: LikeButton(
+            onPressed: () async {
+              await _handleAcceptLike(context, ref);
+              return true;
+            },
+            label: '수락하기',
+          ),
+        ),
+        const SizedBox(height: 8),
+        SajuButton(
+          label: '건너뛰기',
+          onPressed: () {
+            _handleRejectLike(context, ref);
+          },
+          variant: SajuVariant.ghost,
+          color: SajuColor.primary,
+          size: SajuSize.md,
+        ),
+      ],
+    );
+  }
+
+  void _handleSendLike(BuildContext context, WidgetRef ref) {
+    final repo = ref.read(matchingRepositoryProvider);
+    repo.sendLike(profile.userId);
+
+    // 로컬 상태 갱신
+    ref.read(sentLikesProvider.notifier).refresh();
+
     Navigator.of(context).pop();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -1220,6 +1329,33 @@ class _BottomActionBar extends StatelessWidget {
         behavior: SnackBarBehavior.floating,
       ),
     );
+  }
+
+  Future<void> _handleAcceptLike(BuildContext context, WidgetRef ref) async {
+    if (likeId == null) return;
+    final repo = ref.read(matchingRepositoryProvider);
+    await repo.acceptLike(likeId!);
+
+    if (!context.mounted) return;
+    Navigator.of(context).pop();
+
+    // 매칭 축하 시트
+    await showMutualMatchCelebration(context, profile);
+
+    ref.read(receivedLikesWithProfilesProvider.notifier).refresh();
+    ref.read(receivedLikesProvider.notifier).refresh();
+    ref.read(activeMatchesProvider.notifier).refresh();
+  }
+
+  void _handleRejectLike(BuildContext context, WidgetRef ref) {
+    if (likeId == null) return;
+    final repo = ref.read(matchingRepositoryProvider);
+    repo.rejectLike(likeId!);
+
+    ref.read(receivedLikesWithProfilesProvider.notifier).refresh();
+    ref.read(receivedLikesProvider.notifier).refresh();
+
+    Navigator.of(context).pop();
   }
 }
 

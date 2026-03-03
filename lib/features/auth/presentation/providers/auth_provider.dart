@@ -28,7 +28,7 @@ class AuthNotifier extends _$AuthNotifier {
   @override
   FutureOr<void> build() {}
 
-  /// Apple 로그인
+  /// Apple 로그인 (네이티브 SDK — 동기적 결과)
   Future<UserEntity?> signInWithApple() async {
     state = const AsyncLoading();
     try {
@@ -42,14 +42,17 @@ class AuthNotifier extends _$AuthNotifier {
     }
   }
 
-  /// Google 로그인
-  Future<UserEntity?> signInWithGoogle() async {
+  /// Kakao 로그인 (Supabase OAuth — 브라우저 오픈 후 딥링크 콜백)
+  ///
+  /// 브라우저가 열리면 true 반환. 실제 세션은 앱 복귀 시 자동 설정.
+  /// authStateProvider가 세션 변경을 감지하면 라우터가 자동 리다이렉트.
+  Future<bool> signInWithKakao() async {
     state = const AsyncLoading();
     try {
       final repo = ref.read(authRepositoryProvider);
-      final user = await repo.signInWithGoogle();
+      final launched = await repo.signInWithKakao();
       state = const AsyncData(null);
-      return user;
+      return launched;
     } catch (e, st) {
       state = AsyncError(e, st);
       rethrow;
