@@ -333,6 +333,7 @@ flutter build ios --no-codesign --debug   # iOS 빌드 확인
 > **핵심 인사이트**: Auth 하나만 뚫으면 BYPASS-2→3→4→5→6이 도미노처럼 제거됨.
 > **코드 준비 완료 (2026-03-01)**: entitlements, URL scheme, 딥링크, Storage 마이그레이션, 이미지 업로드 코드 세팅됨.
 > **변경 (2026-03-03)**: Google 로그인 → Kakao 로그인으로 전환 (Sprint ON에서 처리). SMS 인증 추가.
+> **변경 (2026-03-03 v2)**: Supabase Phone Auth + Send SMS Hook + CoolSMS 최종 확정. OTP는 Supabase 자동 관리, SMS 발송만 CoolSMS(한국 010번호).
 > **남은 것**: 노아님의 인프라 설정(Apple Developer / **Kakao Developer Console** / Supabase Dashboard / **CoolSMS**) → BYPASS 제거.
 > **인프라 가이드**: `docs/guides/sprint-a-infra-setup.md`
 
@@ -351,7 +352,7 @@ flutter build ios --no-codesign --debug   # iOS 빌드 확인
 | A0 | **코드 사전 준비** — entitlements, URL scheme, 딥링크, Storage SQL, OAuth config, 이미지 업로드 | 아리 | 없음 | ✅ |
 | A1 | **Apple Sign In 인프라** — Apple Developer에서 Service ID + Key 발급, Supabase에서 Apple Provider 활성화 | 노아님 | A0 | ⬜ |
 | A2 | **Kakao 로그인 인프라** — Kakao Developer Console 앱 등록, Supabase Kakao Provider 활성화 | 노아님 | A0 + ON2 | ⬜ |
-| A2.5 | **CoolSMS 인프라** — CoolSMS 계정 생성, API Key 발급, Supabase 시크릿 등록 | 노아님 | ON3 | ⬜ |
+| A2.5 | **CoolSMS + Supabase Send SMS Hook 설정** — CoolSMS 계정 생성 + API Key 발급, Supabase Dashboard에서 Phone Provider 활성화 + Send SMS Hook → Edge Function 연결 | 노아님 | ON3 | ⬜ |
 | A3 | **BYPASS-1 제거** — Auth 연결 검증 후 `login_page.dart` bypass 블록 삭제 | 아리 | A1 또는 A2 | ⬜ |
 | A4 | **profiles 테이블 컬럼 마이그레이션** — `saju_profile_id`, `is_saju_complete`, `is_profile_complete` 등 누락 컬럼 추가 | 아리 | A3 | ⬜ |
 | A5 | **BYPASS-2 제거** — 온보딩 프로필 저장 실연동 검증 후 `onboarding_page.dart` bypass 삭제 | 아리 | A4 | ⬜ |

@@ -225,8 +225,8 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
         return _birthDate != null;
       case 3: // 시진 — 모르겠어요 허용이므로 항상 통과
         return true;
-      case 4: // SMS — 인증 완료 or 스킵
-        return true;
+      case 4: // SMS — 인증 완료 필수
+        return _smsVerified;
       case 5: // 사진 — 선택 필수
         return _photoPath != null;
       case 6: // 확인 — 항상 통과
@@ -240,7 +240,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
   bool get _isCurrentStepValid => switch (_currentStep) {
     0 => _nameController.text.trim().length >= 2,
     2 => _birthDate != null,
-    4 => !_smsPhase2, // Phase 1에서는 "나중에 할게요" 스킵 가능이므로 항상 활성화
+    4 => _smsVerified, // SMS 인증 완료 필수
     5 => _photoPath != null,
     6 => true,
     _ => true,
@@ -296,7 +296,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
     setState(() {});
 
     try {
-      // TODO(PROD): 디버그 바이패스 제거 — CoolSMS Edge Function 연결 후 실제 발송
+      // TODO(PROD): 디버그 바이패스 제거 — Supabase Phone Auth + Send SMS Hook(CoolSMS) 연동 후 실제 발송
       // [BYPASS-6] SMS 발송 mock
       if (kDebugMode) {
         await Future.delayed(const Duration(milliseconds: 800));
@@ -310,10 +310,9 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
         return;
       }
 
-      // TODO: Supabase Edge Function 호출
-      // final response = await supabase.functions.invoke(
-      //   'send-sms-verification',
-      //   body: {'phone': PhoneUtils.toE164(_phoneController.text)},
+      // TODO: Supabase Phone Auth — updateUser → Send SMS Hook → CoolSMS(010번호)로 OTP 발송
+      // await supabase.auth.updateUser(
+      //   UserAttributes(phone: PhoneUtils.toE164(_phoneController.text)),
       // );
     } catch (e) {
       if (!mounted) return;
@@ -332,7 +331,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
     });
 
     try {
-      // TODO(PROD): 디버그 바이패스 제거 — CoolSMS Edge Function 연결 후 실제 검증
+      // TODO(PROD): 디버그 바이패스 제거 — Supabase Phone Auth 연동 후 실제 OTP 검증
       // [BYPASS-7] SMS 인증 검증 mock — 코드 "000000" 또는 아무 6자리 성공
       if (kDebugMode) {
         await Future.delayed(const Duration(milliseconds: 500));
@@ -349,13 +348,11 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
         return;
       }
 
-      // TODO: Supabase Edge Function 호출
-      // final response = await supabase.functions.invoke(
-      //   'verify-sms-code',
-      //   body: {
-      //     'phone': PhoneUtils.toE164(_phoneController.text),
-      //     'code': code,
-      //   },
+      // TODO: Supabase Phone Auth — verifyOTP로 OTP 검증
+      // await supabase.auth.verifyOTP(
+      //   phone: PhoneUtils.toE164(_phoneController.text),
+      //   token: code,
+      //   type: OtpType.phoneChange,
       // );
     } catch (e) {
       if (!mounted) return;
@@ -857,7 +854,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
         SajuSpacing.gap8,
         SajuCharacterBubble(
           characterName: '흙순이',
-          message: '거의 다 왔어요!\n인연을 찾으려면 연락처가 필요해요~',
+          message: '거의 다 왔어요!\n진짜 인연만 만나려면 인증은 필수예요~',
           elementColor: SajuColor.earth,
           characterAssetPath: CharacterAssets.heuksuniEarthDefault,
           size: SajuSize.md,
@@ -1420,10 +1417,11 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
     final isAutoAdvanceStep = _currentStep == 1 || _currentStep == 3;
     // SMS Phase 2 (OTP 입력)에서는 자동 검증이므로 버튼 숨김
     final isSmsOtpPhase = _currentStep == 4 && _smsPhase2;
-    // SMS Phase 1에서는 "인증번호 받기" 버튼이 콘텐츠에 있으므로 하단 버튼은 "나중에 할게요"
+    // SMS Phase 1 (전화번호 입력 중, 아직 미인증)에서는 하단 버튼 숨김
+    // (인증번호 받기 버튼이 콘텐츠 영역에 있으므로)
     final isSmsPhase1 = _currentStep == 4 && !_smsPhase2 && !_smsVerified;
 
-    if (isAutoAdvanceStep || isSmsOtpPhase) {
+    if (isAutoAdvanceStep || isSmsOtpPhase || isSmsPhase1) {
       return const SizedBox(height: SajuSpacing.space16);
     }
 
@@ -1447,28 +1445,12 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
           ),
         ],
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (!isSmsPhase1)
-            SajuButton(
-              label: isLastStep ? '운명 분석하기' : '다음',
-              onPressed: isValid ? _nextStep : null,
-              color: _stepCharacters[_currentStep].color,
-              size: SajuSize.xl,
-              leadingIcon: isLastStep ? Icons.auto_awesome : null,
-            ),
-          // SMS Phase 1: "나중에 할게요" 스킵 버튼
-          if (isSmsPhase1) ...[
-            SajuButton(
-              label: '나중에 할게요',
-              onPressed: _nextStep,
-              variant: SajuVariant.ghost,
-              color: SajuColor.primary,
-              size: SajuSize.md,
-            ),
-          ],
-        ],
+      child: SajuButton(
+        label: isLastStep ? '운명 분석하기' : '다음',
+        onPressed: isValid ? _nextStep : null,
+        color: _stepCharacters[_currentStep].color,
+        size: SajuSize.xl,
+        leadingIcon: isLastStep ? Icons.auto_awesome : null,
       ),
     );
   }

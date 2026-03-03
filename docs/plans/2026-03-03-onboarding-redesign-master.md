@@ -125,13 +125,14 @@
 
 ### 3-2. SMS 인증
 
-**방식**: Supabase Edge Function + CoolSMS (한국 최대 SMS API, 건당 ~20원)
+**방식**: Supabase Phone Auth + **Send SMS Hook** + CoolSMS (한국 010 발신)
 
-> Supabase Auth Phone은 "전화번호 기반 회원가입"용이라 이미 Apple/Kakao로 로그인한 유저에게
-> 전화번호를 "추가 인증"하는 시나리오에는 부적합. Edge Function + 외부 SMS가 적합.
+> Supabase `updateUser(phone:)` → OTP 자동 생성 → **Send SMS Hook** → CoolSMS로 한국번호 발송.
+> OTP 생성/검증/만료/레이트리밋은 Supabase가 자동 관리. Edge Function은 SMS 전달만 (1개, ~30줄).
+> SMS 인증은 **필수** (스킵 불가).
 
-**Edge Functions**:
-- `send-sms-verification`: 번호 정규화 → 중복 체크 → 레이트리밋 → OTP 생성(SHA256+salt) → CoolSMS 발송
+**구현**:
+- `supabase.auth.updateUser(UserAttributes(phone:))`: 전화번호 추가 → Send SMS Hook → CoolSMS 발송
 - `verify-sms-code`: OTP 검증 → 만료/시도횟수 체크 → profiles 업데이트
 
 **보안**:
@@ -316,7 +317,7 @@ Day 3.5: build_runner + flutter clean + 전체 빌드 검증 + E2E
 ## 8. 노아님 확인 필요 사항
 
 1. **Kakao 개발자 앱 등록**: 노아님이 카카오 개발자 콘솔에서 앱 등록 + Native App Key 발급 필요
-2. **CoolSMS 계정**: SMS 발송 서비스 가입 + API Key 발급 (또는 Twilio 등 대안)
-3. **Supabase Dashboard**: Kakao Provider 활성화 + SMS 관련 시크릿 등록
+2. **CoolSMS 계정**: SMS 발송 서비스 가입 + API Key 발급 (한국 010 발신번호)
+3. **Supabase Dashboard**: Kakao Provider 활성화 + Phone Provider 활성화 + Send SMS Hook → Edge Function 연결
 4. ~~음주/흡연/MBTI~~ 온보딩에서 완전 제거 확인 (프로필 편집에서 선택적으로 유지?)
 5. 체형 선택지 최종 확정: 마름/슬림/보통/근육질/통통 — 추가/변경 있는지?

@@ -105,8 +105,45 @@ flutter run \
   --dart-define=SUPABASE_ANON_KEY=your_anon_key
 ```
 
-Google Sign-In의 iOS Client ID는 `google_sign_in` 패키지의 `Info.plist`에도 설정이 필요할 수 있습니다.
-(supabase_flutter를 통한 OAuth 플로우를 사용하면 서버사이드에서 처리되므로 불필요할 수 있음)
+---
+
+## 4.5 CoolSMS + Supabase Send SMS Hook 설정 (SMS 인증용)
+
+> SMS 인증은 **Supabase Phone Auth + Send SMS Hook + CoolSMS** 방식입니다.
+> OTP 생성/검증은 Supabase가 자동 처리, SMS 발송만 CoolSMS(한국 010 번호)로 위임.
+> Twilio 해외번호 스팸 위험 없음.
+
+### 4.5-1. CoolSMS 계정 생성
+- [ ] [CoolSMS Console](https://coolsms.co.kr) 가입
+- [ ] API Key + API Secret 발급 (대시보드 → 개발/연동 → API Key 관리)
+- [ ] 발신번호 등록 (대시보드 → 문자보내기 → 발신번호 관리 → 010-XXXX-XXXX 등록)
+
+### 4.5-2. Supabase Phone Provider 활성화
+- [ ] [Supabase Dashboard](https://supabase.com/dashboard/project/csjdfvxyjnpmbkjbomyf/auth/providers) → Authentication → Providers
+- [ ] **Phone** 활성화
+- [ ] SMS OTP Expiration: **300** (5분) 으로 설정 권장
+
+### 4.5-3. Edge Function 배포 + Send SMS Hook 연결
+- [ ] `send-sms-hook` Edge Function 배포: `supabase functions deploy send-sms-hook`
+- [ ] Supabase 시크릿 등록:
+  ```bash
+  supabase secrets set COOLSMS_API_KEY=your_api_key
+  supabase secrets set COOLSMS_API_SECRET=your_api_secret
+  supabase secrets set COOLSMS_SENDER=01012345678
+  ```
+- [ ] [Supabase Dashboard](https://supabase.com/dashboard/project/csjdfvxyjnpmbkjbomyf/auth/hooks) → Authentication → Hooks
+- [ ] **Send SMS** Hook 활성화
+- [ ] Hook Type: **HTTP** 선택
+- [ ] URL: Edge Function URL (`https://csjdfvxyjnpmbkjbomyf.supabase.co/functions/v1/send-sms-hook`)
+- [ ] Secret 설정 (webhook 검증용, `v1,whsec_<base64-secret>` 형식)
+
+### 메모할 값
+| 항목 | 값 | 어디서? |
+|------|-----|--------|
+| **CoolSMS API Key** | - | CoolSMS 대시보드 → 개발/연동 |
+| **CoolSMS API Secret** | - | CoolSMS 대시보드 → 개발/연동 |
+| **발신번호** | 010-XXXX-XXXX | CoolSMS → 발신번호 관리 |
+| **SMS Hook Secret** | v1,whsec_xxx | 직접 생성 (base64 랜덤) |
 
 ---
 
@@ -121,6 +158,13 @@ Google Sign-In의 iOS Client ID는 `google_sign_in` 패키지의 `Info.plist`에
 ### Android
 1. `flutter build apk --debug` — 빌드 성공 확인
 2. 에뮬레이터/실기기에서 Google Sign In → 계정 선택 → 앱으로 리다이렉트 확인
+
+### SMS 인증
+1. 온보딩 Step 4에서 전화번호 입력 → "인증번호 받기" 클릭
+2. 실제 SMS 수신 확인 (Twilio 연동 후)
+3. OTP 입력 → 인증 성공 확인
+4. Supabase Dashboard → Auth → Users에서 `phone` 필드 업데이트 확인
+5. `profiles` 테이블에 `phone_verified_at` 설정 확인
 
 ### 공통
 - Supabase Dashboard의 Auth → Users에서 신규 유저 생성 확인
@@ -138,4 +182,7 @@ Auth 연동이 확인되면 아래 디버그 바이패스를 제거합니다:
 | BYPASS | 위치 | 설명 |
 |--------|------|------|
 | BYPASS-1 | auth 관련 | 로그인 바이패스 |
-| BYPASS-2~6 | 각 feature | Auth 의존 바이패스 |
+| BYPASS-2~5 | 각 feature | Auth 의존 바이패스 |
+| BYPASS-6 | onboarding SMS | SMS 발송 mock → `supabase.auth.updateUser(phone:)` + Send SMS Hook → CoolSMS |
+| BYPASS-7 | onboarding SMS | OTP 검증 mock → `supabase.auth.verifyOTP()` (Supabase 자동) |
+| BYPASS-8 | router | publicPaths 확장 |

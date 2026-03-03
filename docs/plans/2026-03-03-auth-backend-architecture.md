@@ -53,7 +53,7 @@
 | 항목 | Before | After |
 |------|--------|-------|
 | 소셜 로그인 | Apple + Google | Apple + **Kakao** |
-| 전화번호 인증 | 없음 | SMS OTP (CoolSMS) |
+| 전화번호 인증 | 없음 | SMS OTP (**Supabase Phone Auth + Send SMS Hook + CoolSMS**) |
 | 본인인증 | 없음 | PASS 연동 (추후) |
 | profiles 컬럼 | 기본 + 사주 | + 상세 프로필 필드 추가 |
 
@@ -239,64 +239,84 @@ void main() async {
 
 ## 3. SMS 전화번호 인증
 
-### 3.1 방식 비교
+### 3.1 방식 비교 (2026-03-03 최종 결정)
 
 | 방식 | 장점 | 단점 | 한국 시장 | 비용 | **판정** |
 |------|------|------|----------|------|---------|
-| **A. Supabase Auth Phone** | 내장, 별도 구현 불필요 | 이미 소셜로 인증된 유저에 전화번호 "추가"가 어려움. Supabase Phone Auth는 주로 전화번호 기반 회원가입용 | Twilio 의존 (한국 발신번호 제한) | 건당 ~$0.05 | X |
-| **B. Supabase Edge Function + CoolSMS** | 한국 시장 최적화, 저렴, 안정적, 발신번호 자유 | Edge Function 구현 필요 | 국내 사업자, 안정적 | 건당 ~20원 | **채택** |
-| **C. Supabase Edge Function + NHN Cloud** | 대규모 지원 | CoolSMS보다 설정 복잡 | 국내 사업자 | 건당 ~20원 | △ |
-| **D. Supabase Edge Function + Twilio** | 글로벌, 문서 풍부 | 한국 발신번호 문제, 비쌈 | 국제 사업자 | 건당 ~$0.05 | X |
+| A. Supabase Phone Auth + Twilio | 설정 간단 | **해외번호 → 한국 스팸 차단 위험** | X (스팸) | 건당 ~$0.05 | X |
+| ~~B. Edge Function 2개 + CoolSMS (초기안)~~ | 한국 최적화 | Edge Function 2개 + 커스텀 테이블 + OTP 직접 관리 | O | 건당 ~20원 | X (과잉) |
+| **C. Supabase Phone Auth + Send SMS Hook + CoolSMS** | **OTP 자동 관리 + 한국 010 발송 + Edge Function 1개(초간단)** | CoolSMS 계정 필요 | **O (010 번호)** | **건당 ~20원** | **✅ 채택** |
+| D. Edge Function + NHN Cloud | 대규모 지원 | 설정 복잡 | O | 건당 ~20원 | △ 대안 |
 
-**결정: 방식 B — Edge Function + CoolSMS**
+**최종 결정: 방식 C — Supabase Phone Auth + Send SMS Hook + CoolSMS**
 
-이유:
-1. 유저가 이미 Apple/Kakao로 **인증 완료 상태**에서 전화번호를 "추가 인증"하는 시나리오
-2. Supabase Auth Phone은 전화번호를 **primary 인증 수단**으로 쓸 때 적합. 우리는 **보조 인증**
-3. CoolSMS는 한국 최대 SMS API 사업자, 건당 ~20원, 010 발신번호 등록 가능
-4. Edge Function에서 OTP 생성/검증을 직접 처리하면 유연한 비즈니스 로직 적용 가능
+핵심 이유:
+1. **Supabase가 OTP 생성/검증/만료/레이트리밋을 자동 관리** → `phone_verifications` 커스텀 테이블 불필요
+2. **Send SMS Hook**으로 실제 SMS 발송만 CoolSMS에 위임 → **한국 010 번호로 발송, 스팸 차단 없음**
+3. Edge Function은 **1개, ~30줄** (OTP 받아서 CoolSMS로 전달만)
+4. Flutter 코드는 `updateUser(phone:)` + `verifyOTP()` 두 줄 → 매우 간결
+5. Twilio 해외번호 스팸 위험 완전 회피
 
-### 3.2 SMS 인증 플로우
+### 3.2 SMS 인증 플로우 (Send SMS Hook)
 
 ```
-┌──────────┐     ┌──────────────┐     ┌──────────┐     ┌──────────┐
-│  Flutter  │     │ Edge Function │     │ CoolSMS  │     │ Supabase │
-│  Client   │     │ send-sms-    │     │  API     │     │   DB     │
-│           │     │ verification │     │          │     │          │
-└─────┬────┘     └──────┬───────┘     └────┬─────┘     └────┬─────┘
-      │                  │                   │                │
-      │ 1. POST {phone}  │                   │                │
-      │ ────────────────>│                   │                │
-      │                  │                   │                │
-      │                  │ 2. 중복/차단/레이트│리밋 체크         │
-      │                  │ ─────────────────────────────────>│
-      │                  │ <─────────────────────────────────│
-      │                  │                   │                │
-      │                  │ 3. OTP 생성       │                │
-      │                  │ (6자리, SHA256)   │                │
-      │                  │                   │                │
-      │                  │ 4. SMS 발송        │                │
-      │                  │ ─────────────────>│                │
-      │                  │ <─────────────────│                │
-      │                  │                   │                │
-      │                  │ 5. phone_verifications INSERT      │
-      │                  │ ─────────────────────────────────>│
-      │                  │                   │                │
-      │ 6. 200 OK        │                   │                │
-      │ <────────────────│                   │                │
-      │                  │                   │                │
-      │ 7. POST {phone,  │                   │                │
-      │    code}          │                   │                │
-      │ ────────────────>│                   │                │
-      │  (verify-sms-code)                   │                │
-      │                  │ 8. OTP 검증       │                │
-      │                  │ ─────────────────────────────────>│
-      │                  │                   │                │
-      │                  │ 9. profiles.phone 업데이트          │
-      │                  │ ─────────────────────────────────>│
-      │                  │                   │                │
-      │ 10. 200 OK       │                   │                │
-      │ <────────────────│                   │                │
+┌──────────┐     ┌──────────┐     ┌──────────────┐     ┌──────────┐
+│  Flutter  │     │ Supabase │     │ Edge Function │     │ CoolSMS  │
+│  Client   │     │   Auth   │     │ send-sms-hook │     │  (한국)   │
+└─────┬────┘     └────┬─────┘     └──────┬────────┘     └────┬─────┘
+      │                │                   │                   │
+      │ 1. updateUser  │                   │                   │
+      │   (phone:E.164)│                   │                   │
+      │ ──────────────>│                   │                   │
+      │                │                   │                   │
+      │                │ 2. OTP 생성 (6자리)│                   │
+      │                │                   │                   │
+      │                │ 3. Send SMS Hook  │                   │
+      │                │ {user, sms:{otp}} │                   │
+      │                │ ─────────────────>│                   │
+      │                │                   │                   │
+      │                │                   │ 4. CoolSMS API    │
+      │                │                   │ (010 번호 발송)    │
+      │                │                   │ ─────────────────>│
+      │                │                   │ <─────────────────│
+      │                │                   │                   │
+      │                │ 5. Hook 200 OK    │                   │
+      │                │ <─────────────────│                   │
+      │                │                   │                   │
+      │ 6. 200 OK      │                   │                   │
+      │ <──────────────│                   │                   │
+      │                │                   │                   │
+      │ 7. verifyOTP   │                   │                   │
+      │  (phone, token,│                   │                   │
+      │   phoneChange) │                   │                   │
+      │ ──────────────>│                   │                   │
+      │                │ 8. OTP 검증       │                   │
+      │                │ auth.users.phone  │ 업데이트           │
+      │                │                   │                   │
+      │ 9. 200 OK      │                   │                   │
+      │ <──────────────│                   │                   │
+```
+
+**Flutter 코드 (Sprint A 실연동 시):**
+```dart
+// Step 1: 전화번호 추가 → Supabase OTP 생성 → Send SMS Hook → CoolSMS 발송
+await supabase.auth.updateUser(
+  UserAttributes(phone: PhoneUtils.toE164(phoneNumber)),
+);
+
+// Step 2: OTP 검증 (Supabase가 자동 처리)
+await supabase.auth.verifyOTP(
+  phone: PhoneUtils.toE164(phoneNumber),
+  token: otpCode,
+  type: OtpType.phoneChange,
+);
+
+// Step 3: profiles 테이블에도 기록
+await supabase.from('profiles').update({
+  'phone': PhoneUtils.toE164(phoneNumber),
+  'phone_verified_at': DateTime.now().toIso8601String(),
+  'verification_level': 'phone',
+}).eq('id', userId);
 ```
 
 ### 3.3 전화번호 저장 정책
@@ -304,20 +324,16 @@ void main() async {
 ```
 입력: 010-1234-5678 또는 01012345678
 정규화: +821012345678 (E.164 형식)
-저장: profiles.phone = '+821012345678'
-검색: phone_verifications.phone_e164 = '+821012345678'
+저장: auth.users.phone = '+821012345678' (Supabase Auth 자동)
+      profiles.phone = '+821012345678' (앱에서 별도 업데이트)
 ```
 
-### 3.4 레이트 리밋 정책
+### 3.4 레이트 리밋 (Supabase 내장)
 
-| 제한 | 값 | 단위 |
-|------|------|------|
-| 같은 번호 재발송 | 60초 | 최소 간격 |
-| 같은 번호 일일 발송 | 5회 | 24시간 |
-| 같은 IP 일일 발송 | 10회 | 24시간 |
-| 같은 유저 일일 발송 | 5회 | 24시간 |
-| OTP 유효 시간 | 5분 | - |
-| OTP 검증 실패 | 5회 시 30분 잠금 | - |
+Supabase Phone Auth 기본 정책:
+- 같은 번호 재발송: **60초** 최소 간격 (Supabase 내장)
+- OTP 유효 시간: **1시간** (Supabase Dashboard에서 5분으로 조정 권장)
+- 추가 레이트 리밋: Supabase Dashboard → Auth → Rate Limits에서 설정
 
 ---
 
@@ -647,7 +663,14 @@ Widget buildVerificationBadge(String verificationLevel) {
 
 ## 6. Edge Functions 설계
 
-### 6.1 `send-sms-verification` — SMS 발송
+> **변경 (2026-03-03)**: SMS 인증을 Supabase Phone Auth로 전환했으므로,
+> `send-sms-verification`과 `verify-sms-code` Edge Function은 **더 이상 필요하지 않습니다.**
+> 아래는 기존 설계를 아카이브 목적으로 유지합니다. (접기 가능)
+
+<details>
+<summary>📦 아카이브: 기존 CoolSMS Edge Function 설계 (사용하지 않음)</summary>
+
+### 6.1 `send-sms-verification` — SMS 발송 (❌ 폐기 → Supabase `updateUser` 대체)
 
 ```typescript
 // supabase/functions/send-sms-verification/index.ts
@@ -887,7 +910,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
 });
 ```
 
-### 6.2 `verify-sms-code` — OTP 검증
+### 6.2 `verify-sms-code` — OTP 검증 (❌ 폐기 → Supabase `verifyOTP` 대체)
 
 ```typescript
 // supabase/functions/verify-sms-code/index.ts
@@ -1084,6 +1107,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
   }
 });
 ```
+
+</details>
 
 ---
 
