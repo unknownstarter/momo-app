@@ -14,7 +14,8 @@
 
 | 도구 | 최소 버전 | 현재 검증 버전 | 비고 |
 |------|----------|---------------|------|
-| **Flutter** | 3.38+ | 3.41.2 (stable) | `flutter doctor`로 확인 |
+| **FVM** | 4.0+ | 4.0.5 | `brew tap leoafarias/fvm && brew install fvm` |
+| **Flutter** | 3.38+ | **3.41.2 (FVM 고정)** | FVM이 `.fvmrc` 기준으로 자동 관리 |
 | **Dart SDK** | ^3.10.0 | 3.11.0 | Flutter에 포함 |
 | **Xcode** | 16+ | 26.2 | iOS 빌드 필수 |
 | **CocoaPods** | 1.14+ | 1.16.2 | `sudo gem install cocoapods` |
@@ -31,19 +32,25 @@
 git clone https://github.com/unknownstarter/momo-app.git momo
 cd momo
 
-# 2. Flutter 의존성
-flutter pub get
+# 2. FVM 설치 + Flutter 버전 고정 (최초 1회)
+brew tap leoafarias/fvm && brew install fvm
+fvm install                   # .fvmrc 읽어서 3.41.2 자동 설치
 
-# 3. iOS 의존성 (최초 1회)
+# 3. Flutter 의존성
+fvm flutter pub get
+
+# 4. iOS 의존성 (최초 1회)
 cd ios && pod install && cd ..
 
-# 4. 코드 생성 (freezed/riverpod/json_serializable)
-dart run build_runner build --delete-conflicting-outputs
+# 5. 코드 생성 (freezed/riverpod/json_serializable)
+fvm dart run build_runner build --delete-conflicting-outputs
 
-# 5. 빌드 검증
-flutter analyze lib/          # 0 errors 확인
-flutter build ios --no-codesign --debug   # iOS 빌드 확인
+# 6. 빌드 검증
+fvm flutter analyze lib/          # 0 errors 확인
+fvm flutter build ios --no-codesign --debug   # iOS 빌드 확인
 ```
+
+> **VS Code 사용 시**: `.vscode/settings.json`에 FVM SDK 경로가 자동 설정되어 있으므로, VS Code 터미널에서는 `fvm` 접두사 없이 그냥 `flutter` 명령을 써도 됩니다.
 
 ### 핵심 의존성 (pubspec.yaml)
 
@@ -265,6 +272,7 @@ flutter build ios --no-codesign --debug   # iOS 빌드 확인
 | # | 항목 | 상태 |
 |---|------|------|
 | ID1 | **Bundle ID 리네이밍** — `com.nworld.momo` → `com.dropdown.momo` (회사명 Dropdown 반영). iOS/Android/Supabase/코드/문서 전체 변경, Android Kotlin 디렉토리 이동 포함 | ✅ |
+| FVM1 | **FVM 도입** — Flutter 3.41.2 프로젝트 고정. 두 맥북 간 pubspec.lock 불일치 해결. `.fvmrc` 커밋, `.fvm/` gitignore, VS Code SDK 경로 자동 설정 | ✅ |
 
 ### 🔥 Sprint 0 — 관상 시스템 재설계 ("진짜 관상학 + 동적 동물 도감")
 
