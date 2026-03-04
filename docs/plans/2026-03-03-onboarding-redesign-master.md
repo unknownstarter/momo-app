@@ -125,15 +125,15 @@
 
 ### 3-2. SMS 인증
 
-**방식**: Supabase Phone Auth + **Send SMS Hook** + CoolSMS (한국 010 발신)
+**방식**: **Firebase Phone Auth** (로그인은 Supabase, 전화번호 인증만 Firebase)
 
-> Supabase `updateUser(phone:)` → OTP 자동 생성 → **Send SMS Hook** → CoolSMS로 한국번호 발송.
-> OTP 생성/검증/만료/레이트리밋은 Supabase가 자동 관리. Edge Function은 SMS 전달만 (1개, ~30줄).
+> Firebase `verifyPhoneNumber()` → OTP 자동 발송 → `signInWithCredential()` → Supabase profiles에 phone 저장 → Firebase signOut.
+> 무료 10,000건/월, 별도 SMS 서비스 불필요.
 > SMS 인증은 **필수** (스킵 불가).
 
 **구현**:
-- `supabase.auth.updateUser(UserAttributes(phone:))`: 전화번호 추가 → Send SMS Hook → CoolSMS 발송
-- `verify-sms-code`: OTP 검증 → 만료/시도횟수 체크 → profiles 업데이트
+- `FirebaseAuth.instance.verifyPhoneNumber()`: OTP 발송
+- `PhoneAuthProvider.credential()` + `signInWithCredential()`: OTP 검증 → profiles.phone 업데이트
 
 **보안**:
 - OTP 평문 저장 금지 (SHA256 + salt 해싱)
@@ -317,7 +317,7 @@ Day 3.5: build_runner + flutter clean + 전체 빌드 검증 + E2E
 ## 8. 노아님 확인 필요 사항
 
 1. **Kakao 개발자 앱 등록**: 노아님이 카카오 개발자 콘솔에서 앱 등록 + Native App Key 발급 필요
-2. **CoolSMS 계정**: SMS 발송 서비스 가입 + API Key 발급 (한국 010 발신번호)
-3. **Supabase Dashboard**: Kakao Provider 활성화 + Phone Provider 활성화 + Send SMS Hook → Edge Function 연결
+2. **Firebase Console**: 프로젝트 생성 + Phone Auth 활성화 + GoogleService-Info.plist / google-services.json 배치
+3. **Supabase Dashboard**: Kakao Provider 활성화
 4. ~~음주/흡연/MBTI~~ 온보딩에서 완전 제거 확인 (프로필 편집에서 선택적으로 유지?)
 5. 체형 선택지 최종 확정: 마름/슬림/보통/근육질/통통 — 추가/변경 있는지?

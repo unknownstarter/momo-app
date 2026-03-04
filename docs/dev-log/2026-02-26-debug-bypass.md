@@ -58,14 +58,14 @@ grep -rn "TODO(PROD)" lib/ --include="*.dart"
 - **파일**: `lib/features/auth/presentation/pages/onboarding_form_page.dart`
 - **검색**: `TODO(PROD)` + `BYPASS-6`
 - **동작**: SMS 인증번호 발송 API 호출을 800ms delay mock으로 대체
-- **원복**: Supabase Phone Auth `supabase.auth.updateUser(UserAttributes(phone:))` 호출로 교체
-- **인프라 필요**: CoolSMS 계정 + Supabase Dashboard → Phone Provider + Send SMS Hook → `send-sms-hook` Edge Function 연결
+- **원복**: Firebase Phone Auth `FirebaseAuth.instance.verifyPhoneNumber()` 호출로 교체
+- **인프라 필요**: Firebase 프로젝트 생성 + Phone Auth 활성화 + GoogleService-Info.plist / google-services.json 배치
 
 ### BYPASS-7: SMS 인증번호 검증 mock
 - **파일**: `lib/features/auth/presentation/pages/onboarding_form_page.dart`
 - **검색**: `TODO(PROD)` + `BYPASS-7`
 - **동작**: OTP 검증을 500ms delay mock으로 대체 (아무 코드나 성공)
-- **원복**: Supabase Phone Auth `supabase.auth.verifyOTP(type: OtpType.phoneChange)` 호출로 교체
+- **원복**: Firebase `PhoneAuthProvider.credential()` + `signInWithCredential()` 로 교체, 인증 성공 시 Supabase `profiles` 테이블에 phone 저장 후 Firebase signOut
 - **인프라 필요**: BYPASS-6과 동일
 
 ### BYPASS-8: 라우터 publicPaths 확장

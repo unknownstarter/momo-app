@@ -53,7 +53,7 @@
 | 항목 | Before | After |
 |------|--------|-------|
 | 소셜 로그인 | Apple + Google | Apple + **Kakao** |
-| 전화번호 인증 | 없음 | SMS OTP (**Supabase Phone Auth + Send SMS Hook + CoolSMS**) |
+| 전화번호 인증 | 없음 | SMS OTP (**Firebase Phone Auth** — 인증만, 로그인은 Supabase) |
 | 본인인증 | 없음 | PASS 연동 (추후) |
 | profiles 컬럼 | 기본 + 사주 | + 상세 프로필 필드 추가 |
 
@@ -239,84 +239,100 @@ void main() async {
 
 ## 3. SMS 전화번호 인증
 
-### 3.1 방식 비교 (2026-03-03 최종 결정)
+### 3.1 방식 비교 (2026-03-04 최종 결정)
 
 | 방식 | 장점 | 단점 | 한국 시장 | 비용 | **판정** |
 |------|------|------|----------|------|---------|
 | A. Supabase Phone Auth + Twilio | 설정 간단 | **해외번호 → 한국 스팸 차단 위험** | X (스팸) | 건당 ~$0.05 | X |
 | ~~B. Edge Function 2개 + CoolSMS (초기안)~~ | 한국 최적화 | Edge Function 2개 + 커스텀 테이블 + OTP 직접 관리 | O | 건당 ~20원 | X (과잉) |
-| **C. Supabase Phone Auth + Send SMS Hook + CoolSMS** | **OTP 자동 관리 + 한국 010 발송 + Edge Function 1개(초간단)** | CoolSMS 계정 필요 | **O (010 번호)** | **건당 ~20원** | **✅ 채택** |
-| D. Edge Function + NHN Cloud | 대규모 지원 | 설정 복잡 | O | 건당 ~20원 | △ 대안 |
+| ~~C. Supabase Phone Auth + Send SMS Hook + CoolSMS~~ | OTP 자동 관리 + 한국 010 발송 | CoolSMS 계정 필요 + Supabase Phone Provider 설정 복잡 | O | 건당 ~20원 | X (Supabase Phone Provider 설정 장벽) |
+| D. Edge Function + NHN Cloud | 대규모 지원 | 설정 복잡 | O | 건당 ~20원 | X |
+| **E. Firebase Phone Auth** | **무료 10K/월, 한국 정상 발송, 별도 SMS 서비스 불필요, Firebase 에코시스템(Analytics/FCM) 활용** | Firebase 의존성 추가 | **O** | **무료 (10K/월)** | **✅ 채택** |
 
-**최종 결정: 방식 C — Supabase Phone Auth + Send SMS Hook + CoolSMS**
+**최종 결정: 방식 E — Firebase Phone Auth (인증만, 로그인은 Supabase)**
 
 핵심 이유:
-1. **Supabase가 OTP 생성/검증/만료/레이트리밋을 자동 관리** → `phone_verifications` 커스텀 테이블 불필요
-2. **Send SMS Hook**으로 실제 SMS 발송만 CoolSMS에 위임 → **한국 010 번호로 발송, 스팸 차단 없음**
-3. Edge Function은 **1개, ~30줄** (OTP 받아서 CoolSMS로 전달만)
-4. Flutter 코드는 `updateUser(phone:)` + `verifyOTP()` 두 줄 → 매우 간결
-5. Twilio 해외번호 스팸 위험 완전 회피
+1. **무료 10,000건/월** — CoolSMS 건당 과금 불필요
+2. **별도 SMS 서비스 가입 불필요** — Firebase Console에서 Phone Auth 토글만 켜면 끝
+3. **한국 번호 정상 발송** — Twilio 해외번호 스팸 위험 없음
+4. **Firebase 에코시스템 활용** — 추후 Analytics, FCM 등에도 사용
+5. **로그인/인증 분리** — 로그인은 Supabase Auth (Apple/Kakao), 전화번호 인증만 Firebase
+6. Supabase Phone Provider 설정 장벽 해결 (SMS 제공자 선택 문제 없음)
 
-### 3.2 SMS 인증 플로우 (Send SMS Hook)
+### 3.2 SMS 인증 플로우 (Firebase Phone Auth)
 
 ```
-┌──────────┐     ┌──────────┐     ┌──────────────┐     ┌──────────┐
-│  Flutter  │     │ Supabase │     │ Edge Function │     │ CoolSMS  │
-│  Client   │     │   Auth   │     │ send-sms-hook │     │  (한국)   │
-└─────┬────┘     └────┬─────┘     └──────┬────────┘     └────┬─────┘
-      │                │                   │                   │
-      │ 1. updateUser  │                   │                   │
-      │   (phone:E.164)│                   │                   │
-      │ ──────────────>│                   │                   │
-      │                │                   │                   │
-      │                │ 2. OTP 생성 (6자리)│                   │
-      │                │                   │                   │
-      │                │ 3. Send SMS Hook  │                   │
-      │                │ {user, sms:{otp}} │                   │
-      │                │ ─────────────────>│                   │
-      │                │                   │                   │
-      │                │                   │ 4. CoolSMS API    │
-      │                │                   │ (010 번호 발송)    │
-      │                │                   │ ─────────────────>│
-      │                │                   │ <─────────────────│
-      │                │                   │                   │
-      │                │ 5. Hook 200 OK    │                   │
-      │                │ <─────────────────│                   │
-      │                │                   │                   │
-      │ 6. 200 OK      │                   │                   │
-      │ <──────────────│                   │                   │
-      │                │                   │                   │
-      │ 7. verifyOTP   │                   │                   │
-      │  (phone, token,│                   │                   │
-      │   phoneChange) │                   │                   │
-      │ ──────────────>│                   │                   │
-      │                │ 8. OTP 검증       │                   │
-      │                │ auth.users.phone  │ 업데이트           │
-      │                │                   │                   │
-      │ 9. 200 OK      │                   │                   │
-      │ <──────────────│                   │                   │
+┌──────────┐     ┌──────────┐     ┌──────────┐
+│  Flutter  │     │ Firebase │     │ Supabase │
+│  Client   │     │   Auth   │     │    DB    │
+└─────┬────┘     └────┬─────┘     └────┬─────┘
+      │                │                │
+      │ 1. verifyPhone │                │
+      │   (E.164)      │                │
+      │ ──────────────>│                │
+      │                │                │
+      │ 2. SMS 발송    │                │
+      │   (Firebase    │                │
+      │    자동 처리)   │                │
+      │                │                │
+      │ 3. codeSent    │                │
+      │   (verifyId)   │                │
+      │ <──────────────│                │
+      │                │                │
+      │ 4. signIn      │                │
+      │  WithCredential│                │
+      │   (OTP 검증)   │                │
+      │ ──────────────>│                │
+      │                │                │
+      │ 5. 인증 성공    │                │
+      │ <──────────────│                │
+      │                │                │
+      │ 6. profiles    │                │
+      │   .update()    │                │
+      │ ──────────────────────────────>│
+      │                │                │
+      │ 7. Firebase    │                │
+      │   signOut()    │                │
+      │ ──────────────>│                │
 ```
 
 **Flutter 코드 (Sprint A 실연동 시):**
 ```dart
-// Step 1: 전화번호 추가 → Supabase OTP 생성 → Send SMS Hook → CoolSMS 발송
-await supabase.auth.updateUser(
-  UserAttributes(phone: PhoneUtils.toE164(phoneNumber)),
+// Step 1: Firebase Phone Auth — OTP 발송
+await FirebaseAuth.instance.verifyPhoneNumber(
+  phoneNumber: PhoneUtils.toE164(phoneNumber),
+  verificationCompleted: (PhoneAuthCredential credential) async {
+    // Android 자동 인증 (optional)
+    await FirebaseAuth.instance.signInWithCredential(credential);
+  },
+  verificationFailed: (FirebaseAuthException e) {
+    // 에러 처리
+  },
+  codeSent: (String verificationId, int? resendToken) {
+    // verificationId 저장 → OTP 입력 UI 표시
+    _verificationId = verificationId;
+  },
+  codeAutoRetrievalTimeout: (String verificationId) {
+    _verificationId = verificationId;
+  },
 );
 
-// Step 2: OTP 검증 (Supabase가 자동 처리)
-await supabase.auth.verifyOTP(
-  phone: PhoneUtils.toE164(phoneNumber),
-  token: otpCode,
-  type: OtpType.phoneChange,
+// Step 2: OTP 검증
+final credential = PhoneAuthProvider.credential(
+  verificationId: _verificationId,
+  smsCode: otpCode,
 );
+await FirebaseAuth.instance.signInWithCredential(credential);
 
-// Step 3: profiles 테이블에도 기록
+// Step 3: profiles 테이블에 phone 저장
 await supabase.from('profiles').update({
   'phone': PhoneUtils.toE164(phoneNumber),
   'phone_verified_at': DateTime.now().toIso8601String(),
   'verification_level': 'phone',
 }).eq('id', userId);
+
+// Step 4: Firebase 로그아웃 (인증만 사용, 로그인은 Supabase)
+await FirebaseAuth.instance.signOut();
 ```
 
 ### 3.3 전화번호 저장 정책
@@ -1327,9 +1343,9 @@ skip_nonce_check = false
 | A-6 | `auth_provider.dart` — signInWithKakao 추가 | 30분 |
 | A-7 | `login_page.dart` — Google 버튼 → Kakao 버튼 교체 (노란색) | 1시간 |
 | A-8 | DB 마이그레이션 실행 (phone_verifications 테이블 등) | 30분 |
-| A-9 | CoolSMS 계정 가입 + API 키 발급 + 발신번호 등록 | 1시간 |
-| A-10 | Edge Function: `send-sms-verification` 구현 + 배포 | 3시간 |
-| A-11 | Edge Function: `verify-sms-code` 구현 + 배포 | 2시간 |
+| A-9 | Firebase Console 프로젝트 생성 + Phone Auth 활성화 + 앱 등록 | 1시간 |
+| A-10 | Flutter: `firebase_core` + `firebase_auth` 패키지 추가 + 설정 | 1시간 |
+| A-11 | Flutter: BYPASS-6/7 → Firebase verifyPhoneNumber() 교체 | 2시간 |
 | A-12 | `phone_verification_page.dart` UI 구현 | 3시간 |
 | A-13 | 라우팅 연결: 온보딩 → SMS 인증 → 운명 분석 | 1시간 |
 | A-14 | E2E 테스트: 카카오 로그인 → SMS 인증 → 프로필 저장 | 2시간 |
@@ -1360,10 +1376,9 @@ skip_nonce_check = false
 ```bash
 # .env.local (Supabase Edge Functions)
 
-# CoolSMS
-COOLSMS_API_KEY=your_api_key
-COOLSMS_API_SECRET=your_api_secret
-COOLSMS_SENDER=01012345678     # 등록된 발신번호
+# Firebase — 전화번호 인증은 Firebase Phone Auth 사용
+# GoogleService-Info.plist (iOS) / google-services.json (Android) 파일로 설정
+# 별도 환경변수 불필요
 
 # Kakao (Supabase Dashboard에서 설정)
 SUPABASE_AUTH_EXTERNAL_KAKAO_CLIENT_ID=your_kakao_rest_api_key
@@ -1387,8 +1402,8 @@ PASS_CALLBACK_URL=https://csjdfvxyjnpmbkjbomyf.supabase.co/functions/v1/callback
 - [ ] 카카오 개발자 계정 생성 및 앱 등록
 - [ ] 카카오 앱 설정: 로그인 활성화, 동의항목, 플랫폼(iOS/Android)
 - [ ] Supabase Dashboard: Kakao Provider 활성화
-- [ ] CoolSMS 계정 생성 + 발신번호 등록 (사업자등록증 필요)
-- [ ] Supabase Edge Function 환경변수 등록
+- [ ] Firebase Console 프로젝트 생성 + Phone Auth 활성화
+- [ ] GoogleService-Info.plist (iOS) / google-services.json (Android) 배치
 - [ ] 개인정보 처리방침 업데이트 (전화번호 수집 항목 추가)
 - [ ] 이용약관 업데이트 (SMS 인증 관련)
 

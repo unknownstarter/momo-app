@@ -58,10 +58,10 @@
   - 성별: 선택
   - 연령대: 선택
 
-### 2-4. Client Secret 발급
-- [ ] 좌측 메뉴 → **카카오 로그인** → **보안** 탭
-- [ ] **Client Secret** → **코드 생성** → 생성된 시크릿 메모
-- [ ] 활성화 상태: **사용함**
+### 2-4. Client Secret 확인
+- [ ] 좌측 메뉴 → **앱** → **플랫폼 키** (REST API 키 옆에 클라이언트 시크릿이 함께 표시됨)
+- [ ] 또는 **카카오 로그인** → **고급** 탭에서 확인
+- [ ] **클라이언트 시크릿** 값 메모
 
 ### 2-5. 플랫폼 등록
 - [ ] 좌측 메뉴 → **플랫폼** 탭
@@ -117,43 +117,47 @@ flutter run \
 
 ---
 
-## 4.5 CoolSMS + Supabase Send SMS Hook 설정 (SMS 인증용)
+## 4.5 Firebase Phone Auth 설정 (전화번호 인증용)
 
-> SMS 인증은 **Supabase Phone Auth + Send SMS Hook + CoolSMS** 방식입니다.
-> OTP 생성/검증은 Supabase가 자동 처리, SMS 발송만 CoolSMS(한국 010 번호)로 위임.
-> Twilio 해외번호 스팸 위험 없음.
+> 전화번호 인증은 **Firebase Phone Auth**를 사용합니다.
+> 로그인은 Supabase Auth (Apple/Kakao), 전화번호 인증만 Firebase로 처리.
+> 무료 10,000건/월, 한국 번호 정상 발송, 별도 SMS 서비스 불필요.
 
-### 4.5-1. CoolSMS 계정 생성
-- [ ] [CoolSMS Console](https://coolsms.co.kr) 가입
-- [ ] API Key + API Secret 발급 (대시보드 → 개발/연동 → API Key 관리)
-- [ ] 발신번호 등록 (대시보드 → 문자보내기 → 발신번호 관리 → 010-XXXX-XXXX 등록)
+### 4.5-1. Firebase 프로젝트 생성
+- [ ] [Firebase Console](https://console.firebase.google.com) 접속
+- [ ] 프로젝트 추가 → 이름: `momo-app`
+- [ ] Google Analytics 활성화 (추후 데이터 분석에 활용)
 
-### 4.5-2. Supabase Phone Provider 활성화
-- [ ] [Supabase Dashboard](https://supabase.com/dashboard/project/csjdfvxyjnpmbkjbomyf/auth/providers) → Authentication → Providers
-- [ ] **Phone** 활성화
-- [ ] SMS OTP Expiration: **300** (5분) 으로 설정 권장
+### 4.5-2. Firebase Authentication 활성화
+- [ ] Firebase Console → Authentication → Sign-in method
+- [ ] **전화** (Phone) 활성화
+- [ ] 테스트 전화번호 추가 (개발용): `+82 10-1234-5678` → OTP: `123456`
 
-### 4.5-3. Edge Function 배포 + Send SMS Hook 연결
-- [ ] `send-sms-hook` Edge Function 배포: `supabase functions deploy send-sms-hook`
-- [ ] Supabase 시크릿 등록:
-  ```bash
-  supabase secrets set COOLSMS_API_KEY=your_api_key
-  supabase secrets set COOLSMS_API_SECRET=your_api_secret
-  supabase secrets set COOLSMS_SENDER=01012345678
-  ```
-- [ ] [Supabase Dashboard](https://supabase.com/dashboard/project/csjdfvxyjnpmbkjbomyf/auth/hooks) → Authentication → Hooks
-- [ ] **Send SMS** Hook 활성화
-- [ ] Hook Type: **HTTP** 선택
-- [ ] URL: Edge Function URL (`https://csjdfvxyjnpmbkjbomyf.supabase.co/functions/v1/send-sms-hook`)
-- [ ] Secret 설정 (webhook 검증용, `v1,whsec_<base64-secret>` 형식)
+### 4.5-3. iOS 앱 등록
+- [ ] Firebase Console → 프로젝트 설정 → 앱 추가 → iOS+
+- [ ] Bundle ID: `com.dropdown.momo`
+- [ ] `GoogleService-Info.plist` 다운로드 → `ios/Runner/` 에 배치
+- [ ] Xcode에서 `GoogleService-Info.plist`을 Runner 타겟에 추가
+- [ ] URL Schemes에 `REVERSED_CLIENT_ID` 추가 (plist 내 값 참조)
+- [ ] APNs 설정은 선택사항 (미설정 시 reCAPTCHA fallback 자동 사용)
+
+### 4.5-4. Android 앱 등록
+- [ ] Firebase Console → 프로젝트 설정 → 앱 추가 → Android
+- [ ] 패키지명: `com.dropdown.momo`
+- [ ] SHA-1 등록: `keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android`
+- [ ] `google-services.json` 다운로드 → `android/app/` 에 배치
+
+### 4.5-5. Flutter 패키지 추가 (아리 담당)
+- [ ] `firebase_core` + `firebase_auth` pubspec.yaml에 추가
+- [ ] `flutterfire configure` 실행 (또는 수동 설정)
+- [ ] BYPASS-6/7 코드를 Firebase verifyPhoneNumber()로 교체
 
 ### 메모할 값
 | 항목 | 값 | 어디서? |
 |------|-----|--------|
-| **CoolSMS API Key** | - | CoolSMS 대시보드 → 개발/연동 |
-| **CoolSMS API Secret** | - | CoolSMS 대시보드 → 개발/연동 |
-| **발신번호** | 010-XXXX-XXXX | CoolSMS → 발신번호 관리 |
-| **SMS Hook Secret** | v1,whsec_xxx | 직접 생성 (base64 랜덤) |
+| **GoogleService-Info.plist** | 파일 | Firebase Console → 프로젝트 설정 → iOS 앱 |
+| **google-services.json** | 파일 | Firebase Console → 프로젝트 설정 → Android 앱 |
+| **테스트 전화번호** | +82 10-1234-5678 / 123456 | Firebase Console → Authentication |
 
 ---
 
@@ -169,12 +173,11 @@ flutter run \
 1. `fvm flutter build apk --debug` — 빌드 성공 확인
 2. 에뮬레이터/실기기에서 카카오 로그인 → 브라우저 OAuth → 앱으로 리다이렉트 확인
 
-### SMS 인증
+### SMS 인증 (Firebase Phone Auth)
 1. 온보딩 Step 4에서 전화번호 입력 → "인증번호 받기" 클릭
-2. 실제 SMS 수신 확인 (CoolSMS + Send SMS Hook 연동 후)
+2. 실제 SMS 수신 확인 (Firebase Phone Auth 연동 후)
 3. OTP 입력 → 인증 성공 확인
-4. Supabase Dashboard → Auth → Users에서 `phone` 필드 업데이트 확인
-5. `profiles` 테이블에 `phone_verified_at` 설정 확인
+4. `profiles` 테이블에 `phone`, `phone_verified_at` 설정 확인
 
 ### 공통
 - Supabase Dashboard의 Auth → Users에서 신규 유저 생성 확인
@@ -193,6 +196,6 @@ Auth 연동이 확인되면 아래 디버그 바이패스를 제거합니다:
 |--------|------|------|
 | BYPASS-1 | auth 관련 | 로그인 바이패스 |
 | BYPASS-2~5 | 각 feature | Auth 의존 바이패스 |
-| BYPASS-6 | onboarding SMS | SMS 발송 mock → `supabase.auth.updateUser(phone:)` + Send SMS Hook → CoolSMS |
-| BYPASS-7 | onboarding SMS | OTP 검증 mock → `supabase.auth.verifyOTP()` (Supabase 자동) |
+| BYPASS-6 | onboarding SMS | SMS 발송 mock → Firebase `verifyPhoneNumber()` |
+| BYPASS-7 | onboarding SMS | OTP 검증 mock → Firebase `signInWithCredential()` → Supabase profiles 저장 |
 | BYPASS-8 | router | publicPaths 확장 |

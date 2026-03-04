@@ -296,7 +296,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
     setState(() {});
 
     try {
-      // TODO(PROD): 디버그 바이패스 제거 — Supabase Phone Auth + Send SMS Hook(CoolSMS) 연동 후 실제 발송
+      // TODO(PROD): 디버그 바이패스 제거 — Firebase Phone Auth 연동 후 실제 발송
       // [BYPASS-6] SMS 발송 mock
       if (kDebugMode) {
         await Future.delayed(const Duration(milliseconds: 800));
@@ -310,9 +310,13 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
         return;
       }
 
-      // TODO: Supabase Phone Auth — updateUser → Send SMS Hook → CoolSMS(010번호)로 OTP 발송
-      // await supabase.auth.updateUser(
-      //   UserAttributes(phone: PhoneUtils.toE164(_phoneController.text)),
+      // TODO: Firebase Phone Auth — verifyPhoneNumber() → SMS 발송
+      // await FirebaseAuth.instance.verifyPhoneNumber(
+      //   phoneNumber: PhoneUtils.toE164(_phoneController.text),
+      //   verificationCompleted: (credential) { ... },
+      //   verificationFailed: (e) { ... },
+      //   codeSent: (verificationId, resendToken) { ... },
+      //   codeAutoRetrievalTimeout: (verificationId) { ... },
       // );
     } catch (e) {
       if (!mounted) return;
@@ -331,7 +335,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
     });
 
     try {
-      // TODO(PROD): 디버그 바이패스 제거 — Supabase Phone Auth 연동 후 실제 OTP 검증
+      // TODO(PROD): 디버그 바이패스 제거 — Firebase Phone Auth 연동 후 실제 OTP 검증
       // [BYPASS-7] SMS 인증 검증 mock — 코드 "000000" 또는 아무 6자리 성공
       if (kDebugMode) {
         await Future.delayed(const Duration(milliseconds: 500));
@@ -348,12 +352,13 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
         return;
       }
 
-      // TODO: Supabase Phone Auth — verifyOTP로 OTP 검증
-      // await supabase.auth.verifyOTP(
-      //   phone: PhoneUtils.toE164(_phoneController.text),
-      //   token: code,
-      //   type: OtpType.phoneChange,
+      // TODO: Firebase Phone Auth — PhoneAuthCredential로 OTP 검증
+      // final credential = PhoneAuthProvider.credential(
+      //   verificationId: _verificationId,
+      //   smsCode: code,
       // );
+      // await FirebaseAuth.instance.signInWithCredential(credential);
+      // // 인증 성공 → Supabase profiles에 phone 저장 → Firebase signOut
     } catch (e) {
       if (!mounted) return;
       setState(() {
