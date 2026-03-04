@@ -19,21 +19,29 @@ const CORS_HEADERS = {
 // =============================================================================
 
 interface FaceMeasurements {
-  faceWidthToHeight: number;
-  eyeDistance: number;
-  noseToMouthRatio: number;
-  jawWidth: number;
-  foreheadRatio: number;
-  eyeSize: number;
-  mouthWidth: number;
-  facialSymmetry: number;
-  browArchAngle: number;
+  face_shape: string;
+  upper_third: number;
+  middle_third: number;
+  lower_third: number;
+  eye_spacing: number;
+  eye_slant: number;
+  eye_size: number;
+  nose_bridge_height: number;
+  nose_width: number;
+  mouth_width: number;
+  lip_thickness: number;
+  eyebrow_arch: number;
+  eyebrow_thickness: number;
+  forehead_height: number;
+  jawline_angle: number;
+  face_symmetry: number;
+  face_length_ratio: number;
 }
 
 interface SajuData {
-  dominantElement: string;
-  yearPillar?: { heavenlyStem: string; earthlyBranch: string };
-  dayPillar?: { heavenlyStem: string; earthlyBranch: string };
+  dominant_element?: string;
+  day_stem?: string;
+  personality_traits?: string[];
 }
 
 interface RequestBody {
@@ -135,26 +143,31 @@ function buildUserPrompt(body: RequestBody): string {
 
   const measurementsText = `
 얼굴 측정값:
-- 얼굴 너비/높이 비율: ${fm.faceWidthToHeight.toFixed(3)}
-- 눈 간격: ${fm.eyeDistance.toFixed(3)}
-- 코-입 비율: ${fm.noseToMouthRatio.toFixed(3)}
-- 턱 너비: ${fm.jawWidth.toFixed(3)}
-- 이마 비율(상정): ${fm.foreheadRatio.toFixed(3)}
-- 눈 크기: ${fm.eyeSize.toFixed(3)}
-- 입 너비: ${fm.mouthWidth.toFixed(3)}
-- 좌우 대칭도: ${fm.facialSymmetry.toFixed(3)}
-- 눈썹 아치 각도: ${fm.browArchAngle.toFixed(1)}°`;
+- 얼굴형: ${fm.face_shape}
+- 삼정 비율 (상/중/하): ${fm.upper_third.toFixed(3)} / ${fm.middle_third.toFixed(3)} / ${fm.lower_third.toFixed(3)}
+- 눈 간격: ${fm.eye_spacing.toFixed(3)}
+- 눈꼬리 기울기: ${fm.eye_slant.toFixed(3)}
+- 눈 크기: ${fm.eye_size.toFixed(3)}
+- 코 높이(콧대): ${fm.nose_bridge_height.toFixed(3)}
+- 코 너비: ${fm.nose_width.toFixed(3)}
+- 입 너비: ${fm.mouth_width.toFixed(3)}
+- 입술 두께: ${fm.lip_thickness.toFixed(3)}
+- 눈썹 아치: ${fm.eyebrow_arch.toFixed(3)}
+- 눈썹 두께: ${fm.eyebrow_thickness.toFixed(3)}
+- 이마 높이(상정): ${fm.forehead_height.toFixed(3)}
+- 턱 각도: ${fm.jawline_angle.toFixed(3)}
+- 좌우 대칭도: ${fm.face_symmetry.toFixed(3)}
+- 얼굴 길이 비율: ${fm.face_length_ratio.toFixed(3)}`;
 
   let sajuText = "사주 데이터: 미제공 (관상 단독 분석)";
   if (sajuData) {
-    const parts = [`주도 오행: ${sajuData.dominantElement}`];
-    if (sajuData.yearPillar) {
-      parts.push(`년주: ${sajuData.yearPillar.heavenlyStem}${sajuData.yearPillar.earthlyBranch}`);
+    const parts: string[] = [];
+    if (sajuData.dominant_element) parts.push(`주도 오행: ${sajuData.dominant_element}`);
+    if (sajuData.day_stem) parts.push(`일간(日干): ${sajuData.day_stem}`);
+    if (sajuData.personality_traits?.length) {
+      parts.push(`성격 특성: ${sajuData.personality_traits.join(", ")}`);
     }
-    if (sajuData.dayPillar) {
-      parts.push(`일주: ${sajuData.dayPillar.heavenlyStem}${sajuData.dayPillar.earthlyBranch}`);
-    }
-    sajuText = `사주 데이터:\n${parts.join("\n")}`;
+    if (parts.length > 0) sajuText = `사주 데이터:\n${parts.join("\n")}`;
   }
 
   const demographicText = [
@@ -182,20 +195,21 @@ function validateRequest(body: RequestBody): string | null {
   }
 
   const fm = body.faceMeasurements;
-  const requiredFields: (keyof FaceMeasurements)[] = [
-    "faceWidthToHeight",
-    "eyeDistance",
-    "noseToMouthRatio",
-    "jawWidth",
-    "foreheadRatio",
-    "eyeSize",
-    "mouthWidth",
-    "facialSymmetry",
-    "browArchAngle",
+  const requiredNumericFields: (keyof FaceMeasurements)[] = [
+    "upper_third",
+    "middle_third",
+    "lower_third",
+    "eye_spacing",
+    "eye_size",
+    "nose_width",
+    "mouth_width",
+    "face_symmetry",
+    "face_length_ratio",
   ];
 
-  for (const field of requiredFields) {
-    if (typeof fm[field] !== "number" || isNaN(fm[field])) {
+  for (const field of requiredNumericFields) {
+    const val = fm[field];
+    if (typeof val !== "number" || isNaN(val as number)) {
       return `faceMeasurements.${field} must be a valid number`;
     }
   }
