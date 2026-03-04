@@ -22,13 +22,13 @@
 
 **수정 파일:**
 - `ios/Runner/Info.plist` — `CFBundleURLTypes` 추가
-  - scheme: `com.nworld.momo` (Supabase Auth PKCE 콜백용)
+  - scheme: `com.dropdown.momo` (Supabase Auth PKCE 콜백용)
 
 ### Task 3: Android Deep Link
 
 **수정 파일:**
 - `android/app/src/main/AndroidManifest.xml` — OAuth 콜백용 intent-filter 추가
-  - `<data android:scheme="com.nworld.momo" android:host="login-callback" />`
+  - `<data android:scheme="com.dropdown.momo" android:host="login-callback" />`
 
 ### Task 4: Supabase Auth 딥링크 콜백
 
@@ -64,7 +64,7 @@
 - `supabase/config.toml`
   - `[auth.external.google]` 섹션 추가 (enabled=false, 환경변수 참조)
   - `skip_nonce_check = true` (네이티브 Google Sign-In 호환)
-  - `additional_redirect_urls`에 `com.nworld.momo://login-callback` 추가
+  - `additional_redirect_urls`에 `com.dropdown.momo://login-callback` 추가
 
 ### Task 8: 인프라 설정 가이드
 

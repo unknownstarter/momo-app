@@ -53,10 +53,10 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>com.nworld.momo</string>
+			<string>com.dropdown.momo</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.nworld.momo</string>
+				<string>com.dropdown.momo</string>
 			</array>
 		</dict>
 	</array>

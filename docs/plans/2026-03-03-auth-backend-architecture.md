@@ -93,8 +93,8 @@
    - 전화번호: 별도 비즈앱 심사 필요 (SMS 인증으로 대체)
 
 6. 플랫폼 등록:
-   - iOS: Bundle ID = com.nworld.momo
-   - Android: 패키지명 = com.nworld.momo + 키해시 등록
+   - iOS: Bundle ID = com.dropdown.momo
+   - Android: 패키지명 = com.dropdown.momo + 키해시 등록
 
 7. Redirect URI 설정:
    - https://csjdfvxyjnpmbkjbomyf.supabase.co/auth/v1/callback

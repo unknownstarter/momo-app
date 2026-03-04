@@ -47,7 +47,7 @@ class AuthRemoteDatasource {
     try {
       return await _auth.signInWithOAuth(
         OAuthProvider.kakao,
-        redirectTo: 'com.nworld.momo://login-callback',
+        redirectTo: 'com.dropdown.momo://login-callback',
       );
     } catch (e) {
       throw AuthFailure.socialLoginFailed('Kakao', e);

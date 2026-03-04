@@ -30,7 +30,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
-                    android:scheme="com.nworld.momo"
+                    android:scheme="com.dropdown.momo"
                     android:host="login-callback" />
             </intent-filter>
         </activity>

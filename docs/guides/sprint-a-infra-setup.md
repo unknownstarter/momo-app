@@ -8,12 +8,12 @@
 
 ### 1-1. App ID에 Sign In with Apple 추가
 - [ ] [Apple Developer > Certificates, Identifiers & Profiles](https://developer.apple.com/account/resources/identifiers/list)
-- [ ] Bundle ID `com.nworld.momo`의 App ID 선택
+- [ ] Bundle ID `com.dropdown.momo`의 App ID 선택
 - [ ] Capabilities 탭에서 **Sign In with Apple** 활성화 → Save
 
 ### 1-2. Service ID 생성 (Supabase 웹 OAuth용)
 - [ ] Identifiers → `+` → **Services IDs** 선택
-- [ ] Description: `Momo Login`, Identifier: `com.nworld.momo.web`
+- [ ] Description: `Momo Login`, Identifier: `com.dropdown.momo.web`
 - [ ] 생성 후 **Sign In with Apple** 체크 → Configure
   - **Domains**: `csjdfvxyjnpmbkjbomyf.supabase.co`
   - **Return URLs**: `https://csjdfvxyjnpmbkjbomyf.supabase.co/auth/v1/callback`
@@ -21,14 +21,14 @@
 
 ### 1-3. Key 생성 (Server-to-Server 인증)
 - [ ] Keys → `+` → Key Name: `Momo Auth Key`
-- [ ] **Sign In with Apple** 체크 → Configure → Primary App ID: `com.nworld.momo`
+- [ ] **Sign In with Apple** 체크 → Configure → Primary App ID: `com.dropdown.momo`
 - [ ] Register → **Key ID 기록**, `.p8` 파일 다운로드
 
 ### 메모할 값
 | 항목 | 값 | 어디서? |
 |------|-----|--------|
 | **Team ID** | (10자리) | 우측 상단 계정 이름 옆 |
-| **Service ID** | `com.nworld.momo.web` | 위 1-2에서 생성 |
+| **Service ID** | `com.dropdown.momo.web` | 위 1-2에서 생성 |
 | **Key ID** | (10자리) | 위 1-3에서 생성 |
 | **Private Key (.p8)** | 파일 내용 | 위 1-3에서 다운로드 |
 
@@ -52,13 +52,13 @@
 ### 2-3. OAuth Client ID 생성 — **iOS** (네이티브 로그인용)
 - [ ] Credentials → Create Credentials → OAuth client ID
 - [ ] Application type: **iOS**
-- [ ] Bundle ID: `com.nworld.momo`
+- [ ] Bundle ID: `com.dropdown.momo`
 - [ ] Create → **Client ID** 기록
 
 ### 2-4. OAuth Client ID 생성 — **Android** (네이티브 로그인용)
 - [ ] Credentials → Create Credentials → OAuth client ID
 - [ ] Application type: **Android**
-- [ ] Package name: `com.nworld.momo`
+- [ ] Package name: `com.dropdown.momo`
 - [ ] SHA-1 fingerprint: `keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android` 실행하여 SHA-1 값 입력
 - [ ] Create
 
@@ -77,7 +77,7 @@
 ### 3-1. Apple Provider 활성화
 - [ ] [Supabase Dashboard](https://supabase.com/dashboard/project/csjdfvxyjnpmbkjbomyf/auth/providers)
 - [ ] Authentication → Providers → Apple → **Enable**
-- [ ] Service ID (Client ID): `com.nworld.momo.web` (위 1-2)
+- [ ] Service ID (Client ID): `com.dropdown.momo.web` (위 1-2)
 - [ ] Secret Key: `.p8` 파일 내용을 JWT로 생성하거나 직접 붙여넣기
   - Supabase가 자동 생성 지원: Team ID + Key ID + Private Key 입력
 - [ ] Save
@@ -91,7 +91,7 @@
 ### 3-3. Redirect URL 확인
 - [ ] Authentication → URL Configuration
 - [ ] Redirect URLs에 추가:
-  - `com.nworld.momo://login-callback`
+  - `com.dropdown.momo://login-callback`
 - [ ] Site URL은 프로덕션 URL로 설정 (개발 중에는 기본값 유지)
 
 ---

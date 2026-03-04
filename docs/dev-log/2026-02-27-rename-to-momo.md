@@ -39,10 +39,10 @@
 
 | 항목 | Before | After |
 |------|--------|-------|
-| Bundle Identifier | `com.nworld.sajuApp` | `com.nworld.momo` |
+| Bundle Identifier | `com.nworld.sajuApp` | `com.dropdown.momo` |
 | CFBundleDisplayName | `Saju App` | `momo` |
 | CFBundleName | `saju_app` | `momo` |
-| Test Bundle ID | `com.nworld.sajuApp.RunnerTests` | `com.nworld.momo.RunnerTests` |
+| Test Bundle ID | `com.nworld.sajuApp.RunnerTests` | `com.dropdown.momo.RunnerTests` |
 
 **변경 파일:**
 - `ios/Runner/Info.plist`
@@ -52,10 +52,10 @@
 
 | 항목 | Before | After |
 |------|--------|-------|
-| namespace | `com.nworld.saju_app` | `com.nworld.momo` |
-| applicationId | `com.nworld.saju_app` | `com.nworld.momo` |
+| namespace | `com.nworld.saju_app` | `com.dropdown.momo` |
+| applicationId | `com.nworld.saju_app` | `com.dropdown.momo` |
 | android:label | `saju_app` | `momo` |
-| Kotlin package | `com.nworld.saju_app` | `com.nworld.momo` |
+| Kotlin package | `com.nworld.saju_app` | `com.dropdown.momo` |
 
 **변경 파일:**
 - `android/app/build.gradle.kts`
@@ -119,7 +119,7 @@
 ## 빌드 검증
 
 - `flutter pub get` ✅
-- `flutter build ios --debug --simulator` ✅ (`com.nworld.momo`)
+- `flutter build ios --debug --simulator` ✅ (`com.dropdown.momo`)
 - 시뮬레이터 실행 ✅
 
 ---

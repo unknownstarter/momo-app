@@ -1,6 +1,6 @@
-# 테스크 마스터 — 2026-03-03 (v11)
+# 테스크 마스터 — 2026-03-04 (v12)
 
-> **작성일**: 2026-02-24 | **갱신**: 2026-03-03
+> **작성일**: 2026-02-24 | **갱신**: 2026-03-04
 > **목적**: 다음에 할 일을 한곳에 정리해, 다른 디바이스에서 보고 연속으로 작업할 수 있게 함.
 > **참조**: PRD `docs/plans/2026-02-24-app-design.md`, 개선 제안서 `docs/plans/2026-02-24-saju-궁합-engine-improvement-proposal.md`, dev-log `docs/dev-log/2026-02-24-progress.md`
 
@@ -259,6 +259,12 @@ flutter build ios --no-codesign --debug   # iOS 빌드 확인
 | FIX2 | **스크롤 reveal 제거** — 모든 섹션 즉시 표시, RevealSection/BouncingChevron/DelayedFadeIn 삭제 | ✅ |
 | FIX3 | **홈 섹션 간격 32px 통일** — 기존 24/32/28/28px → 전체 32px, 그리드 aspect ratio 0.72→0.78 | ✅ |
 | FIX4 | **문서 업데이트** — dev-log + task-master v10 | ✅ |
+
+### 2026-03-04
+
+| # | 항목 | 상태 |
+|---|------|------|
+| ID1 | **Bundle ID 리네이밍** — `com.nworld.momo` → `com.dropdown.momo` (회사명 Dropdown 반영). iOS/Android/Supabase/코드/문서 전체 변경, Android Kotlin 디렉토리 이동 포함 | ✅ |
 
 ### 🔥 Sprint 0 — 관상 시스템 재설계 ("진짜 관상학 + 동적 동물 도감")
 

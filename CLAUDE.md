@@ -69,8 +69,8 @@
 |------|-----|
 | **앱 이름** | momo |
 | **패키지명** | `momo_app` |
-| **iOS Bundle ID** | `com.nworld.momo` |
-| **Android App ID** | `com.nworld.momo` |
+| **iOS Bundle ID** | `com.dropdown.momo` |
+| **Android App ID** | `com.dropdown.momo` |
 | **GitHub** | `unknownstarter/momo-app` |
 | **Supabase Project** | `csjdfvxyjnpmbkjbomyf` |
 
