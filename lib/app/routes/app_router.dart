@@ -93,9 +93,6 @@ GoRouter appRouter(Ref ref) {
         RoutePaths.loginCallback, // Kakao OAuth 딥링크 콜백
         RoutePaths.onboarding,
         RoutePaths.home, // 둘러보기 모드
-        RoutePaths.matching, // TODO(PROD): [BYPASS-8] 인증 연결 후 제거 — 비로그인 접근 차단
-        RoutePaths.chat, // TODO(PROD): [BYPASS-8] 인증 연결 후 제거 — 비로그인 접근 차단
-        RoutePaths.profile, // TODO(PROD): [BYPASS-8] 인증 연결 후 제거 — 비로그인 접근 차단
         RoutePaths.sajuAnalysis,
         RoutePaths.sajuResult,
         RoutePaths.destinyAnalysis,

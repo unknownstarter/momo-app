@@ -1,4 +1,4 @@
-# 테스크 마스터 — 2026-03-04 (v12)
+# 테스크 마스터 — 2026-03-04 (v13)
 
 > **작성일**: 2026-02-24 | **갱신**: 2026-03-04
 > **목적**: 다음에 할 일을 한곳에 정리해, 다른 디바이스에서 보고 연속으로 작업할 수 있게 함.
@@ -82,28 +82,19 @@ fvm flutter build ios --no-codesign --debug   # iOS 빌드 확인
 | Edge Functions | `supabase/functions/` 디렉토리 |
 | 주요 함수 | `calculate-saju`, `calculate-compatibility`, `generate-gwansang-reading` |
 
-### 현재 디버그 바이패스 (6건)
+### ✅ 디버그 바이패스 — 전체 제거 완료 (2026-03-04)
 
-> Auth 미연동 상태에서 테스트하기 위한 바이패스. Sprint A에서 제거 예정.
-> 검색: `TODO(PROD)` 또는 `BYPASS-N`
+> **8건 전체 제거 완료.** Sprint A BYPASS 제거 작업으로 실연동 코드로 교체됨.
 > 상세 문서: `docs/dev-log/2026-02-26-debug-bypass.md`
+> 검증: `grep -rn "BYPASS-\|TODO(PROD)" lib/ --include="*.dart"` → **0건**
 
-| ID | 위치 | 역할 |
-|----|------|------|
-| BYPASS-1 | `login_page.dart:87` | 로그인 실패 → 온보딩 직행 |
-| BYPASS-2 | `onboarding_page.dart:113` | 프로필 저장 실패 → Mock 분석 진행 |
-| BYPASS-3 | `destiny_analysis_page.dart:238` | 사주 분석 실패 → Mock 결과 |
-| BYPASS-4 | `destiny_analysis_page.dart:259` | 관상 분석 실패 → Mock 결과 |
-| BYPASS-5 | `matching_profile_page.dart:320` | 프로필 저장 실패 → 매칭 직행 |
-| BYPASS-6 | `app_router.dart:93-95` | matching/chat/profile 비로그인 접근 허용 |
+### 현재 앱 상태 요약 (2026-03-04 v3)
 
-### 현재 앱 상태 요약 (2026-03-03 v2)
-
-- **작동하는 것**: 온보딩(7스텝, SMS 필수) → 사주+관상 통합 분석(Mock) → 결과(탭) → 데이팅 프로필(8필드) → 추천 리스트 → 홈(추천 그리드) → **프로필 상세(즉시 표시, 인라인 궁합, Hero 트랜지션)** → 궁합 프리뷰(실연동 가능)
-- **Mock인 것**: 로그인, 프로필 저장, 사주/관상 AI 분석, 추천 목록, 좋아요, SMS 인증(BYPASS-6/7)
-- **실연동된 것**: `calculate-compatibility` Edge Function (궁합 계산, Mock 파트너일 때는 로컬 Mock 사용)
-- **직전 완료**: Sprint ON (온보딩 리디자인 구현) + SMS 필수화 + Firebase Phone Auth 전환 (CoolSMS 제거)
-- **다음 작업**: **Sprint A — 노아님 인프라 설정** (Apple/Kakao/Firebase/Supabase) → **아리 BYPASS 제거** (A3~A10)
+- **작동하는 것**: 온보딩(7스텝, SMS 필수) → 사주+관상 통합 분석 → 결과(탭) → 데이팅 프로필(8필드) → 추천 리스트 → 홈(추천 그리드) → 프로필 상세(인라인 궁합, Hero) → 궁합 프리뷰
+- **실연동된 것**: Apple/Kakao 로그인(Supabase Auth), SMS 인증(Firebase Phone Auth), 프로필 저장, 사주/관상 분석(Edge Function + Claude API), 매칭 프로필 저장, 궁합 계산, 라우터 가드(비로그인 접근 차단)
+- **Mock인 것**: 추천 목록(`getDailyRecommendations`), 좋아요(`sendLike`/`getLikes`), 채팅
+- **직전 완료**: Sprint A — BYPASS 8건 전체 제거 + DB 마이그레이션(누락 3컬럼) + Firebase Analytics 이벤트 트래킹(30+ events)
+- **다음 작업**: **Sprint B — 실데이터 매칭** (추천 목록 실연동, 좋아요 시스템)
 
 ---
 
@@ -137,8 +128,8 @@ fvm flutter build ios --no-codesign --debug   # iOS 빌드 확인
 
 ## 2. 다음에 할 일 (우선순위순)
 
-> **현재 최우선**: ⭐ **Sprint A 인프라 설정 (노아님)** → BYPASS 제거 (아리)
-> Sprint ON 완료 (2026-03-03). SMS 필수화 + Firebase Phone Auth 전환 확정.
+> **현재 최우선**: ⭐ **Sprint B — 실데이터 매칭** (추천 목록 실연동, 좋아요 시스템)
+> Sprint A 완료 (2026-03-04). BYPASS 8건 전체 제거 + Auth 실연동 + DB 마이그레이션.
 
 ### 🔥 즉시 (Highest) — AI 관상 + 동물상 Feature 구현 + 온보딩 리팩토링
 
@@ -369,17 +360,18 @@ fvm flutter build ios --no-codesign --debug   # iOS 빌드 확인
 | # | Task | 담당 | 의존성 | 상태 |
 |---|------|------|--------|------|
 | A0 | **코드 사전 준비** — entitlements, URL scheme, 딥링크, Storage SQL, OAuth config, 이미지 업로드 | 아리 | 없음 | ✅ |
-| A1 | **Apple Sign In 인프라** — Apple Developer에서 Service ID + Key 발급, Supabase에서 Apple Provider 활성화 | 노아님 | A0 | ⬜ |
-| A2 | **Kakao 로그인 인프라** — Kakao Developer Console 앱 등록, Supabase Kakao Provider 활성화 | 노아님 | A0 + ON2 | ⬜ |
-| A2.5 | **Firebase Phone Auth 설정** — Firebase 프로젝트 생성, Phone Auth 활성화, GoogleService-Info.plist + google-services.json 배치 | 노아님 | ON3 | ⬜ |
-| A3 | **BYPASS-1 제거** — Auth 연결 검증 후 `login_page.dart` bypass 블록 삭제 | 아리 | A1 또는 A2 | ⬜ |
-| A4 | **profiles 테이블 컬럼 마이그레이션** — `saju_profile_id`, `is_saju_complete`, `is_profile_complete` 등 누락 컬럼 추가 | 아리 | A3 | ⬜ |
-| A5 | **BYPASS-2 제거** — 온보딩 프로필 저장 실연동 검증 후 `onboarding_page.dart` bypass 삭제 | 아리 | A4 | ⬜ |
-| A6 | **Anthropic API Key Supabase 시크릿 등록** — Edge Functions 환경변수 설정 | 노아님 | 없음 | ⬜ |
-| A7 | **BYPASS-3/4 제거** — 사주/관상 Edge Function 실연동 검증 후 `destiny_analysis_page.dart` bypass 삭제 | 아리 | A5 + A6 | ⬜ |
-| A8 | **Storage 버킷 인프라** — Supabase Dashboard에서 마이그레이션 적용 확인 | 노아님 | A0 | ⬜ |
-| A9 | **BYPASS-5 제거** — 매칭 프로필 저장 실연동 검증 후 `matching_profile_page.dart` bypass 삭제 | 아리 | A5 + A8 | ⬜ |
-| A10 | **BYPASS-6 제거** — `app_router.dart` publicPaths에서 matching/chat/profile 제거 | 아리 | A3~A9 전체 | ⬜ |
+| A1 | **Apple Sign In 인프라** — Apple Developer에서 Service ID + Key 발급, Supabase에서 Apple Provider 활성화 | 노아님 | A0 | ✅ |
+| A2 | **Kakao 로그인 인프라** — Kakao Developer Console 앱 등록, Supabase Kakao Provider 활성화 | 노아님 | A0 + ON2 | ✅ |
+| A2.5 | **Firebase Phone Auth 설정** — Firebase 프로젝트 생성, Phone Auth 활성화, GoogleService-Info.plist + google-services.json 배치 | 노아님 | ON3 | ✅ |
+| A3 | **BYPASS-1 제거** — `login_page.dart` Apple/Kakao catch 블록에서 kDebugMode 삭제 | 아리 | A1 또는 A2 | ✅ |
+| A4 | **profiles 테이블 컬럼 마이그레이션** — `body_type`, `ideal_type`, `is_phone_verified` 3개 누락 컬럼 추가 + Supabase remote push 완료 | 아리 | A3 | ✅ |
+| A5 | **BYPASS-2 제거** — `onboarding_page.dart` catch 블록에서 kDebugMode 삭제 | 아리 | A4 | ✅ |
+| A6 | **Anthropic API Key Supabase 시크릿 등록** — Edge Functions 환경변수 설정 | 노아님 | 없음 | ✅ |
+| A7 | **BYPASS-3/4 제거** — `destiny_analysis_page.dart` mock 결과 + mock 메서드 삭제 (사주: 에러→재시도, 관상: graceful degradation) | 아리 | A5 + A6 | ✅ |
+| A8 | **Storage 버킷 인프라** — Supabase Dashboard에서 마이그레이션 적용 확인 | 노아님 | A0 | ✅ |
+| A9 | **BYPASS-5 제거** — `matching_profile_page.dart` catch 블록에서 kDebugMode 삭제 | 아리 | A5 + A8 | ✅ |
+| A9.5 | **BYPASS-6/7 제거** — `onboarding_form_page.dart` SMS mock → Firebase Phone Auth 실연동 (`verifyPhoneNumber` + `signInWithCredential` + Supabase profiles 업데이트) | 아리 | A2.5 | ✅ |
+| A10 | **BYPASS-8 제거** — `app_router.dart` publicPaths에서 matching/chat/profile 제거 | 아리 | A3~A9 전체 | ✅ |
 
 **Sprint A 완료 기준 (데모 가능):**
 - ✅ 실기기 Apple/Kakao 로그인 → `auth.users` 레코드 생성

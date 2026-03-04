@@ -13,7 +13,6 @@ library;
 
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -25,10 +24,7 @@ import '../../../../core/theme/theme_extensions.dart';
 import '../../../../core/theme/tokens/saju_colors.dart';
 import '../../../../core/theme/tokens/saju_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
-import '../../../gwansang/domain/entities/face_measurements.dart';
-import '../../../gwansang/domain/entities/gwansang_entity.dart';
 import '../../../gwansang/presentation/providers/gwansang_provider.dart';
-import '../../../saju/domain/entities/saju_entity.dart';
 import '../../../saju/presentation/providers/saju_provider.dart';
 
 /// 분석 단계 데이터
@@ -238,14 +234,6 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
         _sajuResult = next.value;
         _startGwansangAnalysis(next.value!);
       } else if (next.hasError) {
-        // TODO(PROD): 디버그 바이패스 제거 — 사주 Edge Function 연결 후 이 블록 삭제
-        // [BYPASS-3] 사주 분석 실패 시 Mock 결과로 진행
-        if (kDebugMode) {
-          final mockSaju = _createMockSajuResult();
-          _sajuResult = mockSaju;
-          _startGwansangAnalysis(mockSaju);
-          return;
-        }
         setState(() {
           _hasError = true;
           _errorMessage = '사주 분석 중에 문제가 생겼어요';
@@ -260,13 +248,6 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
         _gwansangResult = next.value;
         _tryNavigate();
       } else if (next.hasError) {
-        // TODO(PROD): 디버그 바이패스 제거 — 관상 분석 API 연결 후 이 블록 삭제
-        // [BYPASS-4] 관상 분석 실패 시 Mock 결과로 진행
-        if (kDebugMode && _gwansangResult == null) {
-          _gwansangResult = _createMockGwansangResult();
-          _tryNavigate();
-          return;
-        }
         _gwansangResult = null;
         if (_animationComplete && _sajuResult != null) {
           _hasNavigated = true;
@@ -557,90 +538,6 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // DEV: Mock 데이터 (디버그 모드 전용)
-  // ---------------------------------------------------------------------------
-
-  SajuAnalysisResult _createMockSajuResult() {
-    return SajuAnalysisResult(
-      profile: SajuProfile(
-        id: 'mock-saju-001',
-        userId: 'dev-mock-user-001',
-        yearPillar: const Pillar(heavenlyStem: '갑', earthlyBranch: '자'),
-        monthPillar: const Pillar(heavenlyStem: '을', earthlyBranch: '축'),
-        dayPillar: const Pillar(heavenlyStem: '병', earthlyBranch: '인'),
-        hourPillar: const Pillar(heavenlyStem: '정', earthlyBranch: '묘'),
-        fiveElements: const FiveElements(
-          wood: 3, fire: 2, earth: 1, metal: 1, water: 1,
-        ),
-        dominantElement: FiveElementType.wood,
-        personalityTraits: const ['창의적', '감성적', '따뜻한', '성장지향적'],
-        aiInterpretation: '갑자일주는 큰 나무와 같은 기운을 가졌어요. '
-            '새로운 것을 시작하는 에너지가 넘치고, '
-            '사람들을 이끄는 자연스러운 리더십이 있답니다. '
-            '목(木)의 기운이 강해서 봄날처럼 따뜻하고 포용력 있는 성격이에요. '
-            '다만 가끔은 너무 이상이 높아 현실과의 갭에서 고민할 수 있어요.',
-        birthDateTime: DateTime(1995, 3, 15, 14, 0),
-        calculatedAt: DateTime.now(),
-      ),
-      characterName: '나무리',
-      characterAssetPath: CharacterAssets.heuksuniEarthDefault,
-      characterGreeting: '안녕! 나는 나무리야. 너의 성장하는 기운이 느껴져!',
-    );
-  }
-
-  GwansangAnalysisResult _createMockGwansangResult() {
-    return GwansangAnalysisResult(
-      profile: GwansangProfile(
-        id: 'mock-gwansang-001',
-        userId: 'dev-mock-user-001',
-        animalType: 'fox',
-        animalModifier: '봄바람의',
-        animalTypeKorean: '여우',
-        measurements: const FaceMeasurements(
-          faceShape: 'oval',
-          upperThird: 0.33, middleThird: 0.34, lowerThird: 0.33,
-          eyeSpacing: 0.32, eyeSlant: 0.05, eyeSize: 0.14,
-          noseBridgeHeight: 0.17, noseWidth: 0.28,
-          mouthWidth: 0.38, lipThickness: 0.07,
-          eyebrowArch: 0.03, eyebrowThickness: 0.04,
-          foreheadHeight: 0.33, jawlineAngle: 0.48,
-          faceSymmetry: 0.91, faceLengthRatio: 1.28,
-        ),
-        photoUrls: const [],
-        headline: '본능적으로 분위기를 읽는 타고난 매력가',
-        samjeong: const SamjeongReading(
-          upper: '넓은 이마가 총명함을 나타내요.',
-          middle: '코의 선이 반듯해 중년에 성취를 이룰 상이에요.',
-          lower: '턱선이 부드러워 말년에 화목한 가정을 이룰 상이에요.',
-        ),
-        ogwan: const OgwanReading(
-          eyes: '눈매가 날카로우면서도 깊이가 있어요.',
-          nose: '코가 오뚝해서 자존심이 강한 타입이에요.',
-          mouth: '입술이 도톰해서 표현력이 풍부해요.',
-          ears: '귀가 안정적인 형태로 경청의 복이 있어요.',
-          eyebrows: '눈썹이 깔끔해 의지가 강해요.',
-        ),
-        traits: const GwansangTraits(
-          leadership: 65,
-          warmth: 70,
-          independence: 75,
-          sensitivity: 72,
-          energy: 68,
-        ),
-        personalitySummary: '첫인상은 차분하지만, 알수록 매력이 넘치는 스타일이에요. '
-            '상대방의 감정을 잘 읽고 그에 맞는 반응을 하는 데 탁월해요. '
-            '유머 감각이 뛰어나고, 대화를 이끄는 능력이 있어요.',
-        romanceSummary: '밀당의 달인이라 불릴 만큼 연애 감각이 뛰어나요. '
-            '한번 마음을 주면 깊이 빠지지만, 쉽게 다가가지 않는 타입이에요. '
-            '상대방이 먼저 다가오게 만드는 묘한 매력이 있어요.',
-        romanceKeyPoints: const ['밀당의 달인', '분위기를 읽는 감각', '은근한 카리스마'],
-        charmKeywords: const ['밀당의 달인', '분위기 메이커', '감성 지능 만렙', '은근한 카리스마'],
-        createdAt: DateTime.now(),
-      ),
-      isNewAnalysis: true,
-    );
-  }
 }
 
 // =============================================================================

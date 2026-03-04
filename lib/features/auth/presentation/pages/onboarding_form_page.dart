@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/services/analytics_service.dart';
@@ -83,6 +84,8 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
   Timer? _otpTimer;
   int _otpSecondsLeft = 0;
   final _otpKey = GlobalKey<SajuOtpInputState>();
+  String? _verificationId; // Firebase Phone Auth verification ID
+  int? _resendToken; // Firebase resend token
 
   // ---------------------------------------------------------------------------
   // Step 5: 사진(정면)
@@ -313,33 +316,47 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
     setState(() {});
 
     try {
-      // TODO(PROD): 디버그 바이패스 제거 — Firebase Phone Auth 연동 후 실제 발송
-      // [BYPASS-6] SMS 발송 mock
-      if (kDebugMode) {
-        await Future.delayed(const Duration(milliseconds: 800));
-        if (!mounted) return;
-        setState(() {
-          _smsSending = false;
-          _smsPhase2 = true;
-          _otpError = false;
-        });
-        _startOtpTimer();
-        return;
-      }
-
-      // TODO: Firebase Phone Auth — verifyPhoneNumber() → SMS 발송
-      // await FirebaseAuth.instance.verifyPhoneNumber(
-      //   phoneNumber: PhoneUtils.toE164(_phoneController.text),
-      //   verificationCompleted: (credential) { ... },
-      //   verificationFailed: (e) { ... },
-      //   codeSent: (verificationId, resendToken) { ... },
-      //   codeAutoRetrievalTimeout: (verificationId) { ... },
-      // );
+      await fb.FirebaseAuth.instance.verifyPhoneNumber(
+        phoneNumber: PhoneUtils.toE164(_phoneController.text),
+        forceResendingToken: _resendToken,
+        verificationCompleted: (fb.PhoneAuthCredential credential) async {
+          // Android 자동 인증 완료 시
+          try {
+            await fb.FirebaseAuth.instance.signInWithCredential(credential);
+            if (!mounted) return;
+            await _onPhoneVerified();
+          } catch (_) {}
+        },
+        verificationFailed: (fb.FirebaseAuthException e) {
+          if (!mounted) return;
+          setState(() => _smsSending = false);
+          if (e.code == 'too-many-requests') {
+            _showSnack('요청이 너무 많아요. 잠시 후 다시 시도해주세요.');
+          } else if (e.code == 'invalid-phone-number') {
+            _showSnack('올바른 전화번호를 입력해주세요.');
+          } else {
+            _showSnack('인증번호 발송에 실패했어요. 다시 시도해주세요.');
+          }
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          if (!mounted) return;
+          _verificationId = verificationId;
+          _resendToken = resendToken;
+          setState(() {
+            _smsSending = false;
+            _smsPhase2 = true;
+            _otpError = false;
+          });
+          _startOtpTimer();
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {
+          _verificationId = verificationId;
+        },
+      );
     } catch (e) {
       if (!mounted) return;
+      setState(() => _smsSending = false);
       _showSnack('인증번호 발송에 실패했어요. 다시 시도해주세요.');
-    } finally {
-      if (mounted) setState(() => _smsSending = false);
     }
   }
 
@@ -352,31 +369,23 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
     });
 
     try {
-      // TODO(PROD): 디버그 바이패스 제거 — Firebase Phone Auth 연동 후 실제 OTP 검증
-      // [BYPASS-7] SMS 인증 검증 mock — 코드 "000000" 또는 아무 6자리 성공
-      if (kDebugMode) {
-        await Future.delayed(const Duration(milliseconds: 500));
-        if (!mounted) return;
-        _otpTimer?.cancel();
-        setState(() {
-          _smsVerifying = false;
-          _smsVerified = true;
-        });
-        AnalyticsService.completeSmsVerification();
-        HapticService.success();
-        // 성공 애니메이션 후 자동 진행
-        await Future.delayed(const Duration(milliseconds: 600));
-        if (mounted) _nextStep();
-        return;
+      final credential = fb.PhoneAuthProvider.credential(
+        verificationId: _verificationId!,
+        smsCode: code,
+      );
+      await fb.FirebaseAuth.instance.signInWithCredential(credential);
+      if (!mounted) return;
+      await _onPhoneVerified();
+    } on fb.FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _smsVerifying = false;
+        _otpError = true;
+      });
+      _otpKey.currentState?.clear();
+      if (e.code == 'invalid-verification-code') {
+        _showSnack('인증번호가 올바르지 않아요.');
       }
-
-      // TODO: Firebase Phone Auth — PhoneAuthCredential로 OTP 검증
-      // final credential = PhoneAuthProvider.credential(
-      //   verificationId: _verificationId,
-      //   smsCode: code,
-      // );
-      // await FirebaseAuth.instance.signInWithCredential(credential);
-      // // 인증 성공 → Supabase profiles에 phone 저장 → Firebase signOut
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -385,6 +394,39 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
       });
       _otpKey.currentState?.clear();
     }
+  }
+
+  /// Firebase Phone Auth 인증 성공 후 처리
+  /// Supabase profiles에 전화번호 저장 → Firebase signOut → 다음 스텝
+  Future<void> _onPhoneVerified() async {
+    // Supabase profiles 테이블에 전화번호 저장
+    try {
+      final supabase = Supabase.instance.client;
+      final authId = supabase.auth.currentUser?.id;
+      if (authId != null) {
+        await supabase.from('profiles').update({
+          'phone': PhoneUtils.toE164(_phoneController.text),
+          'is_phone_verified': true,
+        }).eq('auth_id', authId);
+      }
+    } catch (_) {
+      // 프로필 업데이트 실패해도 인증 자체는 성공 처리
+    }
+
+    // Firebase는 전화 인증용으로만 사용 → 즉시 로그아웃
+    await fb.FirebaseAuth.instance.signOut();
+
+    if (!mounted) return;
+    _otpTimer?.cancel();
+    setState(() {
+      _smsVerifying = false;
+      _smsVerified = true;
+    });
+    AnalyticsService.completeSmsVerification();
+    HapticService.success();
+    // 성공 애니메이션 후 자동 진행
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (mounted) _nextStep();
   }
 
   void _startOtpTimer() {

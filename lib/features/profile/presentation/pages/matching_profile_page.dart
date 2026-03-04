@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -163,12 +162,6 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
       AnalyticsService.completeMatchingProfile();
       context.go(RoutePaths.postAnalysisMatches);
     } else {
-      // TODO(PROD): 디버그 바이패스 제거 — Supabase 연결 후 이 블록 삭제
-      // [BYPASS-5] 프로필 완성 저장 실패 시 매칭 리스트로 직행
-      if (kDebugMode) {
-        context.go(RoutePaths.postAnalysisMatches);
-        return;
-      }
       _showSnack('프로필 저장에 실패했어요. 다시 시도해주세요.');
     }
   }

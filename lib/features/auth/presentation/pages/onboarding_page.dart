@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -111,23 +110,6 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage>
       }
     } catch (e) {
       if (!mounted) return;
-
-      // TODO(PROD): 디버그 바이패스 제거 — Supabase 연결 후 이 블록 삭제
-      // [BYPASS-2] 프로필 저장 실패 시 Mock 데이터로 분석 진행
-      if (kDebugMode) {
-        final analysisData = <String, dynamic>{
-          'userId': 'dev-mock-user-001',
-          'birthDate': formData['birthDate'] as String? ?? '1995-03-15',
-          'birthTime': formData['birthTime'] as String? ?? '14:00',
-          'isLunar': false,
-          'userName': formData['name'] as String? ?? '테스트',
-          'gender': formData['gender'] as String? ?? '남성',
-          'photoPath': formData['photoPath'] as String?,
-        };
-        context.go(RoutePaths.destinyAnalysis, extra: analysisData);
-        return;
-      }
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('프로필 저장에 실패했어요. 다시 시도해주세요.'),

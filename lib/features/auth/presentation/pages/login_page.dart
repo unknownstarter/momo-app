@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -96,14 +95,6 @@ class _LoginPageState extends ConsumerState<LoginPage>
       context.go(hasProfile ? RoutePaths.home : RoutePaths.onboarding);
     } catch (e) {
       if (!mounted) return;
-
-      // TODO(PROD): 디버그 바이패스 제거 — 실제 인증 연결 후 이 블록 삭제
-      // [BYPASS-1] 로그인 인증 실패 시 온보딩으로 직행
-      if (kDebugMode) {
-        context.go(RoutePaths.onboarding);
-        return;
-      }
-
       _showErrorSnackBar(_friendlyErrorMessage(e));
     } finally {
       if (mounted) setState(() => _isAppleLoading = false);
@@ -139,14 +130,6 @@ class _LoginPageState extends ConsumerState<LoginPage>
       if (!mounted) return;
 
       setState(() => _isKakaoLoading = false);
-
-      // TODO(PROD): 디버그 바이패스 제거 — 실제 인증 연결 후 이 블록 삭제
-      // [BYPASS-1] 로그인 인증 실패 시 온보딩으로 직행 (Apple/Kakao 공통)
-      if (kDebugMode) {
-        context.go(RoutePaths.onboarding);
-        return;
-      }
-
       _showErrorSnackBar(_friendlyErrorMessage(e));
     }
   }
