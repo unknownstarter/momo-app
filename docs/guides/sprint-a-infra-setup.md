@@ -34,41 +34,51 @@
 
 ---
 
-## 2. Google Cloud Console 설정
+## 2. Kakao Developers Console 설정
 
-### 2-1. OAuth 동의 화면
-- [ ] [Google Cloud Console](https://console.cloud.google.com/) → 프로젝트 선택/생성
-- [ ] APIs & Services → OAuth consent screen
-- [ ] User Type: External → 앱 이름: `Momo`, 이메일 입력 → Save
+> 카카오 로그인은 Supabase OAuth 브라우저 플로우(`signInWithOAuth`)로 구현되어 있습니다.
+> 별도 Kakao SDK 없이 Supabase Dashboard에 REST API 키만 등록하면 작동합니다.
 
-### 2-2. OAuth Client ID 생성 — **Web** (Supabase용)
-- [ ] Credentials → Create Credentials → OAuth client ID
-- [ ] Application type: **Web application**
-- [ ] Name: `Momo Supabase`
-- [ ] Authorized redirect URIs:
-  - `https://csjdfvxyjnpmbkjbomyf.supabase.co/auth/v1/callback`
-- [ ] Create → **Client ID**, **Client Secret** 기록
+### 2-1. 애플리케이션 생성
+- [ ] [Kakao Developers](https://developers.kakao.com) 접속 → 로그인
+- [ ] **내 애플리케이션** → **애플리케이션 추가하기**
+- [ ] 앱 이름: `Momo`, 사업자명: `Dropdown`
 
-### 2-3. OAuth Client ID 생성 — **iOS** (네이티브 로그인용)
-- [ ] Credentials → Create Credentials → OAuth client ID
-- [ ] Application type: **iOS**
-- [ ] Bundle ID: `com.dropdown.momo`
-- [ ] Create → **Client ID** 기록
+### 2-2. 앱 키 확인
+- [ ] 생성된 앱 선택 → **앱 키** 탭
+- [ ] **REST API 키** 메모 (Supabase Client ID에 입력)
+- [ ] **네이티브 앱 키** 메모 (참고용, 현재 미사용)
 
-### 2-4. OAuth Client ID 생성 — **Android** (네이티브 로그인용)
-- [ ] Credentials → Create Credentials → OAuth client ID
-- [ ] Application type: **Android**
-- [ ] Package name: `com.dropdown.momo`
-- [ ] SHA-1 fingerprint: `keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android` 실행하여 SHA-1 값 입력
-- [ ] Create
+### 2-3. 카카오 로그인 활성화 + 동의항목
+- [ ] 좌측 메뉴 → **카카오 로그인** → **활성화 설정** → **ON**
+- [ ] **동의항목** 탭에서 설정:
+  - 닉네임: **필수**
+  - 프로필 사진: 선택
+  - 카카오계정(이메일): **선택** (필수 권장)
+  - 성별: 선택
+  - 연령대: 선택
+
+### 2-4. Client Secret 발급
+- [ ] 좌측 메뉴 → **카카오 로그인** → **보안** 탭
+- [ ] **Client Secret** → **코드 생성** → 생성된 시크릿 메모
+- [ ] 활성화 상태: **사용함**
+
+### 2-5. 플랫폼 등록
+- [ ] 좌측 메뉴 → **플랫폼** 탭
+- [ ] **iOS 플랫폼 등록**: Bundle ID = `com.dropdown.momo`
+- [ ] **Android 플랫폼 등록**: 패키지명 = `com.dropdown.momo` + 키해시 등록
+  - 키해시 생성: `keytool -exportcert -alias androiddebugkey -keystore ~/.android/debug.keystore -storepass android | openssl dgst -sha1 -binary | openssl enc -base64`
+
+### 2-6. Redirect URI 등록
+- [ ] 좌측 메뉴 → **카카오 로그인** → **Redirect URI**
+- [ ] 추가: `https://csjdfvxyjnpmbkjbomyf.supabase.co/auth/v1/callback`
 
 ### 메모할 값
-| 항목 | 값 |
-|------|-----|
-| **Web Client ID** | `xxx.apps.googleusercontent.com` |
-| **Web Client Secret** | `GOCSPX-xxx` |
-| **iOS Client ID** | `xxx.apps.googleusercontent.com` |
-| **Android Client ID** | `xxx.apps.googleusercontent.com` |
+| 항목 | 값 | 어디서? |
+|------|-----|--------|
+| **REST API 키** | (32자리) | 앱 키 탭 |
+| **Client Secret** | (32자리) | 보안 탭에서 생성 |
+| **네이티브 앱 키** | (참고용) | 앱 키 탭 |
 
 ---
 
@@ -82,10 +92,10 @@
   - Supabase가 자동 생성 지원: Team ID + Key ID + Private Key 입력
 - [ ] Save
 
-### 3-2. Google Provider 활성화
-- [ ] Authentication → Providers → Google → **Enable**
-- [ ] Client ID: Web Client ID (위 2-2)
-- [ ] Client Secret: Web Client Secret (위 2-2)
+### 3-2. Kakao Provider 활성화
+- [ ] Authentication → Providers → Kakao → **Enable**
+- [ ] Client ID: REST API 키 (위 2-2)
+- [ ] Client Secret: Client Secret (위 2-4)
 - [ ] Save
 
 ### 3-3. Redirect URL 확인
@@ -150,18 +160,18 @@ flutter run \
 ## 5. 테스트 절차
 
 ### iOS
-1. `flutter build ios --no-codesign --debug` — 빌드 성공 확인
+1. `fvm flutter build ios --no-codesign --debug` — 빌드 성공 확인
 2. Xcode에서 Runner.entitlements가 프로젝트에 정상 참조되는지 확인
 3. 시뮬레이터/실기기에서 Apple Sign In 버튼 → Apple 로그인 시트 표시 확인
-4. Google Sign In 버튼 → 브라우저 OAuth 플로우 → 앱으로 리다이렉트 확인
+4. 카카오 로그인 버튼 → 브라우저 OAuth 플로우 → 앱으로 리다이렉트 확인
 
 ### Android
-1. `flutter build apk --debug` — 빌드 성공 확인
-2. 에뮬레이터/실기기에서 Google Sign In → 계정 선택 → 앱으로 리다이렉트 확인
+1. `fvm flutter build apk --debug` — 빌드 성공 확인
+2. 에뮬레이터/실기기에서 카카오 로그인 → 브라우저 OAuth → 앱으로 리다이렉트 확인
 
 ### SMS 인증
 1. 온보딩 Step 4에서 전화번호 입력 → "인증번호 받기" 클릭
-2. 실제 SMS 수신 확인 (Twilio 연동 후)
+2. 실제 SMS 수신 확인 (CoolSMS + Send SMS Hook 연동 후)
 3. OTP 입력 → 인증 성공 확인
 4. Supabase Dashboard → Auth → Users에서 `phone` 필드 업데이트 확인
 5. `profiles` 테이블에 `phone_verified_at` 설정 확인
