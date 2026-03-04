@@ -58,3 +58,6 @@ app.*.map.json
 
 # Git worktrees
 .worktrees/
+
+# FVM Version Cache
+.fvm/
