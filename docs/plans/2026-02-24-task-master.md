@@ -273,6 +273,7 @@ fvm flutter build ios --no-codesign --debug   # iOS 빌드 확인
 |---|------|------|
 | ID1 | **Bundle ID 리네이밍** — `com.nworld.momo` → `com.dropdown.momo` (회사명 Dropdown 반영). iOS/Android/Supabase/코드/문서 전체 변경, Android Kotlin 디렉토리 이동 포함 | ✅ |
 | FVM1 | **FVM 도입** — Flutter 3.41.2 프로젝트 고정. 두 맥북 간 pubspec.lock 불일치 해결. `.fvmrc` 커밋, `.fvm/` gitignore, VS Code SDK 경로 자동 설정 | ✅ |
+| DOC1 | **인프라 가이드 Google→Kakao 전환 반영** — 섹션 2 전면 교체(Kakao Developers Console 6단계), 섹션 3-2 Kakao Provider, 테스트 절차 수정, config.toml `[auth.external.kakao]` 추가 | ✅ |
 
 ### 🔥 Sprint 0 — 관상 시스템 재설계 ("진짜 관상학 + 동적 동물 도감")
 
