@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/domain/entities/user_entity.dart';
+import '../../../../core/services/analytics_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/theme_extensions.dart';
 import '../../../../core/theme/tokens/saju_spacing.dart';
@@ -190,17 +191,26 @@ class _ProfileContent extends StatelessWidget {
                 _MenuTile(
                   icon: Icons.edit_outlined,
                   label: '프로필 편집',
-                  onTap: () => context.push(RoutePaths.editProfile),
+                  onTap: () {
+                    AnalyticsService.clickEditProfile();
+                    context.push(RoutePaths.editProfile);
+                  },
                 ),
                 _MenuTile(
                   icon: Icons.settings_outlined,
                   label: '설정',
-                  onTap: () => context.push(RoutePaths.settings),
+                  onTap: () {
+                    AnalyticsService.clickSettingsInProfile();
+                    context.push(RoutePaths.settings);
+                  },
                 ),
                 _MenuTile(
                   icon: Icons.card_giftcard_outlined,
                   label: '결제·구독',
-                  onTap: () => context.push(RoutePaths.payment),
+                  onTap: () {
+                    AnalyticsService.clickPaymentInProfile();
+                    context.push(RoutePaths.payment);
+                  },
                 ),
               ],
             ),
@@ -317,6 +327,7 @@ class _LogoutButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return OutlinedButton(
       onPressed: () async {
+        AnalyticsService.clickLogout();
         final confirmed = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(

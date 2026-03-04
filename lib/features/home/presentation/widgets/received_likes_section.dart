@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/services/analytics_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/theme_extensions.dart';
 import '../../../matching/presentation/providers/matching_provider.dart';
@@ -42,6 +43,7 @@ class ReceivedLikesSection extends ConsumerWidget {
           data: (likes) => _ReceivedLikesCard(
             count: likes.length,
             onTap: () {
+              AnalyticsService.clickCardInHome(section: 'received_likes');
               // "받은" 세그먼트(인덱스 2)로 설정 후 매칭 탭 이동
               ref.read(matchingTabSegmentProvider.notifier).state = 2;
               context.go(RoutePaths.matching);

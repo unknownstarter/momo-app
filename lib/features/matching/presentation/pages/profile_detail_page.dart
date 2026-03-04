@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/di/providers.dart';
+import '../../../../core/services/analytics_service.dart';
 import '../../../../core/services/haptic_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/theme_extensions.dart';
@@ -1316,6 +1317,7 @@ class _BottomActionBar extends ConsumerWidget {
   }
 
   void _handleSendLike(BuildContext context, WidgetRef ref) {
+    AnalyticsService.likeSent(source: 'profile_detail');
     final repo = ref.read(matchingRepositoryProvider);
     repo.sendLike(profile.userId);
 
@@ -1333,6 +1335,8 @@ class _BottomActionBar extends ConsumerWidget {
 
   Future<void> _handleAcceptLike(BuildContext context, WidgetRef ref) async {
     if (likeId == null) return;
+    AnalyticsService.likeAccepted(profileId: profile.userId);
+    AnalyticsService.matchCreated();
     final repo = ref.read(matchingRepositoryProvider);
     await repo.acceptLike(likeId!);
 
@@ -1349,6 +1353,7 @@ class _BottomActionBar extends ConsumerWidget {
 
   void _handleRejectLike(BuildContext context, WidgetRef ref) {
     if (likeId == null) return;
+    AnalyticsService.likeRejected(profileId: profile.userId);
     final repo = ref.read(matchingRepositoryProvider);
     repo.rejectLike(likeId!);
 

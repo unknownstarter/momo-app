@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/services/analytics_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/tokens/saju_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
@@ -159,6 +160,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
     setState(() => _isSubmitting = false);
 
     if (result != null) {
+      AnalyticsService.completeMatchingProfile();
       context.go(RoutePaths.postAnalysisMatches);
     } else {
       // TODO(PROD): 디버그 바이패스 제거 — Supabase 연결 후 이 블록 삭제

@@ -19,6 +19,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/services/analytics_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/theme_extensions.dart';
 import '../../../../core/theme/tokens/saju_colors.dart';
@@ -92,6 +93,7 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
   @override
   void initState() {
     super.initState();
+    AnalyticsService.startDestinyAnalysis();
     _initAnimations();
     _startSajuAnalysis();
     _startPhaseTimer();
@@ -210,6 +212,7 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
     // 둘 다 완료 + 애니메이션 완료
     if (_animationComplete && _sajuResult != null && _gwansangResult != null) {
       _hasNavigated = true;
+      AnalyticsService.completeDestinyAnalysis();
       context.go(RoutePaths.destinyResult, extra: {
         'sajuResult': _sajuResult,
         'gwansangResult': _gwansangResult,
@@ -231,6 +234,7 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
     // 사주 분석 상태 감시
     ref.listen(sajuAnalysisNotifierProvider, (prev, next) {
       if (next.hasValue && next.value != null && _sajuResult == null) {
+        AnalyticsService.completeSajuAnalysis();
         _sajuResult = next.value;
         _startGwansangAnalysis(next.value!);
       } else if (next.hasError) {
@@ -252,6 +256,7 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
     // 관상 분석 상태 감시
     ref.listen(gwansangAnalysisNotifierProvider, (prev, next) {
       if (next.hasValue && next.value != null && _gwansangResult == null) {
+        AnalyticsService.completeGwansangAnalysis();
         _gwansangResult = next.value;
         _tryNavigate();
       } else if (next.hasError) {

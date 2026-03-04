@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/services/analytics_service.dart';
 import '../../../../core/theme/tokens/saju_spacing.dart';
 import '../../../../core/utils/date_formatter.dart';
 import '../../../../core/widgets/widgets.dart';
@@ -78,7 +79,10 @@ class _ChatRoomTile extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return InkWell(
-      onTap: () => context.push(RoutePaths.chatRoomPath(room.id)),
+      onTap: () {
+        AnalyticsService.clickChatRoom(roomId: room.id);
+        context.push(RoutePaths.chatRoomPath(room.id));
+      },
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: SajuSpacing.space16,

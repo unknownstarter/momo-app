@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/services/analytics_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/tokens/saju_spacing.dart';
 import '../providers/auth_provider.dart';
@@ -79,12 +80,14 @@ class _LoginPageState extends ConsumerState<LoginPage>
   Future<void> _handleAppleSignIn() async {
     if (_isLoading) return;
     HapticFeedback.lightImpact();
+    AnalyticsService.clickAppleLoginInLogin();
 
     setState(() => _isAppleLoading = true);
 
     try {
       final notifier = ref.read(authNotifierProvider.notifier);
       await notifier.signInWithApple();
+      AnalyticsService.loginSuccess(method: 'apple');
 
       if (!mounted) return;
       final hasProfile = await ref.read(hasProfileProvider.future);
@@ -114,6 +117,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
   Future<void> _handleKakaoSignIn() async {
     if (_isLoading) return;
     HapticFeedback.lightImpact();
+    AnalyticsService.clickKakaoLoginInLogin();
 
     setState(() => _isKakaoLoading = true);
 
@@ -149,6 +153,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
 
   void _handleBrowse() {
     HapticFeedback.lightImpact();
+    AnalyticsService.clickBrowseInLogin();
     context.go(RoutePaths.home);
   }
 

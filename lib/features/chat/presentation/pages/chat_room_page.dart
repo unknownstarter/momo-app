@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/services/analytics_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/tokens/saju_spacing.dart';
 import '../../../../core/utils/date_formatter.dart';
@@ -92,6 +93,7 @@ class _ChatRoomPageState extends ConsumerState<ChatRoomPage> {
           // 입력 바
           ChatInputBar(
             onSend: (text) {
+              AnalyticsService.messageSent();
               ref.read(sendMessageProvider.notifier).send(
                     roomId: widget.roomId,
                     content: text,

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "63795654583",
+    "project_id": "momo-app-1561a",
+    "storage_bucket": "momo-app-1561a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:63795654583:android:54d4408e34e0e9bfbf8232",
+        "android_client_info": {
+          "package_name": "com.dropdown.momo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBvMzeixfRA48aglH_PDjt2VVrm3w8sLD0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

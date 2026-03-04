@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/services/analytics_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/tokens/saju_spacing.dart';
 import '../providers/onboarding_provider.dart';
@@ -85,6 +86,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage>
   }
 
   void _startForm() {
+    AnalyticsService.clickStartFormInOnboarding();
     setState(() => _showForm = true);
     _fadeController.forward();
   }
@@ -94,6 +96,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage>
       final user = await ref
           .read(onboardingNotifierProvider.notifier)
           .saveOnboardingData(formData);
+      AnalyticsService.completeOnboarding();
       if (mounted) {
         final analysisData = <String, dynamic>{
           'userId': user.id,
@@ -157,6 +160,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage>
                       controller: _introPageController,
                       itemCount: _introSlides.length,
                       onPageChanged: (index) {
+                        AnalyticsService.viewOnboardingSlide(step: index);
                         setState(() => _currentIntroPage = index);
                       },
                       itemBuilder: (context, index) {

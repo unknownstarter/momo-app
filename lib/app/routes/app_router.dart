@@ -8,6 +8,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../core/constants/app_constants.dart';
 import '../../core/network/supabase_client.dart';
+import '../../core/services/analytics_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/momo_loading.dart';
 import '../../core/theme/theme_extensions.dart';
@@ -73,6 +74,7 @@ GoRouter appRouter(Ref ref) {
   return GoRouter(
     initialLocation: RoutePaths.splash,
     debugLogDiagnostics: false,
+    observers: [AnalyticsService.observer],
 
     // 인증 상태 변경 시 리다이렉트 재평가
     refreshListenable: authNotifier,
@@ -624,6 +626,10 @@ class _MainScaffold extends ConsumerWidget {
 
   void _onTap(int index) {
     HapticFeedback.selectionClick();
+    AnalyticsService.switchTab(
+      tabIndex: index,
+      tabName: const ['home', 'matching', 'chat', 'profile'][index],
+    );
     navigationShell.goBranch(
       index,
       initialLocation: index == navigationShell.currentIndex,

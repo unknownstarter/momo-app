@@ -1,9 +1,11 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app/app.dart';
+import 'firebase_options.dart';
 
 /// Momo — 사주 기반 소개팅 앱
 ///
@@ -25,6 +27,11 @@ Future<void> main() async {
       statusBarIconBrightness: Brightness.dark,
       statusBarBrightness: Brightness.light,
     ),
+  );
+
+  // Firebase 초기화 (전화번호 인증 전용)
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
   );
 
   // Supabase 초기화

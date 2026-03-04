@@ -22,6 +22,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/services/analytics_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/theme_extensions.dart';
 import '../../../../core/theme/tokens/saju_colors.dart';
@@ -392,10 +393,13 @@ class _DestinyResultPageState extends ConsumerState<DestinyResultPage>
         top: false,
         child: SajuButton(
           label: '내 사주와 찰떡인 사람, 만나볼까요?',
-          onPressed: () => context.go(
-            RoutePaths.matchingProfile,
-            extra: {'quickMode': true},
-          ),
+          onPressed: () {
+            AnalyticsService.clickFindMatchesInDestinyResult();
+            context.go(
+              RoutePaths.matchingProfile,
+              extra: {'quickMode': true},
+            );
+          },
           variant: SajuVariant.filled,
           color: elementColor,
           size: SajuSize.xl,

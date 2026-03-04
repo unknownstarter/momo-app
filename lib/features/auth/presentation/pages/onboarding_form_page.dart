@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/services/analytics_service.dart';
 import '../../../../core/services/haptic_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/tokens/saju_animation.dart';
@@ -179,12 +180,27 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
     setState(() => _currentStep = step);
   }
 
+  String _stepName(int step) => const [
+        'name',
+        'gender',
+        'birthdate',
+        'birthtime',
+        'sms',
+        'photo',
+        'summary',
+      ][step];
+
   void _nextStep() {
     if (!_validateCurrentStep()) return;
+    AnalyticsService.completeOnboardingStep(
+      step: _currentStep,
+      stepName: _stepName(_currentStep),
+    );
 
     if (_currentStep < _totalSteps - 1) {
       _goToStep(_currentStep + 1);
     } else {
+      AnalyticsService.clickStartAnalysisInOnboarding();
       HapticService.medium();
       _submitForm();
     }
@@ -291,6 +307,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
   // [FIX: C4] 동기적으로 플래그 세팅 → 더블탭 방지
   Future<void> _sendSmsCode() async {
     if (!_isPhoneValid || _smsSending) return;
+    AnalyticsService.clickSendSmsInOnboarding();
     _smsSending = true; // 동기적 세팅 (async gap 전)
     FocusScope.of(context).unfocus();
     setState(() {});
@@ -345,6 +362,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
           _smsVerifying = false;
           _smsVerified = true;
         });
+        AnalyticsService.completeSmsVerification();
         HapticService.success();
         // 성공 애니메이션 후 자동 진행
         await Future.delayed(const Duration(milliseconds: 600));

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/services/analytics_service.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../matching/domain/entities/match_profile.dart';
 import '../../../matching/presentation/providers/matching_provider.dart';
@@ -28,7 +29,10 @@ class RecommendationSection extends ConsumerWidget {
           child: SectionHeader(
             title: '궁합 매칭 추천 이성',
             actionLabel: '더보기',
-            onAction: () => context.go(RoutePaths.matching),
+            onAction: () {
+              AnalyticsService.clickSeeMoreInHome(section: 'recommendation');
+              context.go(RoutePaths.matching);
+            },
           ),
         ),
         HomeLayout.gapHeaderContent,
@@ -107,13 +111,16 @@ class _RecommendationGrid extends StatelessWidget {
             isPhoneVerified: profile.isPhoneVerified,
             showCharacterInstead: true,
             heroTag: 'home_char_${profile.userId}_$index',
-            onTap: () => context.push(
-              RoutePaths.profileDetail,
-              extra: {
-                'profile': profile,
-                'heroTag': 'home_char_${profile.userId}_$index',
-              },
-            ),
+            onTap: () {
+              AnalyticsService.clickCardInHome(section: 'recommendation');
+              context.push(
+                RoutePaths.profileDetail,
+                extra: {
+                  'profile': profile,
+                  'heroTag': 'home_char_${profile.userId}_$index',
+                },
+              );
+            },
           );
         },
       ),

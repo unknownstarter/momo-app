@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/di/providers.dart';
+import '../../../../core/services/analytics_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/theme_extensions.dart';
 import '../../../../core/theme/tokens/saju_spacing.dart';
@@ -68,8 +69,10 @@ class _MatchingPageState extends ConsumerState<MatchingPage> {
             // ---- 세그먼트 컨트롤 ----
             MatchingSegmentControl(
               selectedIndex: segment,
-              onChanged: (index) =>
-                  ref.read(matchingTabSegmentProvider.notifier).state = index,
+              onChanged: (index) {
+                AnalyticsService.clickTabInMatching(tabIndex: index);
+                ref.read(matchingTabSegmentProvider.notifier).state = index;
+              },
               receivedBadge: receivedCount > 0 ? receivedCount : null,
             ),
 
@@ -134,7 +137,12 @@ class _MatchingPageState extends ConsumerState<MatchingPage> {
               color: f.color,
               size: SajuSize.sm,
               isSelected: selected,
-              onTap: () => setState(() => _selectedFilter = f.value),
+              onTap: () {
+                AnalyticsService.clickFilterInMatching(
+                  element: f.value ?? 'all',
+                );
+                setState(() => _selectedFilter = f.value);
+              },
             ),
           );
         }).toList(),
@@ -302,7 +310,7 @@ class _MatchingPageState extends ConsumerState<MatchingPage> {
                 profile: item.profile,
                 animationDelay: Duration(milliseconds: 80 * index),
                 onAccept: () => _handleAcceptLike(context, item.like.id, item.profile),
-                onReject: () => _handleRejectLike(item.like.id),
+                onReject: () => _handleRejectLike(item.like.id, profileId: item.profile.userId),
                 onTap: () => context.push(
                   RoutePaths.profileDetail,
                   extra: {
@@ -328,6 +336,8 @@ class _MatchingPageState extends ConsumerState<MatchingPage> {
     String likeId,
     MatchProfile profile,
   ) async {
+    AnalyticsService.likeAccepted(profileId: profile.userId);
+    AnalyticsService.matchCreated();
     final repo = ref.read(matchingRepositoryProvider);
     await repo.acceptLike(likeId);
 
@@ -342,7 +352,8 @@ class _MatchingPageState extends ConsumerState<MatchingPage> {
     ref.read(activeMatchesProvider.notifier).refresh();
   }
 
-  Future<void> _handleRejectLike(String likeId) async {
+  Future<void> _handleRejectLike(String likeId, {String? profileId}) async {
+    AnalyticsService.likeRejected(profileId: profileId);
     final repo = ref.read(matchingRepositoryProvider);
     await repo.rejectLike(likeId);
 

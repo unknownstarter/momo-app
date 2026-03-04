@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/domain/entities/compatibility_entity.dart';
+import '../../../../core/services/analytics_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/theme_extensions.dart';
 import '../../../../core/widgets/widgets.dart';
@@ -17,7 +18,7 @@ import '../providers/matching_provider.dart';
 /// CompatibilityPreviewPage — 궁합 프리뷰 바텀시트 (토스 스타일 미니멀)
 ///
 /// 다크 모드, 여백 넉넉, 타이포 위계 명확, 장식 최소화.
-class CompatibilityPreviewPage extends ConsumerWidget {
+class CompatibilityPreviewPage extends ConsumerStatefulWidget {
   const CompatibilityPreviewPage({
     super.key,
     required this.partnerId,
@@ -30,7 +31,22 @@ class CompatibilityPreviewPage extends ConsumerWidget {
   final ScrollController scrollController;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CompatibilityPreviewPage> createState() =>
+      _CompatibilityPreviewPageState();
+}
+
+class _CompatibilityPreviewPageState
+    extends ConsumerState<CompatibilityPreviewPage> {
+  @override
+  void initState() {
+    super.initState();
+    AnalyticsService.viewCompatibilityPreview(
+      profileId: widget.partnerId,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final compatibilityAsync = ref.watch(compatibilityPreviewProvider);
 
     return Theme(
@@ -47,7 +63,7 @@ class CompatibilityPreviewPage extends ConsumerWidget {
               ),
             ),
             child: SingleChildScrollView(
-              controller: scrollController,
+              controller: widget.scrollController,
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
                 children: [
@@ -56,7 +72,7 @@ class CompatibilityPreviewPage extends ConsumerWidget {
                   const SizedBox(height: 28),
 
                   // --- 캐릭터 쌍 ---
-                  _buildCharacterPair(context, textTheme, ref),
+                  _buildCharacterPair(context, textTheme),
 
                   const SizedBox(height: 32),
 
@@ -125,12 +141,11 @@ class CompatibilityPreviewPage extends ConsumerWidget {
   Widget _buildCharacterPair(
     BuildContext context,
     TextTheme textTheme,
-    WidgetRef ref,
   ) {
     final partnerColor =
-        AppTheme.fiveElementColor(partnerProfile.elementType);
+        AppTheme.fiveElementColor(widget.partnerProfile.elementType);
     final partnerPastel =
-        AppTheme.fiveElementPastel(partnerProfile.elementType);
+        AppTheme.fiveElementPastel(widget.partnerProfile.elementType);
 
     // 현재 유저의 사주 분석 결과에서 오행 캐릭터 정보를 가져옴
     final myAnalysis = ref.watch(sajuAnalysisNotifierProvider).valueOrNull;
@@ -165,11 +180,11 @@ class CompatibilityPreviewPage extends ConsumerWidget {
         ),
         const SizedBox(width: 24),
         _CharacterAvatar(
-          label: partnerProfile.name,
+          label: widget.partnerProfile.name,
           color: partnerColor,
           pastelColor: partnerPastel,
-          assetPath: partnerProfile.characterAssetPath,
-          characterName: partnerProfile.characterName,
+          assetPath: widget.partnerProfile.characterAssetPath,
+          characterName: widget.partnerProfile.characterName,
         ),
       ],
     );
@@ -193,16 +208,16 @@ class CompatibilityPreviewPage extends ConsumerWidget {
   /// - 파트너 animalType 없음 → 섹션 숨김
   /// - 파트너 animalType 있음 (현재 유저 관상 미완료 가정) → 넛지 CTA
   Widget _buildAnimalChemi(BuildContext context, TextTheme textTheme) {
-    final partnerAnimal = partnerProfile.animalType;
+    final partnerAnimal = widget.partnerProfile.animalType;
 
     if (partnerAnimal == null) return const SizedBox.shrink();
 
     // 새 필드가 있으면 modifier + korean 조합, 없으면 기존 animalType 사용
     final animalDisplayText =
-        (partnerProfile.animalModifier != null &&
-                partnerProfile.animalTypeKorean != null)
-            ? '${partnerProfile.name}님은 ${partnerProfile.animalModifier} ${partnerProfile.animalTypeKorean}상'
-            : '${partnerProfile.name}님은 $partnerAnimal상';
+        (widget.partnerProfile.animalModifier != null &&
+                widget.partnerProfile.animalTypeKorean != null)
+            ? '${widget.partnerProfile.name}님은 ${widget.partnerProfile.animalModifier} ${widget.partnerProfile.animalTypeKorean}상'
+            : '${widget.partnerProfile.name}님은 $partnerAnimal상';
 
     // 현재 유저는 관상 미완료로 가정 (provider 연동 시 분기 추가 예정)
     return Container(
@@ -261,7 +276,7 @@ class CompatibilityPreviewPage extends ConsumerWidget {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content:
-                      Text('${partnerProfile.name}님에게 좋아요를 보냈어요'),
+                      Text('${widget.partnerProfile.name}님에게 좋아요를 보냈어요'),
                   behavior: SnackBarBehavior.floating,
                 ),
               );
