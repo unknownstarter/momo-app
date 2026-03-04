@@ -8,6 +8,8 @@ abstract class ProfileRepository {
     required String gender,
     required DateTime birthDate,
     String? birthTime,
+    String? phone,
+    bool isPhoneVerified = false,
   });
 
   /// 매칭 프로필 완성 (Phase B 온보딩 완료 시)

@@ -32,7 +32,6 @@ import '../../../../core/theme/tokens/saju_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../providers/post_analysis_matches_provider.dart';
 import '../widgets/match_list_tile.dart';
-import 'compatibility_preview_page.dart';
 
 /// 분석 완료 후 매칭 추천 리스트
 class PostAnalysisMatchListPage extends ConsumerWidget {
@@ -154,8 +153,15 @@ class PostAnalysisMatchListPage extends ConsumerWidget {
                       return MatchListTile(
                         profile: profile,
                         isBestMatch: showBestMatch,
-                        onTap: () => showCompatibilityPreview(
-                            context, ref, profile),
+                        onTap: () => context.push(
+                          RoutePaths.profileDetail,
+                          extra: {
+                            'profile': profile,
+                            'heroTag':
+                                'post_analysis_${profile.userId}_$index',
+                            'source': 'recommendation',
+                          },
+                        ),
                         animationDelay:
                             Duration(milliseconds: 80 * index),
                       );

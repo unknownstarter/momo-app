@@ -492,7 +492,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
             final isSelected = _selectedBodyType == type;
             return SajuChip(
               label: type.label,
-              color: SajuColor.water,
+              color: SajuColor.earth,
               isSelected: isSelected,
               size: SajuSize.md,
               onTap: () => setState(() {
@@ -513,7 +513,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
             final isSelected = _selectedReligion == rel;
             return SajuChip(
               label: rel.label,
-              color: SajuColor.water,
+              color: SajuColor.earth,
               isSelected: isSelected,
               size: SajuSize.md,
               onTap: () => setState(() {
@@ -534,7 +534,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
             final isSelected = _selectedInterests.contains(interest);
             return SajuChip(
               label: interest,
-              color: SajuColor.water,
+              color: SajuColor.earth,
               isSelected: isSelected,
               size: SajuSize.md,
               onTap: () {
@@ -572,7 +572,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
               child: SajuButton(
                 label: '추가',
                 onPressed: _addCustomInterest,
-                color: SajuColor.water,
+                color: SajuColor.earth,
                 size: SajuSize.md,
                 expand: false,
               ),
@@ -593,7 +593,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
                 .map((interest) {
               return SajuChip(
                 label: interest,
-                color: SajuColor.water,
+                color: SajuColor.earth,
                 isSelected: true,
                 size: SajuSize.sm,
                 onDeleted: () {

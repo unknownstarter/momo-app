@@ -1,4 +1,4 @@
-# 테스크 마스터 — 2026-03-04 (v13)
+# 테스크 마스터 — 2026-03-04 (v14)
 
 > **작성일**: 2026-02-24 | **갱신**: 2026-03-04
 > **목적**: 다음에 할 일을 한곳에 정리해, 다른 디바이스에서 보고 연속으로 작업할 수 있게 함.
@@ -88,13 +88,14 @@ fvm flutter build ios --no-codesign --debug   # iOS 빌드 확인
 > 상세 문서: `docs/dev-log/2026-02-26-debug-bypass.md`
 > 검증: `grep -rn "BYPASS-\|TODO(PROD)" lib/ --include="*.dart"` → **0건**
 
-### 현재 앱 상태 요약 (2026-03-04 v3)
+### 현재 앱 상태 요약 (2026-03-04 v4)
 
-- **작동하는 것**: 온보딩(7스텝, SMS 필수) → 사주+관상 통합 분석 → 결과(탭) → 데이팅 프로필(8필드) → 추천 리스트 → 홈(추천 그리드) → 프로필 상세(인라인 궁합, Hero) → 궁합 프리뷰
-- **실연동된 것**: Apple/Kakao 로그인(Supabase Auth), SMS 인증(Firebase Phone Auth), 프로필 저장, 사주/관상 분석(Edge Function + Claude API), 매칭 프로필 저장, 궁합 계산, 라우터 가드(비로그인 접근 차단)
+- **작동하는 것**: 온보딩(7스텝, SMS 필수) → 프로필 저장 → 데이팅 프로필(8필드) → 추천 리스트 → 홈(추천 그리드) → 프로필 상세(인라인 궁합, Hero) → 궁합 프리뷰
+- **실연동된 것**: Apple/Kakao 로그인(Supabase Auth), SMS 인증(Firebase Phone Auth), 프로필 저장(phone 포함), 매칭 프로필 저장, 궁합 계산, 라우터 가드(비로그인 접근 차단), profiles→auth.users DB 트리거 동기화
+- **🔴 현재 고장**: 사주 분석 (destiny_analysis_page에서 에러 발생, 원인 미확인 — 진단 로그 추가 완료, 다음 테스트 필요)
 - **Mock인 것**: 추천 목록(`getDailyRecommendations`), 좋아요(`sendLike`/`getLikes`), 채팅
-- **직전 완료**: Sprint A — BYPASS 8건 전체 제거 + DB 마이그레이션(누락 3컬럼) + Firebase Analytics 이벤트 트래킹(30+ events)
-- **다음 작업**: **Sprint B — 실데이터 매칭** (추천 목록 실연동, 좋아요 시스템)
+- **직전 완료**: Sprint A BYPASS 제거 + Auth 디버깅 6건 수정 + DB 트리거 배포
+- **다음 작업**: **🔴 사주 분석 디버깅** → Sprint B — 실데이터 매칭
 
 ---
 
@@ -128,8 +129,24 @@ fvm flutter build ios --no-codesign --debug   # iOS 빌드 확인
 
 ## 2. 다음에 할 일 (우선순위순)
 
-> **현재 최우선**: ⭐ **Sprint B — 실데이터 매칭** (추천 목록 실연동, 좋아요 시스템)
-> Sprint A 완료 (2026-03-04). BYPASS 8건 전체 제거 + Auth 실연동 + DB 마이그레이션.
+> **현재 최우선**: 🔴 **사주 분석 디버깅** — 온보딩 후 사주 분석이 실패하는 문제 해결
+> Sprint A BYPASS 제거 완료 + Auth 디버깅 6건 수정 (2026-03-04). 사주 분석만 해결하면 Sprint B 진입 가능.
+
+### 🔴 긴급 — 사주 분석 실패 디버깅 (Sprint B 진입 전 필수)
+
+> **증상**: 온보딩 완료 → destiny_analysis_page → "사주 분석 중에 문제가 생겼어요" 에러
+> **원인**: 미확인. 4단계 파이프라인 중 어느 단계에서 실패하는지 모름.
+> **진단 도구**: `[SajuRepo]` + `[DestinyAnalysis]` debugPrint 로그 추가 완료.
+> **상세**: `docs/dev-log/2026-02-24-progress.md` "🔴 미해결: 사주 분석 실패" 섹션 참조.
+
+| # | Task | 담당 | 상태 |
+|---|------|------|------|
+| DBG1 | **앱 재설치 + 온보딩 → Xcode 콘솔 로그 확인** — `[SajuRepo]`, `[DestinyAnalysis]` 검색 | 노아님+아리 | ⬜ |
+| DBG2 | **실패 단계 특정 후 해당 Edge Function/DB 쿼리 디버깅** | 아리 | ⬜ |
+| DBG3 | **DB 트리거 동기화 검증** — profiles INSERT 후 auth.users에 display_name/phone 반영 확인 | 아리 | ⬜ |
+| DBG4 | **수정 완료 후 E2E 전체 플로우 검증** — 로그인→온보딩→분석→결과→프로필→홈 | 아리 | ⬜ |
+
+---
 
 ### 🔥 즉시 (Highest) — AI 관상 + 동물상 Feature 구현 + 온보딩 리팩토링
 
@@ -372,6 +389,13 @@ fvm flutter build ios --no-codesign --debug   # iOS 빌드 확인
 | A9 | **BYPASS-5 제거** — `matching_profile_page.dart` catch 블록에서 kDebugMode 삭제 | 아리 | A5 + A8 | ✅ |
 | A9.5 | **BYPASS-6/7 제거** — `onboarding_form_page.dart` SMS mock → Firebase Phone Auth 실연동 (`verifyPhoneNumber` + `signInWithCredential` + Supabase profiles 업데이트) | 아리 | A2.5 | ✅ |
 | A10 | **BYPASS-8 제거** — `app_router.dart` publicPaths에서 matching/chat/profile 제거 | 아리 | A3~A9 전체 | ✅ |
+| A11 | **Auth 디버깅 — Kakao OAuth trailing slash** | 아리 | A10 | ✅ |
+| A12 | **Auth 디버깅 — phone/isPhoneVerified createProfile 통합** | 아리 | A10 | ✅ |
+| A13 | **Auth 디버깅 — auth.updateUser try-catch 분리 (에러 토스트 수정)** | 아리 | A10 | ✅ |
+| A14 | **DB 트리거 — profiles→auth.users 자동 동기화** | 아리 | A10 | ✅ |
+| A15 | **userName null 수정 — Edge Function + Flutter 양측 기본값** | 아리 | A10 | ✅ |
+| A16 | **destiny_analysis userId 수정 — authId→profiles.id** | 아리 | A10 | ✅ |
+| A17 | **사주 분석 진단 로그 추가** — saju_repository + destiny_analysis debugPrint | 아리 | A10 | ✅ |
 
 **Sprint A 완료 기준 (데모 가능):**
 - ✅ 실기기 Apple/Kakao 로그인 → `auth.users` 레코드 생성
@@ -464,9 +488,10 @@ fvm flutter build ios --no-codesign --debug   # iOS 빌드 확인
 - [x] ~~Sprint A 코드 사전 준비~~ ✅ 완료 (2026-03-01)
 - [x] ~~온보딩 리디자인 설계~~ ✅ 완료 (2026-03-03) — 마스터 플랜 + 백엔드 아키텍처 + UX 스펙
 - [x] ~~Sprint ON — 온보딩 리디자인 구현~~ ✅ 완료 (2026-03-03) — ON1~ON9 + SMS 필수화 + Firebase Phone Auth 전환
-- [ ] **⭐ Sprint A 인프라 설정 (노아님)** — Apple Developer + Kakao Developer + Firebase Console + Supabase Dashboard 연결. 가이드: `docs/guides/sprint-a-infra-setup.md`
-- [ ] **Sprint A BYPASS 제거 (아리)** — 인프라 완료 후 A3~A10 순차 진행
-- [x] ~~**UX 고도화** — 유저 상세페이지 + 궁합 매칭 진입점 Wow 경험~~ ✅ 완료 (2026-03-02)
-- [ ] 참조: `docs/dev-log/2026-02-26-debug-bypass.md` (바이패스 상세)
+- [x] ~~Sprint A 인프라 설정 (노아님)~~ ✅ 완료 (2026-03-04)
+- [x] ~~Sprint A BYPASS 제거 (아리)~~ ✅ 완료 (2026-03-04) — A3~A10 + Auth 디버깅 A11~A17
+- [x] ~~UX 고도화~~ ✅ 완료 (2026-03-02)
+- [ ] **🔴 사주 분석 디버깅 (DBG1~DBG4)** — Xcode 콘솔 `[SajuRepo]` 로그 확인 → 실패 단계 특정 → 수정
+- [ ] **Sprint B — 실데이터 매칭** — DBG 완료 후 B1~B4 진행
 - [ ] `lib/core/di/providers.dart` 확인 (새 Repository/DataSource 추가 시 반드시 등록)
 - [ ] 작업 완료 시 본 테스크 마스터 상태(⬜→✅) 및 dev-log 업데이트

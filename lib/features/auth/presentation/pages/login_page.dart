@@ -249,7 +249,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
 
         // 서브 카피
         Text(
-          '조상님 덕에 쌓인 사주 데이터, AI가 풀어드려요',
+          '사주 궁합으로 찾는, 운명이 이끄는 만남',
           style: TextStyle(
             fontFamily: AppTheme.fontFamily,
             fontSize: 16,

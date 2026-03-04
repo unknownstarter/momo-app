@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/constants/app_constants.dart';
@@ -21,12 +22,14 @@ class ProfileRepositoryImpl implements ProfileRepository {
     required String gender,
     required DateTime birthDate,
     String? birthTime,
+    String? phone,
+    bool isPhoneVerified = false,
   }) async {
     try {
       final authId = _client.auth.currentUser?.id;
       if (authId == null) throw AuthFailure.unauthenticated();
 
-      final data = {
+      final data = <String, dynamic>{
         'auth_id': authId,
         'name': name,
         'gender': gender,
@@ -34,13 +37,39 @@ class ProfileRepositoryImpl implements ProfileRepository {
         'birth_time': birthTime,
       };
 
+      // 전화번호 인증 완료 시 함께 저장
+      if (phone != null && phone.isNotEmpty) {
+        data['phone'] = phone;
+        data['is_phone_verified'] = isPhoneVerified;
+      }
+
       final result = await _client
           .from(SupabaseTables.profiles)
-          .insert(data)
+          .upsert(data, onConflict: 'auth_id')
           .select()
           .single();
 
+      // auth.users.user_metadata에 display_name 동기화 (실패해도 프로필 생성 블록 안 함)
+      try {
+        await _client.auth.updateUser(
+          UserAttributes(data: {'display_name': name}),
+        );
+      } catch (e) {
+        debugPrint('[ProfileRepo] auth.updateUser 실패 (무시): $e');
+      }
+
       return UserModel.fromJson(result);
+    } on PostgrestException catch (e) {
+      // FK 위반 = auth.users에 없는 auth_id → stale 세션 정리
+      if (e.code == '23503' && e.message.contains('auth_id')) {
+        await _client.auth.signOut();
+        throw AuthFailure.sessionExpired();
+      }
+      throw ServerFailure(
+        message: 'DB 오류: ${e.message}',
+        code: e.code,
+        originalException: e,
+      );
     } on Failure {
       rethrow;
     } catch (e) {

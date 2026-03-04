@@ -3,10 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/di/providers.dart';
+import '../../../../core/errors/failures.dart';
 import '../../../../core/services/analytics_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/tokens/saju_spacing.dart';
-import '../providers/onboarding_provider.dart';
 import 'onboarding_form_page.dart';
 
 /// OnboardingPage -- 온보딩 메인 컨테이너
@@ -92,9 +93,16 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage>
 
   Future<void> _onFormComplete(Map<String, dynamic> formData) async {
     try {
-      final user = await ref
-          .read(onboardingNotifierProvider.notifier)
-          .saveOnboardingData(formData);
+      // Repository를 직접 호출 — AsyncNotifier의 auto-dispose 충돌 방지
+      final repo = ref.read(profileRepositoryProvider);
+      final user = await repo.createProfile(
+        name: formData['name'] as String,
+        gender: formData['gender'] == '남성' ? 'male' : 'female',
+        birthDate: DateTime.parse(formData['birthDate'] as String),
+        birthTime: formData['birthTime'] as String?,
+        phone: formData['phone'] as String?,
+        isPhoneVerified: formData['isPhoneVerified'] as bool? ?? false,
+      );
       AnalyticsService.completeOnboarding();
       if (mounted) {
         final analysisData = <String, dynamic>{
@@ -108,12 +116,25 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage>
         };
         context.go(RoutePaths.destinyAnalysis, extra: analysisData);
       }
+    } on AuthFailure catch (e) {
+      debugPrint('[OnboardingPage] 인증 만료: $e');
+      if (!mounted) return;
+      // signOut이 이미 호출됨 → 라우터가 자동으로 로그인 화면으로 이동
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('로그인이 만료되었어요. 다시 로그인해 주세요.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      context.go(RoutePaths.login);
     } catch (e) {
+      debugPrint('[OnboardingPage] 프로필 저장 실패: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('프로필 저장에 실패했어요. 다시 시도해주세요.'),
+          content: Text('프로필 저장에 실패했어요. 다시 시도해 주세요.'),
           backgroundColor: AppTheme.fireColor,
+          duration: const Duration(seconds: 5),
         ),
       );
     }

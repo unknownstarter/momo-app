@@ -132,8 +132,9 @@ function validateRequest(body: RequestBody): string | null {
   if (!body.sajuResult) {
     return "sajuResult is required";
   }
+  // userName이 없으면 기본값 사용 (Flutter 클라이언트 호환)
   if (!body.userName || typeof body.userName !== "string") {
-    return "userName is required and must be a string";
+    body.userName = "사용자";
   }
   const { sajuResult } = body;
   if (!sajuResult.yearPillar || !sajuResult.monthPillar || !sajuResult.dayPillar) {

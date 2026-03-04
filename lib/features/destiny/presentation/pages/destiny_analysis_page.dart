@@ -17,6 +17,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/services/analytics_service.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -146,9 +148,54 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
   // 사주 분석 시작
   // ---------------------------------------------------------------------------
 
-  void _startSajuAnalysis() {
+  /// analysisData가 비어있으면(리다이렉트 등) Supabase 프로필 DB에서 가져옴
+  Map<String, dynamic>? _cachedData;
+
+  Future<Map<String, dynamic>> _resolveData() async {
+    if (_cachedData != null) return _cachedData!;
+
     final data = widget.analysisData;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (data.isNotEmpty && data['birthDate'] != null) {
+      _cachedData = data;
+      return data;
+    }
+
+    // 프로필 DB에서 가져오기
+    final supabase = Supabase.instance.client;
+    final authId = supabase.auth.currentUser?.id;
+    if (authId == null) {
+      _cachedData = data;
+      return data;
+    }
+
+    try {
+      final row = await supabase
+          .from('profiles')
+          .select('id, auth_id, name, gender, birth_date, birth_time')
+          .eq('auth_id', authId)
+          .maybeSingle();
+      if (row != null) {
+        _cachedData = {
+          'userId': row['id'] as String, // profiles.id (NOT authId)
+          'birthDate': row['birth_date'] as String? ?? '',
+          'birthTime': row['birth_time'] as String?,
+          'isLunar': false,
+          'userName': row['name'] as String?,
+          'gender': row['gender'] == 'male' ? '남성' : '여성',
+          'photoPath': data['photoPath'],
+        };
+        return _cachedData!;
+      }
+    } catch (_) {}
+
+    _cachedData = data;
+    return data;
+  }
+
+  void _startSajuAnalysis() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final data = await _resolveData();
+      if (!mounted) return;
       ref.read(sajuAnalysisNotifierProvider.notifier).analyze(
             userId: data['userId'] as String? ?? '',
             birthDate: data['birthDate'] as String? ?? '',
@@ -163,11 +210,11 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
   // 관상 분석 시작 (사주 완료 후)
   // ---------------------------------------------------------------------------
 
-  void _startGwansangAnalysis(SajuAnalysisResult sajuResult) {
+  void _startGwansangAnalysis(SajuAnalysisResult sajuResult) async {
     if (_gwansangStarted) return;
     _gwansangStarted = true;
 
-    final data = widget.analysisData;
+    final data = await _resolveData();
     final photoPath = data['photoPath'] as String?;
     final gender = data['gender'] as String? ?? 'unknown';
 
@@ -234,6 +281,8 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
         _sajuResult = next.value;
         _startGwansangAnalysis(next.value!);
       } else if (next.hasError) {
+        debugPrint('[DestinyAnalysis] ❌ 사주 분석 에러: ${next.error}');
+        debugPrint('[DestinyAnalysis] ❌ 스택: ${next.stackTrace}');
         setState(() {
           _hasError = true;
           _errorMessage = '사주 분석 중에 문제가 생겼어요';
@@ -329,7 +378,7 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
 
             // --- 메인 텍스트 ---
             SizedBox(
-              height: 72,
+              height: 100,
               child: FadeTransition(
                 opacity: _textFadeController,
                 child: Column(
@@ -527,7 +576,7 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
             SajuSpacing.gap16,
             SajuButton(
               label: '돌아가기',
-              onPressed: () => context.pop(),
+              onPressed: () => context.go(RoutePaths.splash),
               variant: SajuVariant.ghost,
               color: SajuColor.metal,
               size: SajuSize.md,

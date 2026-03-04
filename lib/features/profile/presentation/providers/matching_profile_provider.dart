@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/di/providers.dart';
 import '../../../../core/domain/entities/user_entity.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 
 /// Phase B 매칭 프로필 완성 상태
 class MatchingProfileNotifier extends StateNotifier<AsyncValue<void>> {
@@ -43,6 +44,8 @@ class MatchingProfileNotifier extends StateNotifier<AsyncValue<void>> {
         bodyType: bodyType,
         idealType: idealType,
       );
+      // 라우터 가드가 최신 isProfileComplete를 읽도록 프로필 캐시 갱신
+      _ref.invalidate(currentUserProfileProvider);
       state = const AsyncValue.data(null);
       return user;
     } catch (e, st) {

@@ -38,7 +38,7 @@ class OnboardingFormPage extends StatefulWidget {
   });
 
   /// 폼 완료 시 수집된 데이터를 전달하는 콜백
-  final void Function(Map<String, dynamic> formData) onComplete;
+  final Future<void> Function(Map<String, dynamic> formData) onComplete;
 
   @override
   State<OnboardingFormPage> createState() => _OnboardingFormPageState();
@@ -49,6 +49,54 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
 
   final _pageController = PageController();
   int _currentStep = 0;
+
+  /// 기존 프로필이 있으면 SMS 인증 스킵용 플래그
+  bool _phoneAlreadyVerified = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadExistingProfile();
+  }
+
+  /// 재온보딩 시 기존 프로필 데이터를 가져와서 pre-fill + SMS 스킵 결정
+  Future<void> _loadExistingProfile() async {
+    try {
+      final supabase = Supabase.instance.client;
+      final authId = supabase.auth.currentUser?.id;
+      if (authId == null) return;
+
+      final row = await supabase
+          .from('profiles')
+          .select('name, gender, birth_date, birth_time, phone, is_phone_verified')
+          .eq('auth_id', authId)
+          .maybeSingle();
+
+      if (row == null || !mounted) return;
+
+      setState(() {
+        // 이름 pre-fill
+        if (row['name'] != null && _nameController.text.isEmpty) {
+          _nameController.text = row['name'] as String;
+        }
+        // 성별 pre-fill
+        if (row['gender'] != null && _selectedGender == null) {
+          _selectedGender = row['gender'] == 'male' ? '남성' : '여성';
+        }
+        // 생년월일 pre-fill
+        if (row['birth_date'] != null && _birthDate == null) {
+          try {
+            _birthDate = DateTime.parse(row['birth_date'] as String);
+          } catch (_) {}
+        }
+        // SMS 인증 스킵
+        if (row['is_phone_verified'] == true) {
+          _phoneAlreadyVerified = true;
+          _smsVerified = true;
+        }
+      });
+    } catch (_) {}
+  }
 
   // ---------------------------------------------------------------------------
   // Step 0: 이름
@@ -81,6 +129,7 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
   bool _smsVerifying = false;
   bool _smsVerified = false;
   bool _otpError = false;
+  bool _otpExpired = false;
   Timer? _otpTimer;
   int _otpSecondsLeft = 0;
   final _otpKey = GlobalKey<SajuOtpInputState>();
@@ -201,11 +250,19 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
     );
 
     if (_currentStep < _totalSteps - 1) {
-      _goToStep(_currentStep + 1);
+      final nextStep = _currentStep + 1;
+
+      // SMS 스텝(4) 자동 스킵: 이미 전화번호 인증된 유저
+      if (nextStep == 4 && _phoneAlreadyVerified) {
+        _goToStep(5); // 사진 스텝으로 건너뜀
+        return;
+      }
+
+      _goToStep(nextStep);
     } else {
       AnalyticsService.clickStartAnalysisInOnboarding();
       HapticService.medium();
-      _submitForm();
+      unawaited(_submitForm());
     }
   }
 
@@ -265,7 +322,12 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
     _ => true,
   };
 
-  void _submitForm() {
+  bool _submitting = false;
+
+  Future<void> _submitForm() async {
+    if (_submitting) return; // 중복 제출 방지
+    setState(() => _submitting = true);
+
     final formData = <String, dynamic>{
       'name': _nameController.text.trim(),
       'gender': _selectedGender,
@@ -282,7 +344,13 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
       'isPhoneVerified': _smsVerified,
     };
 
-    widget.onComplete(formData);
+    try {
+      await widget.onComplete(formData);
+    } catch (e) {
+      debugPrint('[OnboardingFormPage] _submitForm error: $e');
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -316,6 +384,21 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
     setState(() {});
 
     try {
+      // 중복 번호 체크
+      final e164 = PhoneUtils.toE164(_phoneController.text);
+      final existing = await Supabase.instance.client
+          .from('profiles')
+          .select('auth_id')
+          .eq('phone', e164)
+          .eq('is_phone_verified', true)
+          .maybeSingle();
+      if (existing != null) {
+        if (!mounted) return;
+        setState(() => _smsSending = false);
+        _showSnack('이미 가입된 번호입니다.');
+        return;
+      }
+
       await fb.FirebaseAuth.instance.verifyPhoneNumber(
         phoneNumber: PhoneUtils.toE164(_phoneController.text),
         forceResendingToken: _resendToken,
@@ -362,7 +445,15 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
 
   // [FIX: I5] _smsVerified 체크 추가 → 인증 성공 후 중복 호출 차단
   Future<void> _verifySmsCode(String code) async {
-    if (_smsVerifying || _smsVerified || _otpSecondsLeft <= 0) return;
+    if (_smsVerifying || _smsVerified) return;
+    if (_otpSecondsLeft <= 0) {
+      setState(() {
+        _otpExpired = true;
+        _otpError = true;
+      });
+      _otpKey.currentState?.clear();
+      return;
+    }
     setState(() {
       _smsVerifying = true;
       _otpError = false;
@@ -431,7 +522,11 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
 
   void _startOtpTimer() {
     _otpTimer?.cancel();
-    setState(() => _otpSecondsLeft = 180); // 3분
+    setState(() {
+      _otpSecondsLeft = 180; // 3분
+      _otpExpired = false;
+      _otpError = false;
+    });
     _otpTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) {
         timer.cancel();
@@ -439,7 +534,10 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
       }
       setState(() {
         _otpSecondsLeft--;
-        if (_otpSecondsLeft <= 0) timer.cancel();
+        if (_otpSecondsLeft <= 0) {
+          timer.cancel();
+          _otpExpired = true;
+        }
       });
     });
   }
@@ -992,9 +1090,11 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
           alignment: Alignment.centerLeft,
           child: SajuCharacterBubble(
             characterName: '흙순이',
-            message: _otpError
-                ? '앗, 번호가 맞지 않는 것 같아요.\n다시 한 번 확인해봐요~'
-                : '인증번호를 보냈어요!\n빨리 확인해봐요~',
+            message: _otpExpired
+                ? '시간이 지나버렸어요~\n재발송 눌러서 다시 해봐요!'
+                : _otpError
+                    ? '앗, 번호가 맞지 않는 것 같아요.\n다시 한 번 확인해봐요~'
+                    : '인증번호를 보냈어요!\n빨리 확인해봐요~',
             elementColor: SajuColor.earth,
             characterAssetPath: CharacterAssets.heuksuniEarthDefault,
             size: SajuSize.md,
@@ -1046,6 +1146,20 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
           onCompleted: _verifySmsCode,
         ),
         SajuSpacing.gap24,
+
+        // 시간 초과 피드백
+        if (_otpExpired)
+          const Padding(
+            padding: EdgeInsets.only(bottom: 16),
+            child: Text(
+              '입력 시간이 지났습니다. 다시 시도해주세요.',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFFE53935),
+              ),
+            ),
+          ),
 
         // 타이머 + 재발송
         Row(
@@ -1398,10 +1512,11 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
               color: const Color(0xFF6B6B6B),
             ),
           ),
-          const Spacer(),
-          Flexible(
+          const SizedBox(width: 16),
+          Expanded(
             child: Text(
               value,
+              textAlign: TextAlign.right,
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,

@@ -118,11 +118,8 @@ class SajuRemoteDatasource {
   }) async {
     final body = <String, dynamic>{
       'sajuResult': sajuResult,
+      'userName': (userName != null && userName.isNotEmpty) ? userName : '사용자',
     };
-
-    if (userName != null && userName.isNotEmpty) {
-      body['userName'] = userName;
-    }
 
     final response = await _helper.invokeFunction(
       SupabaseFunctions.generateSajuInsight,

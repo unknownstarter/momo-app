@@ -81,6 +81,12 @@ GoRouter appRouter(Ref ref) {
 
     // --- 글로벌 리다이렉트 로직 ---
     redirect: (context, state) {
+      // Firebase Phone Auth reCAPTCHA 콜백 딥링크 — GoRouter 무시
+      // Firebase SDK가 내부적으로 처리하므로 현재 페이지에 머무름
+      if (state.uri.toString().contains('firebaseauth')) {
+        return RoutePaths.onboarding;
+      }
+
       final authState = ref.read(authStateProvider);
       final currentPath = state.matchedLocation;
 
@@ -112,33 +118,60 @@ GoRouter appRouter(Ref ref) {
         return RoutePaths.login;
       }
 
-      // 로그인한 상태에서 로그인/스플래시/콜백 페이지 접근 시 → 프로필 유무에 따라 분기
+      // 비로그인 + 스플래시/콜백 → 로그인 화면으로 (스플래시 무한 대기 방지)
+      if (!isLoggedIn &&
+          !authState.isLoading &&
+          (currentPath == RoutePaths.splash ||
+           currentPath == RoutePaths.loginCallback)) {
+        return RoutePaths.login;
+      }
+
+      // 로그인한 상태에서 로그인/스플래시/콜백 페이지 접근 시 → 퍼널 분기
       if (isLoggedIn &&
           (currentPath == RoutePaths.login ||
            currentPath == RoutePaths.splash ||
            currentPath == RoutePaths.loginCallback)) {
         final profileState = ref.read(currentUserProfileProvider);
         if (profileState.hasValue) {
-          // 프로필 로딩 완료 — 유무에 따라 홈/온보딩 분기
-          return profileState.valueOrNull != null
-              ? RoutePaths.home
-              : RoutePaths.onboarding;
+          final profile = profileState.valueOrNull;
+          // 프로필 없음 또는 사주 미완료 → 온보딩
+          if (profile == null || !profile.isSajuComplete) {
+            return RoutePaths.onboarding;
+          }
+          // 사주 완료 + 프로필 미완성 → 매칭 프로필 완성
+          if (!profile.isProfileComplete) {
+            return RoutePaths.matchingProfile;
+          }
+          return RoutePaths.home;
         }
         // 프로필 아직 로딩 중 → 콜백 페이지에서 대기
-        // (currentUserProfileProvider 로딩 완료 시 RouterAuthNotifier가 재평가)
         if (currentPath != RoutePaths.loginCallback) {
           return RoutePaths.loginCallback;
         }
         return null;
       }
 
+      // --- 퍼널 게이트: 홈 접근 제어 (온보딩+분석+프로필 미완료 시 차단) ---
+      if (isLoggedIn && currentPath == RoutePaths.home) {
+        final profileState = ref.read(currentUserProfileProvider);
+        if (profileState.hasValue) {
+          final profile = profileState.valueOrNull;
+          if (profile == null || !profile.isSajuComplete) {
+            return RoutePaths.onboarding;
+          }
+          if (!profile.isProfileComplete) {
+            return RoutePaths.matchingProfile;
+          }
+        }
+      }
+
       // --- 퍼널 게이트: 매칭 탭 접근 제어 ---
       if (isLoggedIn && currentPath == RoutePaths.matching) {
         final userProfile = ref.read(currentUserProfileProvider).valueOrNull;
         if (userProfile != null) {
-          // 사주 미완료 → 사주 분석으로
+          // 사주 미완료 → 온보딩으로
           if (!userProfile.isSajuComplete) {
-            return RoutePaths.sajuAnalysis;
+            return RoutePaths.onboarding;
           }
           // 프로필 미완성 → 매칭 프로필 완성으로
           if (!userProfile.isProfileComplete) {
@@ -431,29 +464,38 @@ GoRouter appRouter(Ref ref) {
 
     // --- 에러 페이지 ---
     errorBuilder: (context, state) => Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 64, color: Colors.grey),
-            const SizedBox(height: 16),
-            Text(
-              '페이지를 찾을 수 없어요',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              state.error?.toString() ?? '',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey,
-                  ),
-            ),
-            const SizedBox(height: 24),
-            FilledButton(
-              onPressed: () => context.go(RoutePaths.home),
-              child: const Text('홈으로 돌아가기'),
-            ),
-          ],
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 64, color: Colors.grey),
+              const SizedBox(height: 16),
+              Text(
+                '페이지를 찾을 수 없어요',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                state.error?.toString() ?? '',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Colors.grey,
+                    ),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () => context.go(RoutePaths.splash),
+                  child: const Text('돌아가기'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     ),
@@ -829,50 +871,39 @@ class _SplashPageState extends ConsumerState<_SplashPage> {
 
   @override
   Widget build(BuildContext context) {
-    // auth 상태 감시 → 확정되면 즉시 이동
-    ref.listen(authStateProvider, (previous, next) {
-      if (!next.isLoading) {
-        final isLoggedIn = next.valueOrNull != null;
-        if (isLoggedIn) {
-          context.go(RoutePaths.home);
-        } else {
-          context.go(RoutePaths.login);
-        }
-      }
-    });
-
+    // auth 상태 변경 → RouterAuthNotifier가 redirect 자동 트리거
+    // 스플래시에서 직접 navigate하면 redirect의 프로필 체크를 건너뛰므로,
+    // 라우터 redirect에 위임한다.
     return Scaffold(
-      backgroundColor: context.sajuColors.bgPrimary,
+      backgroundColor: const Color(0xFFF7F3EE),
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             // 로고 텍스트
-            ShaderMask(
-              shaderCallback: (bounds) => const LinearGradient(
-                colors: [AppTheme.mysticAccent, AppTheme.mysticGlow],
-              ).createShader(bounds),
-              child: const Text(
-                '사주인연',
-                style: TextStyle(
-                  fontSize: 36,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                  letterSpacing: 4,
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              '운명이 이끈 만남',
+            const Text(
+              'MOMO.',
               style: TextStyle(
-                fontSize: 14,
-                color: Colors.white.withValues(alpha: 0.4),
-                letterSpacing: 1,
+                fontFamily: 'ADLaMDisplay',
+                fontSize: 42,
+                fontWeight: FontWeight.w400,
+                color: Color(0xFF2D2D2D),
+                letterSpacing: 2,
               ),
             ),
-            const SizedBox(height: 40),
-            const MomoLoading(size: 48),
+            const SizedBox(height: 8),
+            Text(
+              '운명이 이끄는 만남',
+              style: TextStyle(
+                fontFamily: AppTheme.fontFamily,
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+                color: const Color(0xFF2D2D2D).withValues(alpha: 0.4),
+                letterSpacing: 0.5,
+              ),
+            ),
+            const SizedBox(height: 32),
+            const MomoLoading(size: 96),
           ],
         ),
       ),
@@ -900,8 +931,9 @@ class _AuthCallbackPageState extends ConsumerState<_AuthCallbackPage> {
   @override
   void initState() {
     super.initState();
-    // 타임아웃 안전장치: 5초 후에도 여기 있으면 로그인으로
-    Future.delayed(const Duration(seconds: 5), () {
+    // 타임아웃 안전장치: 15초 후에도 여기 있으면 로그인으로
+    // PKCE 코드 교환에 시간이 걸릴 수 있으므로 넉넉하게
+    Future.delayed(const Duration(seconds: 15), () {
       if (mounted) context.go(RoutePaths.login);
     });
   }

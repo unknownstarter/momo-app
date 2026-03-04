@@ -79,7 +79,7 @@ function buildSystemPrompt(): string {
 - 닮은 동물을 자유롭게 선택하고, 관상 특징에서 도출된 수식어를 붙입니다.
 
 ## 응답 규칙
-반드시 아래 JSON 형식으로만 응답하세요. JSON 외의 텍스트는 절대 포함하지 마세요.
+반드시 아래 JSON 형식으로만 응답하세요. JSON 외의 텍스트는 절대 포함하지 마세요. 마크다운 코드 블록(\`\`\`json)으로 감싸지 마세요. 순수 JSON만 출력하세요.
 
 {
   "animal_type": "닮은 동물 영어 키 (소문자, 예: cat, dog, fox, dinosaur, camel 등 — 어떤 동물이든 가능)",
@@ -257,8 +257,8 @@ function parseClaudeResponse(text: string): GwansangReadingResponse {
   }
 
   // charm_keywords validation
-  if (!Array.isArray(parsed.charm_keywords) || parsed.charm_keywords.length !== 3) {
-    throw new Error("charm_keywords must be an array of exactly 3 strings");
+  if (!Array.isArray(parsed.charm_keywords) || parsed.charm_keywords.length < 3) {
+    throw new Error("charm_keywords must be an array of at least 3 strings");
   }
 
   return {
@@ -360,7 +360,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 2048,
+        max_tokens: 4096,
         system: buildSystemPrompt(),
         messages: [
           {

@@ -87,7 +87,7 @@
 | **사주 엔진** | @fullstackfamily/manseryeok (Edge Function) | 한국천문연구원(KASI) 데이터 기반 만세력, 절기·음력·진태양시 보정 |
 | **AI** | Claude API | 사주 해석, 개인화 인사이트, 궁합 스토리텔링 |
 | **관상 ML** | Google ML Kit | 온디바이스 얼굴 측정 (삼정/오관) |
-| **인증** | Supabase Auth | Apple, Google 소셜 로그인 (Kakao 예정) |
+| **인증** | Supabase Auth | Apple + Kakao 소셜 로그인 (Google 제거) |
 | **결제** | RevenueCat | iOS App Store + Google Play 인앱 결제 통합 |
 | **상태관리** | Riverpod 2.x | code generation 사용 |
 | **라우팅** | go_router | 선언적 라우팅 + 딥링크 |
@@ -212,12 +212,17 @@ feature/
 - 커밋: Conventional Commits (한국어 본문 가능)
 - PR 리뷰 필수
 
-### 디버그 바이패스 (2026-02-26 추가)
-- **[중요]** 현재 Backend 미연결 상태에서 테스트를 위해 `kDebugMode` 바이패스 6건이 존재
-- **바이패스 목록 문서**: `docs/dev-log/2026-02-26-debug-bypass.md`
-- **검색 키워드**: `TODO(PROD)` 또는 `BYPASS-` 로 코드 검색
-- **원복 시점**: Supabase Auth + DB + Edge Functions 연결 완료 후
-- **[규칙]** 새 바이패스 추가 시 반드시 `TODO(PROD)` + `[BYPASS-N]` 태그 + 문서 업데이트
+### ✅ 디버그 바이패스 — 전체 제거 완료 (2026-03-04)
+- **BYPASS 8건 전체 제거 완료.** Sprint A에서 실연동 코드로 교체됨.
+- 검증: `grep -rn "BYPASS-\|TODO(PROD)" lib/ --include="*.dart"` → **0건**
+- 히스토리 문서: `docs/dev-log/2026-02-26-debug-bypass.md`
+
+### Auth & 데이터 동기화 규칙 (2026-03-04 추가)
+- **[규칙]** `auth.updateUser()`는 주 로직을 블로킹하면 안 됨. 반드시 별도 try-catch로 감싸고, 실패해도 프로필 생성/수정은 성공 처리할 것
+- **[규칙]** profiles → auth.users 동기화는 DB 트리거로 처리 (클라이언트 측 auth.updateUser 대신). 트리거: `fn_sync_profile_to_auth()` (SECURITY DEFINER)
+- **[규칙]** 온보딩 중간 단계 데이터는 로컬 상태에 보관, profiles INSERT 시점에 한꺼번에 저장 (중간 UPDATE 금지)
+- **[규칙]** `authId`(auth.users.id)와 `profiles.id`를 혼동하지 말 것. saju/matching에는 반드시 `profiles.id`를 전달. `authId`는 인증 확인용으로만 사용
+- **[규칙]** Edge Function에서 필수 파라미터가 누락될 수 있으면, 400 에러 대신 기본값으로 fallback하고 정상 처리할 것 (예: userName → "사용자")
 
 ### 연속 작업 / 다음 할 일 (2026-02-24 추가)
 - **다른 디바이스에서 이어서 작업할 때**: 먼저 **테스크 마스터**를 확인할 것.
@@ -231,9 +236,11 @@ feature/
 ## Core Features
 
 ### 1. Auth (인증)
-- Apple Sign In + Google Sign In + Kakao Login
-- 전화번호 SMS 인증
+- Apple Sign In + Kakao Login (Google 제거됨, 2026-03-03)
+- 전화번호 SMS 인증 (Firebase Phone Auth)
 - 온보딩: 기본 정보 → 생년월일시(사주 입력) → 프로필 완성
+- **[규칙 2026-03-04] 소셜 로그인 데이터 정책**: Apple/Kakao에서 이메일·닉네임·프로필사진을 **수집하지 않음**. 이 정보들은 모두 온보딩에서 직접 입력받음. 이메일 인증은 추후 별도 플로우로 구현 예정.
+- **[규칙 2026-03-04] Kakao OAuth scope**: Supabase GoTrue 서버가 `account_email`을 기본 scope로 하드코딩하므로, Kakao 비즈니스 > 개인 개발자 등록 + 동의항목에서 이메일을 "선택 동의"로 설정 필수. Flutter 코드에서 `scopes: ''` 설정.
 
 ### 2. Saju (사주 분석)
 - 생년월일시 → 사주팔자 계산 (manseryeok-js 기반)

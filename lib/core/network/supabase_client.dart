@@ -257,23 +257,33 @@ class SupabaseHelper {
   Future<dynamic> invokeFunction(
     String functionName, {
     Map<String, dynamic>? body,
+    Duration timeout = const Duration(seconds: 30),
   }) async {
-    final response = await _client.functions.invoke(
-      functionName,
-      body: body,
-    );
+    try {
+      final response = await _client.functions
+          .invoke(functionName, body: body)
+          .timeout(timeout);
 
-    final status = response.status;
-    if (status < 200 || status >= 300) {
+      final status = response.status;
+      if (status < 200 || status >= 300) {
+        throw ServerFailure(
+          message: '서버에 일시적인 문제가 발생했어요. 잠시 후 다시 시도해 주세요.',
+          code: 'EDGE_FUNCTION_ERROR',
+          statusCode: status,
+          originalException:
+              'Edge Function "$functionName" returned status $status',
+        );
+      }
+
+      return response.data;
+    } on TimeoutException {
       throw ServerFailure(
-        message: '서버에 일시적인 문제가 발생했어요. 잠시 후 다시 시도해 주세요.',
-        code: 'EDGE_FUNCTION_ERROR',
-        statusCode: status,
-        originalException: 'Edge Function "$functionName" returned status $status',
+        message: '서버 응답이 너무 오래 걸려요. 잠시 후 다시 시도해 주세요.',
+        code: 'EDGE_FUNCTION_TIMEOUT',
+        originalException:
+            'Edge Function "$functionName" timed out after ${timeout.inSeconds}s',
       );
     }
-
-    return response.data;
   }
 }
 

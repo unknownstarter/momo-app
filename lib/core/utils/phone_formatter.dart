@@ -26,32 +26,10 @@ class PhoneNumberFormatter extends TextInputFormatter {
 
     final formatted = buffer.toString();
 
-    // [FIX: I2] 커서를 항상 끝으로 보내지 않고, 올바른 위치 계산
-    final oldCursorPos = oldValue.selection.baseOffset
-        .clamp(0, oldValue.text.length);
-    final digitsBeforeCursor = oldValue.text
-        .substring(0, oldCursorPos)
-        .replaceAll(RegExp(r'\D'), '')
-        .length;
-
-    // 새로운 포맷 문자열에서 같은 수의 숫자 뒤 위치 찾기
-    int newCursorPos = 0;
-    int digitCount = 0;
-    for (int i = 0; i < formatted.length; i++) {
-      if (formatted[i] != '-') digitCount++;
-      newCursorPos = i + 1;
-      if (digitCount >= digitsBeforeCursor) break;
-    }
-    // 삭제 시 커서가 숫자 수보다 뒤에 있으면 끝으로
-    if (digitsBeforeCursor > trimmed.length) {
-      newCursorPos = formatted.length;
-    }
-
+    // 커서를 항상 끝으로 — 전화번호는 순차 입력이므로 가장 안정적
     return TextEditingValue(
       text: formatted,
-      selection: TextSelection.collapsed(
-        offset: newCursorPos.clamp(0, formatted.length),
-      ),
+      selection: TextSelection.collapsed(offset: formatted.length),
     );
   }
 }

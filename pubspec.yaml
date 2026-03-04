@@ -110,3 +110,6 @@ flutter:
           weight: 600
         - asset: assets/fonts/Pretendard-Bold.otf
           weight: 700
+    - family: ADLaMDisplay
+      fonts:
+        - asset: assets/fonts/ADLaMDisplay-Regular.ttf
