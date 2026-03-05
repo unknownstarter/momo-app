@@ -13,6 +13,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/di/providers.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/theme_extensions.dart';
 import '../../../../core/theme/tokens/saju_colors.dart';
@@ -424,17 +425,35 @@ class _GwansangPhotoPageState extends ConsumerState<GwansangPhotoPage> {
     }
   }
 
-  /// 관상 분석 시작
-  void _onStartAnalysis() {
+  /// 관상 분석 시작 — 사진을 Storage에 업로드 후 URL로 전달
+  Future<void> _onStartAnalysis() async {
     final validPaths = _photoPaths.whereType<String>().toList();
     if (validPaths.length < 3) return;
 
-    context.go(
-      RoutePaths.gwansangAnalysis,
-      extra: <String, dynamic>{
-        'photoLocalPaths': validPaths,
-        'sajuResult': widget.sajuResult,
-      },
-    );
+    // Storage에 업로드 → profiles.profile_images에 저장
+    try {
+      final repo = ref.read(profileRepositoryProvider);
+      final urls = await repo.uploadProfileImages(validPaths);
+      if (urls.isNotEmpty) {
+        await repo.updateProfile({'profile_images': urls});
+      }
+
+      if (!mounted) return;
+      context.go(
+        RoutePaths.gwansangAnalysis,
+        extra: <String, dynamic>{
+          'photoUrls': urls,
+          'sajuResult': widget.sajuResult,
+        },
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('사진 업로드에 실패했어요. 다시 시도해주세요.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 }

@@ -128,18 +128,7 @@ function buildSystemPrompt(): string {
 }
 
 function buildUserPrompt(body: RequestBody): string {
-  const { sajuData, gender, age } = body;
-
-  let sajuText = "사주 데이터: 미제공 (관상 단독 분석)";
-  if (sajuData) {
-    const parts: string[] = [];
-    if (sajuData.dominant_element) parts.push(`주도 오행: ${sajuData.dominant_element}`);
-    if (sajuData.day_stem) parts.push(`일간(日干): ${sajuData.day_stem}`);
-    if (sajuData.personality_traits?.length) {
-      parts.push(`성격 특성: ${sajuData.personality_traits.join(", ")}`);
-    }
-    if (parts.length > 0) sajuText = `사주 데이터:\n${parts.join("\n")}`;
-  }
+  const { gender, age } = body;
 
   const demographicText = [
     gender ? `성별: ${gender === "male" ? "남성" : "여성"}` : null,
@@ -149,9 +138,9 @@ function buildUserPrompt(body: RequestBody): string {
     .join("\n");
 
   return `위 얼굴 사진을 관상학적으로 분석해주세요.
-
-${sajuText}
 ${demographicText ? `\n${demographicText}` : ""}
+
+중요: 동물상(animal_type)은 반드시 사진에서 직접 관찰되는 얼굴 형태, 이목구비 비율, 전체 인상만으로 판단하세요. 사주/오행/성격 등 외부 정보와 무관하게, 순수하게 사진의 시각적 특징만으로 닮은 동물을 결정해야 합니다.
 
 사진에서 직접 관찰되는 이목구비의 형태, 비율, 전체 인상을 기반으로 삼정(三停)/오관(五官) 프레임워크에 따라 관상 분석 결과를 JSON으로 응답해주세요.`;
 }
@@ -169,8 +158,12 @@ function validateRequest(body: RequestBody): string | null {
   try {
     const url = new URL(body.photoUrl);
     // Supabase Storage URL만 허용 (SSRF 방지)
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
-    if (supabaseUrl && !body.photoUrl.startsWith(supabaseUrl)) {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    if (!supabaseUrl) {
+      console.error("[gwansang] SUPABASE_URL 환경변수 미설정 — SSRF 검증 불가");
+      return "Server configuration error";
+    }
+    if (!body.photoUrl.startsWith(supabaseUrl)) {
       return "photoUrl must be a Supabase Storage URL";
     }
   } catch {
@@ -197,7 +190,7 @@ function parseClaudeResponse(text: string): GwansangReadingResponse {
     "animal_type", "animal_type_korean", "animal_modifier", "headline",
     "personality_summary", "romance_summary",
   ]) {
-    if (typeof parsed[field] !== "string" || parsed[field].length < 2) {
+    if (typeof parsed[field] !== "string" || parsed[field].length < 1) {
       throw new Error(`${field} must be a non-empty string`);
     }
   }
@@ -334,7 +327,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-5-20250514",
+        model: "claude-sonnet-4-6",
         max_tokens: 4096,
         system: buildSystemPrompt(),
         messages: [

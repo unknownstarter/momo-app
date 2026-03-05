@@ -1,8 +1,6 @@
 /// 관상 분석 Riverpod Providers
 library;
 
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -31,18 +29,20 @@ class GwansangAnalysisNotifier extends _$GwansangAnalysisNotifier {
   }
 
   /// 전체 관상 분석 실행 (Claude Vision API)
+  ///
+  /// [photoUrls]: profiles.profile_images에 이미 업로드된 사진 URL 목록
   Future<void> analyze({
     required String userId,
-    required List<String> photoLocalPaths,
+    required List<String> photoUrls,
     required Map<String, dynamic> sajuData,
     required String gender,
     required int age,
   }) async {
     state = const AsyncLoading();
 
-    debugPrint('[GwansangProvider] analyze 시작: userId=$userId, photos=${photoLocalPaths.length}, gender=$gender, age=$age');
+    debugPrint('[GwansangProvider] analyze 시작: userId=$userId, photoUrls=${photoUrls.length}, gender=$gender, age=$age');
 
-    if (photoLocalPaths.isEmpty) {
+    if (photoUrls.isEmpty) {
       state = AsyncError(
         Exception('관상 분석을 위한 사진이 없어요. 사진을 등록해 주세요.'),
         StackTrace.current,
@@ -50,25 +50,12 @@ class GwansangAnalysisNotifier extends _$GwansangAnalysisNotifier {
       return;
     }
 
-    // 파일 존재 여부 사전 검증
-    for (final path in photoLocalPaths) {
-      final exists = File(path).existsSync();
-      debugPrint('[GwansangProvider] 사진 파일: $path (존재: $exists)');
-      if (!exists) {
-        state = AsyncError(
-          Exception('사진 파일을 찾을 수 없어요: $path'),
-          StackTrace.current,
-        );
-        return;
-      }
-    }
-
     state = await AsyncValue.guard(() async {
       debugPrint('[GwansangProvider] Repository 호출 시작 (Claude Vision)...');
       final repository = ref.read(gwansangRepositoryProvider);
       final profile = await repository.analyzeGwansang(
         userId: userId,
-        photoLocalPaths: photoLocalPaths,
+        photoUrls: photoUrls,
         sajuData: sajuData,
         gender: gender,
         age: age,

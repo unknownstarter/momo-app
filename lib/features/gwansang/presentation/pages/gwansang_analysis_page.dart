@@ -117,8 +117,8 @@ class _GwansangAnalysisPageState extends ConsumerState<GwansangAnalysisPage>
   }
 
   void _startAnalysis() {
-    final photoLocalPaths =
-        widget.analysisData?['photoLocalPaths'] as List<String>? ?? [];
+    final photoUrls =
+        widget.analysisData?['photoUrls'] as List<String>? ?? [];
     final sajuResultRaw = widget.analysisData?['sajuResult'];
 
     SajuAnalysisResult? sajuResult;
@@ -138,11 +138,11 @@ class _GwansangAnalysisPageState extends ConsumerState<GwansangAnalysisPage>
     // Provider를 통해 분석 시작
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(gwansangAnalysisNotifierProvider.notifier).analyze(
-            userId: 'current-user-id', // TODO: auth에서 가져오기
-            photoLocalPaths: photoLocalPaths,
+            userId: widget.analysisData?['userId'] as String? ?? '',
+            photoUrls: photoUrls,
             sajuData: sajuData,
-            gender: 'unknown',
-            age: 25,
+            gender: widget.analysisData?['gender'] as String? ?? 'unknown',
+            age: widget.analysisData?['age'] as int? ?? 25,
           );
     });
   }

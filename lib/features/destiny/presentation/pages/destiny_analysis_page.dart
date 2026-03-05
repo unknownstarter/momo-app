@@ -182,7 +182,6 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
           'isLunar': false,
           'userName': row['name'] as String?,
           'gender': row['gender'] == 'male' ? '남성' : '여성',
-          'photoPath': data['photoPath'],
         };
         return _cachedData!;
       }
@@ -215,10 +214,30 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
     _gwansangStarted = true;
 
     final data = await _resolveData();
-    final photoPath = data['photoPath'] as String?;
-    final gender = data['gender'] as String? ?? 'unknown';
+    if (!mounted) return;
 
-    debugPrint('[DestinyAnalysis] 관상 분석 시작: photoPath=$photoPath, gender=$gender');
+    final gender = data['gender'] as String? ?? 'unknown';
+    final userId = data['userId'] as String? ?? '';
+
+    // profiles.profile_images에서 이미 업로드된 사진 URL 가져오기
+    List<String> photoUrls = [];
+    try {
+      final supabase = Supabase.instance.client;
+      final row = await supabase
+          .from('profiles')
+          .select('profile_images')
+          .eq('id', userId)
+          .maybeSingle();
+      if (row != null && row['profile_images'] != null) {
+        photoUrls = List<String>.from(row['profile_images'] as List);
+      }
+    } catch (e) {
+      debugPrint('[DestinyAnalysis] profile_images 조회 실패: $e');
+    }
+
+    if (!mounted) return;
+
+    debugPrint('[DestinyAnalysis] 관상 분석 시작: photoUrls=${photoUrls.length}, gender=$gender');
 
     // 나이 계산
     final birthDateStr = data['birthDate'] as String?;
@@ -238,10 +257,10 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
       'personality_traits': profile.personalityTraits,
     };
 
-    debugPrint('[DestinyAnalysis] 관상 analyze 호출: userId=${data['userId']}, photoCount=${photoPath != null ? 1 : 0}');
+    debugPrint('[DestinyAnalysis] 관상 analyze 호출: userId=$userId, photoUrls=${photoUrls.length}');
     ref.read(gwansangAnalysisNotifierProvider.notifier).analyze(
-          userId: data['userId'] as String? ?? '',
-          photoLocalPaths: photoPath != null ? [photoPath] : [],
+          userId: userId,
+          photoUrls: photoUrls,
           sajuData: sajuData,
           gender: gender,
           age: age,

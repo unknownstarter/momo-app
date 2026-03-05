@@ -823,13 +823,16 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
           // 인라인 CupertinoDatePicker
           Expanded(
             child: CupertinoDatePicker(
+              key: const ValueKey('birth-date-picker'),
               mode: CupertinoDatePickerMode.date,
               initialDateTime: _birthDate ?? DateTime(2000, 1, 1),
               minimumDate: DateTime(1940, 1, 1),
               maximumDate: DateTime(now.year - 18, now.month, now.day),
               onDateTimeChanged: (date) {
-                setState(() => _birthDate = date);
-                HapticService.selection();
+                if (date != _birthDate) {
+                  setState(() => _birthDate = date);
+                  HapticService.selection();
+                }
               },
             ),
           ),

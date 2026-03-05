@@ -107,6 +107,7 @@ class SajuChip extends StatelessWidget {
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Leading icon
             if (leadingIcon != null) ...[

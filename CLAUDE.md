@@ -172,6 +172,10 @@ feature/
 - AsyncValue 패턴으로 로딩/에러/데이터 상태 처리
 - Provider는 feature 내 `presentation/providers/`에 위치
 - 글로벌 상태는 `app/di/`에 위치
+- **[규칙 2026-03-05] async + ref 안전 규칙 (MANDATORY)**:
+  - `ConsumerStatefulWidget`에서 `await` 후 `ref.read()`/`ref.watch()` 사용 시 **반드시** 직전에 `if (!mounted) return;` 가드를 넣을 것
+  - `async void` 메서드에서 `await` 후 `ref` 접근은 위젯 dispose 후 `_dependents.isEmpty` assertion 크래시를 유발함
+  - 모든 `await` 뒤에 `mounted` 체크 — 예외 없음. 네트워크 호출, DB 쿼리, 파일 I/O 등 시간이 걸리는 `await` 뒤에는 100% 필수
 
 ### Navigation (go_router)
 - 선언적 라우팅 + 딥링크 지원
@@ -206,6 +210,7 @@ feature/
 - **"미니멀 ≠ 휑함"**: 장식은 줄이되, 캐릭터는 적절한 크기(64-72px)로 핵심 위치에 배치
 - 듀얼 무드: 라이트(일상 탐색), 다크(사주/궁합/매칭 결과)
 - **[규칙 2026-02-26]** 테마 확장 타입은 `SajuColors`(`lib/core/theme/tokens/saju_colors.dart`)이지 `SajuColorScheme`이 아님. 새 페이지 작성 시 주의
+- **[규칙 2026-03-05]** `Container`/`AnimatedContainer`에 `alignment` 속성을 설정하면 부모 전체 크기로 확장됨. 내용물 센터링은 `Center` 위젯 또는 Row/Column의 `mainAxisAlignment` 사용할 것
 
 ### Git Workflow
 - 브랜치: `feature/`, `fix/`, `experiment/`, `research/`
@@ -223,6 +228,12 @@ feature/
 - **[규칙]** 온보딩 중간 단계 데이터는 로컬 상태에 보관, profiles INSERT 시점에 한꺼번에 저장 (중간 UPDATE 금지)
 - **[규칙]** `authId`(auth.users.id)와 `profiles.id`를 혼동하지 말 것. saju/matching에는 반드시 `profiles.id`를 전달. `authId`는 인증 확인용으로만 사용
 - **[규칙]** Edge Function에서 필수 파라미터가 누락될 수 있으면, 400 에러 대신 기본값으로 fallback하고 정상 처리할 것 (예: userName → "사용자")
+
+### Edge Function & AI 프롬프트 규칙 (2026-03-05 추가)
+- **[규칙]** Edge Function에서 Claude API 모델 ID는 기존 작동 중인 함수와 동일하게 맞출 것. 최신 ID: `claude-sonnet-4-6`, `claude-haiku-4-5-20251001`
+- **[규칙]** 관상 분석 프롬프트에 사주/오행 데이터를 절대 전달하지 말 것. 관상은 순수하게 사진 기반이어야 함. 사주 데이터가 들어가면 동물상 선택이 편향됨
+- **[규칙]** 한글 문자열 비어있음 검증: `length < 2`가 아니라 `length < 1` 사용 (한글 1자 = length 1)
+- **[규칙]** 로그인 필수 정책 (2026-03-05): 소셜 로그인(Apple/Kakao) 완료 없이는 앱 진입 불가. 둘러보기 모드 제거됨
 
 ### 연속 작업 / 다음 할 일 (2026-02-24 추가)
 - **다른 디바이스에서 이어서 작업할 때**: 먼저 **테스크 마스터**를 확인할 것.

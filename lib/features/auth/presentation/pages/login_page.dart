@@ -176,12 +176,6 @@ class _LoginPageState extends ConsumerState<LoginPage>
     }
   }
 
-  void _handleBrowse() {
-    HapticFeedback.lightImpact();
-    AnalyticsService.clickBrowseInLogin();
-    context.go(RoutePaths.home);
-  }
-
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -334,28 +328,6 @@ class _LoginPageState extends ConsumerState<LoginPage>
         _buildKakaoButton(),
 
         const SizedBox(height: 20),
-
-        // 둘러보기 — Tertiary
-        GestureDetector(
-          onTap: _isLoading ? null : _handleBrowse,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: SajuSpacing.space16,
-              vertical: SajuSpacing.space12,
-            ),
-            child: Text(
-              '둘러보기',
-              style: TextStyle(
-                fontFamily: AppTheme.fontFamily,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF2D2D2D).withValues(alpha: _isLoading ? 0.2 : 0.4),
-              ),
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 12),
 
         // 약관
         Text(

@@ -102,24 +102,9 @@ class _DestinyResultPageState extends ConsumerState<DestinyResultPage>
               bottom: false,
               child: NestedScrollView(
               headerSliverBuilder: (context, innerBoxIsScrolled) => [
-                // 닫기 버튼
-                SliverToBoxAdapter(
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        right: SajuSpacing.space8,
-                        top: SajuSpacing.space4,
-                      ),
-                      child: IconButton(
-                        onPressed: () => context.go(RoutePaths.home),
-                        icon: Icon(
-                          Icons.close,
-                          color: colors.textSecondary,
-                        ),
-                      ),
-                    ),
-                  ),
+                // 상단 여백 (닫기 버튼 영역 유지)
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: 48),
                 ),
 
                 // 공통 헤더
@@ -251,16 +236,16 @@ class _DestinyResultPageState extends ConsumerState<DestinyResultPage>
                   ),
                 ),
 
-                // 동물상 이모지
+                // 동물상 배지
                 if (gwansang != null)
                   Positioned(
-                    right: 10,
+                    right: 0,
                     bottom: 0,
                     child: Container(
-                      width: 52,
-                      height: 52,
+                      constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       decoration: BoxDecoration(
-                        shape: BoxShape.circle,
+                        borderRadius: BorderRadius.circular(24),
                         color: colors.bgPrimary,
                         border: Border.all(
                           color: AppTheme.mysticGlow.withValues(alpha: 0.3),
@@ -277,8 +262,9 @@ class _DestinyResultPageState extends ConsumerState<DestinyResultPage>
                       child: Center(
                         child: Text(
                           '${gwansang.animalTypeKorean}상',
+                          textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: 13,
                             fontWeight: FontWeight.w700,
                             color: colors.textPrimary,
                           ),
@@ -563,14 +549,30 @@ class _SajuTab extends StatelessWidget {
           _buildSectionTitle(context, '성격 특성'),
           SajuSpacing.gap16,
           Wrap(
-            spacing: SajuSpacing.space8,
-            runSpacing: SajuSpacing.space8,
+            spacing: 8,
+            runSpacing: 8,
             children: profile.personalityTraits.map((trait) {
-              return SajuChip(
-                label: trait,
-                color: elementColor,
-                size: SajuSize.sm,
-                isSelected: true,
+              final elementColorValue = profile.dominantElement != null
+                  ? AppTheme.fiveElementColor(profile.dominantElement!.korean)
+                  : AppTheme.metalColor;
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: elementColorValue.withValues(alpha: 0.3),
+                  ),
+                  color: elementColorValue.withValues(alpha: 0.06),
+                ),
+                child: Text(
+                  trait,
+                  style: TextStyle(
+                    fontFamily: AppTheme.fontFamily,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: context.sajuColors.textPrimary,
+                  ),
+                ),
               );
             }).toList(),
           ),
@@ -742,10 +744,10 @@ class _GwansangTab extends StatelessWidget {
     return Column(
       children: [
         Container(
-          width: 80,
-          height: 80,
+          constraints: const BoxConstraints(minWidth: 80, minHeight: 80),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           decoration: BoxDecoration(
-            shape: BoxShape.circle,
+            borderRadius: BorderRadius.circular(40),
             gradient: RadialGradient(
               colors: [
                 AppTheme.mysticGlow.withValues(alpha: 0.1),
@@ -753,14 +755,12 @@ class _GwansangTab extends StatelessWidget {
               ],
             ),
           ),
-          child: Center(
-            child: Text(
-              '${profile!.animalTypeKorean}상',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: colors.textPrimary,
-              ),
+          child: Text(
+            '${profile!.animalTypeKorean}상',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: colors.textPrimary,
             ),
           ),
         ),
@@ -777,18 +777,31 @@ class _GwansangTab extends StatelessWidget {
   }
 
   Widget _buildCharmKeywords(BuildContext context) {
-    const elementColor = SajuColor.primary;
+    final colors = context.sajuColors;
 
     return Wrap(
-      spacing: SajuSpacing.space8,
-      runSpacing: SajuSpacing.space8,
+      spacing: 8,
+      runSpacing: 8,
       alignment: WrapAlignment.center,
       children: profile!.charmKeywords.map((keyword) {
-        return SajuChip(
-          label: keyword,
-          color: elementColor,
-          size: SajuSize.sm,
-          isSelected: true,
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: AppTheme.mysticGlow.withValues(alpha: 0.3),
+            ),
+            color: AppTheme.mysticGlow.withValues(alpha: 0.06),
+          ),
+          child: Text(
+            keyword,
+            style: TextStyle(
+              fontFamily: AppTheme.fontFamily,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: colors.textPrimary,
+            ),
+          ),
         );
       }).toList(),
     );
@@ -909,8 +922,6 @@ class _GwansangTab extends StatelessWidget {
                             color: colors.textSecondary,
                             height: 1.5,
                           ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
@@ -963,8 +974,6 @@ class _GwansangTab extends StatelessWidget {
                           color: colors.textSecondary,
                           height: 1.5,
                         ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),

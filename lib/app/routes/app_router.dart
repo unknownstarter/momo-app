@@ -92,13 +92,12 @@ GoRouter appRouter(Ref ref) {
 
       final isLoggedIn = authState.valueOrNull != null;
 
-      // 인증이 필요 없는 경로들 (둘러보기 모드 지원)
+      // 인증이 필요 없는 경로들
       const publicPaths = [
         RoutePaths.splash,
         RoutePaths.login,
         RoutePaths.loginCallback, // Kakao OAuth 딥링크 콜백
         RoutePaths.onboarding,
-        RoutePaths.home, // 둘러보기 모드
         RoutePaths.sajuAnalysis,
         RoutePaths.sajuResult,
         RoutePaths.destinyAnalysis,

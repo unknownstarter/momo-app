@@ -103,6 +103,27 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage>
         phone: formData['phone'] as String?,
         isPhoneVerified: formData['isPhoneVerified'] as bool? ?? false,
       );
+
+      // 사진이 있으면 Storage 업로드 → profiles.profile_images에 URL 저장
+      final photoPath = formData['photoPath'] as String?;
+      debugPrint('[OnboardingPage] photoPath=$photoPath');
+      if (photoPath != null && photoPath.isNotEmpty) {
+        try {
+          debugPrint('[OnboardingPage] 사진 업로드 시작: $photoPath');
+          final urls = await repo.uploadProfileImages([photoPath]);
+          debugPrint('[OnboardingPage] 업로드 URL: $urls');
+          if (urls.isNotEmpty) {
+            await repo.updateProfile({'profile_images': urls});
+            debugPrint('[OnboardingPage] profile_images DB 저장 완료');
+          }
+        } catch (e, st) {
+          debugPrint('[OnboardingPage] 사진 업로드/저장 실패: $e');
+          debugPrint('[OnboardingPage] 스택: $st');
+        }
+      } else {
+        debugPrint('[OnboardingPage] ⚠️ photoPath가 null이거나 비어있음! formData keys: ${formData.keys}');
+      }
+
       AnalyticsService.completeOnboarding();
       if (mounted) {
         final analysisData = <String, dynamic>{
@@ -112,7 +133,6 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage>
           'isLunar': false,
           'userName': formData['name'] as String?,
           'gender': formData['gender'] as String?,
-          'photoPath': formData['photoPath'] as String?,
         };
         context.go(RoutePaths.destinyAnalysis, extra: analysisData);
       }

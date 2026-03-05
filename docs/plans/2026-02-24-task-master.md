@@ -1,4 +1,4 @@
-# 테스크 마스터 — 2026-03-05 (v15)
+# 테스크 마스터 — 2026-03-05 (v16)
 
 > **작성일**: 2026-02-24 | **갱신**: 2026-03-05
 > **목적**: 다음에 할 일을 한곳에 정리해, 다른 디바이스에서 보고 연속으로 작업할 수 있게 함.
@@ -92,10 +92,10 @@ fvm flutter build ios --no-codesign --debug   # iOS 빌드 확인
 
 - **작동하는 것**: 온보딩(7스텝, SMS 필수) → 프로필 저장 → 데이팅 프로필(8필드) → 추천 리스트 → 홈(추천 그리드) → 프로필 상세(인라인 궁합, Hero) → 궁합 프리뷰
 - **실연동된 것**: Apple/Kakao 로그인(Supabase Auth), SMS 인증(Firebase Phone Auth), 프로필 저장(phone 포함), 매칭 프로필 저장, 궁합 계산, 라우터 가드(비로그인 접근 차단), profiles→auth.users DB 트리거 동기화
-- **2026-03-05 수정**: Edge Function JWT 401 해결(verify_jwt=false), 분석 네비게이션 데드락 수정, 뒤로가기 수정, 카카오 OAuth 브라우저 닫힘 수정(LaunchMode.externalApplication), 1인1계정 정책 적용
+- **2026-03-05 수정**: Edge Function JWT 401 해결, 분석 네비게이션 데드락 수정, 카카오 OAuth 브라우저 수정, 1인1계정 정책, 관상 Edge Function 3중 수정(모델 ID/한글 검증/사주 편향 제거), UI 반응형(칩/뱃지/텍스트), SajuChip alignment 버그 수정, 로그인 필수화(둘러보기 제거)
 - **Mock인 것**: 추천 목록(`getDailyRecommendations`), 좋아요(`sendLike`/`getLikes`), 채팅
-- **직전 완료**: 사주 분석 디버깅 + 카카오 OAuth 브라우저 수정 + 1인1계정 정책
-- **다음 작업**: E2E 전체 플로우 재테스트 → Sprint B — 실데이터 매칭
+- **직전 완료**: 관상 Edge Function 수정 + UI 반응형 + 로그인 필수화 + SajuChip 버그 수정
+- **다음 작업**: 프로필 상세페이지 개선 → Sprint B — 실데이터 매칭
 
 ---
 
@@ -129,8 +129,8 @@ fvm flutter build ios --no-codesign --debug   # iOS 빌드 확인
 
 ## 2. 다음에 할 일 (우선순위순)
 
-> **현재 최우선**: 🔴 **사주 분석 디버깅** — 온보딩 후 사주 분석이 실패하는 문제 해결
-> Sprint A BYPASS 제거 완료 + Auth 디버깅 6건 수정 (2026-03-04). 사주 분석만 해결하면 Sprint B 진입 가능.
+> **현재 최우선**: **프로필 상세페이지 개선** — ProfileDetailPage UI/UX 고도화
+> 사주/관상 분석 파이프라인 전체 작동 확인 완료 (2026-03-05). 프로필 상세 개선 후 Sprint B 진입.
 
 ### 🔴 긴급 — 사주 분석 실패 디버깅 (Sprint B 진입 전 필수)
 
@@ -419,6 +419,27 @@ fvm flutter build ios --no-codesign --debug   # iOS 빌드 확인
 | POL2 | **전화번호 UNIQUE 제약** — `profiles.phone` partial unique index (DB 레벨 방어) | ✅ |
 | POL3 | **중복 계정 안내 UI** — `_friendlyErrorMessage`에 identity 충돌 감지 + 토스트 | ✅ |
 | POL4 | **TOCTOU 레이스 방지** — `_onPhoneVerified()` unique violation 시 온보딩 차단 | ✅ |
+| GW1 | **관상 Edge Function 모델 ID 수정** — `claude-sonnet-4-5-20250514` → `claude-sonnet-4-6` | ✅ |
+| GW2 | **한글 1자 검증 수정** — `length < 2` → `length < 1` (한글 1자 = length 1) | ✅ |
+| GW3 | **사주 데이터 관상 편향 제거** — 프롬프트에서 사주 데이터 전부 제거, 사진 기반 분석으로 전환 | ✅ |
+| UI1 | **결과 페이지 텍스트 말줄임 제거** — 삼정/오관 maxLines + ellipsis 제거 | ✅ |
+| UI2 | **동물상 뱃지 반응형** — 고정 원 → pill 형태 + Center 정렬 | ✅ |
+| UI3 | **SajuChip 전체 폭 확장 버그** — AnimatedContainer alignment 제거 (ROOT CAUSE) | ✅ |
+| UI4 | **칩 → 컴팩트 태그** — 결과 페이지 매력 키워드/성격 특성을 태그 Container로 변경 | ✅ |
+| AUTH1 | **로그인 필수화** — 둘러보기 버튼 제거 + publicPaths에서 home 제거 | ✅ |
+
+---
+
+### 🔥 다음 작업 — 프로필 상세페이지 개선
+
+> **핵심**: 현재 프로필 상세 페이지(ProfileDetailPage)의 UX/UI 개선
+> **파일**: `lib/features/matching/presentation/pages/profile_detail_page.dart`
+
+| # | Task | 담당 | 상태 |
+|---|------|------|------|
+| PD1 | **프로필 상세페이지 분석 및 개선 포인트 도출** | 아리 | ⬜ |
+| PD2 | **UI/UX 개선 구현** | 아리 | ⬜ |
+| PD3 | **통합 검증** | QA | ⬜ |
 
 ---
 
@@ -510,6 +531,7 @@ fvm flutter build ios --no-codesign --debug   # iOS 빌드 확인
 - [x] ~~사주 분석 디버깅 (DBG1~DBG3)~~ ✅ 완료 (2026-03-05) — JWT 401 + 네비게이션 데드락 + 뒤로가기
 - [x] ~~카카오 OAuth 브라우저 닫힘~~ ✅ 완료 (2026-03-05) — LaunchMode.externalApplication
 - [x] ~~1인1계정 정책~~ ✅ 완료 (2026-03-05) — manual_linking + phone unique + 중복 안내 UI
+- [ ] **프로필 상세페이지 개선 (PD1~PD3)** — UI/UX 개선
 - [ ] **E2E 전체 플로우 재테스트 (DBG4)** — 로그인→온보딩→분석→결과→프로필→홈
 - [ ] **Sprint B — 실데이터 매칭** — E2E 검증 후 B1~B4 진행
 - [ ] `lib/core/di/providers.dart` 확인 (새 Repository/DataSource 추가 시 반드시 등록)
