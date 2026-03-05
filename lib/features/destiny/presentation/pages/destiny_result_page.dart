@@ -28,7 +28,6 @@ import '../../../../core/theme/theme_extensions.dart';
 import '../../../../core/theme/tokens/saju_colors.dart';
 import '../../../../core/theme/tokens/saju_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
-import '../../../gwansang/domain/entities/face_measurements.dart';
 import '../../../gwansang/domain/entities/gwansang_entity.dart';
 import '../../../gwansang/presentation/providers/gwansang_provider.dart';
 import '../../../saju/presentation/providers/saju_provider.dart';
@@ -68,47 +67,7 @@ class _DestinyResultPageState extends ConsumerState<DestinyResultPage>
     return null;
   }
 
-  GwansangProfile get _gwansangProfile =>
-      _gwansangResult?.profile ?? _mockGwansangProfile;
-
-  static final _mockGwansangProfile = GwansangProfile(
-    id: 'mock-id',
-    userId: 'mock-user',
-    animalType: 'cat',
-    animalModifier: '신비로운',
-    animalTypeKorean: '고양이',
-    measurements: FaceMeasurements.fromJson(const {}),
-    photoUrls: const [],
-    headline: '타고난 리더형 관상, 눈빛에 결단력이 서려 있어요',
-    samjeong: const SamjeongReading(
-      upper: '넓은 이마가 총명함과 학업운을 나타내요.',
-      middle: '코의 선이 반듯해 중년에 안정적인 성취를 이룰 상이에요.',
-      lower: '턱선이 부드러워 말년에 화목한 가정을 이룰 상이에요.',
-    ),
-    ogwan: const OgwanReading(
-      eyes: '눈매에 깊이가 있어 직관력이 돋보여요.',
-      nose: '코가 오뚝해서 자존심이 강한 타입이에요.',
-      mouth: '입술이 도톰해서 표현력이 풍부해요.',
-      ears: '귀가 안정적인 형태로 경청의 복이 있어요.',
-      eyebrows: '눈썹이 깔끔해 의지가 강하고 목표 지향적이에요.',
-    ),
-    traits: const GwansangTraits(
-      leadership: 72,
-      warmth: 65,
-      independence: 80,
-      sensitivity: 58,
-      energy: 68,
-    ),
-    personalitySummary:
-        '겉으로는 도도하지만 마음 한 켠에는 따뜻함을 품고 있는 타입이에요. '
-        '첫인상은 다가가기 어렵지만, 한번 친해지면 끝없이 매력을 발산하는 스타일이죠.',
-    romanceSummary:
-        '연애에서는 밀당의 달인이에요. 쉽게 마음을 열지 않지만, '
-        '한번 마음을 주면 깊고 진실한 사랑을 해요.',
-    romanceKeyPoints: const ['밀당의 매력', '지적인 대화를 중시', '독립적이면서도 깊은 유대감'],
-    charmKeywords: const ['밀당의 달인', '신비로운 눈빛', '도도한 매력'],
-    createdAt: DateTime.now(),
-  );
+  GwansangProfile? get _gwansangProfile => _gwansangResult?.profile;
 
   @override
   void initState() {
@@ -139,11 +98,28 @@ class _DestinyResultPageState extends ConsumerState<DestinyResultPage>
 
           return Scaffold(
             backgroundColor: colors.bgPrimary,
-            body: NestedScrollView(
+            body: SafeArea(
+              bottom: false,
+              child: NestedScrollView(
               headerSliverBuilder: (context, innerBoxIsScrolled) => [
-                // 상단 여백
-                const SliverToBoxAdapter(
-                  child: SizedBox(height: SajuSpacing.space16),
+                // 닫기 버튼
+                SliverToBoxAdapter(
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        right: SajuSpacing.space8,
+                        top: SajuSpacing.space4,
+                      ),
+                      child: IconButton(
+                        onPressed: () => context.go(RoutePaths.home),
+                        icon: Icon(
+                          Icons.close,
+                          color: colors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
 
                 // 공통 헤더
@@ -194,6 +170,7 @@ class _DestinyResultPageState extends ConsumerState<DestinyResultPage>
                   ),
                 ],
               ),
+            ),
             ),
 
             // 하단 CTA
@@ -275,7 +252,7 @@ class _DestinyResultPageState extends ConsumerState<DestinyResultPage>
                 ),
 
                 // 동물상 이모지
-                if (_gwansangResult != null)
+                if (gwansang != null)
                   Positioned(
                     right: 10,
                     bottom: 0,
@@ -324,7 +301,7 @@ class _DestinyResultPageState extends ConsumerState<DestinyResultPage>
                 color: elementColor,
                 size: SajuSize.sm,
               ),
-              if (_gwansangResult != null) ...[
+              if (gwansang != null) ...[
                 SajuSpacing.hGap8,
                 SajuBadge(
                   label: gwansang.animalLabel,
@@ -383,7 +360,6 @@ class _DestinyResultPageState extends ConsumerState<DestinyResultPage>
             AnalyticsService.clickFindMatchesInDestinyResult();
             context.push(
               RoutePaths.matchingProfile,
-              extra: {'quickMode': true},
             );
           },
           variant: SajuVariant.filled,
@@ -646,12 +622,17 @@ class _GwansangTab extends StatelessWidget {
     required this.hasResult,
   });
 
-  final GwansangProfile profile;
+  final GwansangProfile? profile;
   final bool hasResult;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.sajuColors;
+
+    // 관상 분석 실패 시 안내 UI
+    if (profile == null) {
+      return _buildFailureState(context, colors);
+    }
 
     return ListView(
       padding: const EdgeInsets.symmetric(
@@ -665,7 +646,7 @@ class _GwansangTab extends StatelessWidget {
 
         // 헤드라인
         Text(
-          profile.headline,
+          profile!.headline,
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: colors.textSecondary,
@@ -687,11 +668,11 @@ class _GwansangTab extends StatelessWidget {
         SajuSpacing.gap24,
 
         // 성격 요약
-        _buildSectionCard(context, '성격', profile.personalitySummary, colors),
+        _buildSectionCard(context, '성격', profile!.personalitySummary, colors),
         SajuSpacing.gap24,
 
         // 연애 스타일
-        _buildSectionCard(context, '연애 스타일', profile.romanceSummary, colors),
+        _buildSectionCard(context, '연애 스타일', profile!.romanceSummary, colors),
         SajuSpacing.gap24,
 
         // 연애 핵심 포인트
@@ -704,6 +685,56 @@ class _GwansangTab extends StatelessWidget {
         // 하단 여백
         const SizedBox(height: SajuSpacing.space48),
       ],
+    );
+  }
+
+  Widget _buildFailureState(BuildContext context, SajuColors colors) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: SajuSpacing.space32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(height: SajuSpacing.space48),
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: colors.textTertiary.withValues(alpha: 0.08),
+              ),
+              child: Center(
+                child: Icon(
+                  Icons.face_retouching_natural_outlined,
+                  size: 32,
+                  color: colors.textTertiary,
+                ),
+              ),
+            ),
+            SajuSpacing.gap16,
+            Text(
+              '관상 분석이 준비되지 않았어요',
+              style: TextStyle(
+                fontFamily: AppTheme.fontFamily,
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+                color: colors.textPrimary,
+              ),
+            ),
+            SajuSpacing.gap8,
+            Text(
+              '얼굴이 잘 보이는 정면 사진으로\n다시 시도해 보세요',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: AppTheme.fontFamily,
+                fontSize: 14,
+                color: colors.textSecondary,
+                height: 1.5,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -724,7 +755,7 @@ class _GwansangTab extends StatelessWidget {
           ),
           child: Center(
             child: Text(
-              '${profile.animalTypeKorean}상',
+              '${profile!.animalTypeKorean}상',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
@@ -735,7 +766,7 @@ class _GwansangTab extends StatelessWidget {
         ),
         SajuSpacing.gap12,
         Text(
-          profile.animalLabel,
+          profile!.animalLabel,
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 color: colors.textPrimary,
                 fontWeight: FontWeight.w700,
@@ -752,7 +783,7 @@ class _GwansangTab extends StatelessWidget {
       spacing: SajuSpacing.space8,
       runSpacing: SajuSpacing.space8,
       alignment: WrapAlignment.center,
-      children: profile.charmKeywords.map((keyword) {
+      children: profile!.charmKeywords.map((keyword) {
         return SajuChip(
           label: keyword,
           color: elementColor,
@@ -815,7 +846,7 @@ class _GwansangTab extends StatelessWidget {
             ],
           ),
           SajuSpacing.gap12,
-          ...profile.romanceKeyPoints.map((point) => Padding(
+          ...profile!.romanceKeyPoints.map((point) => Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -840,9 +871,9 @@ class _GwansangTab extends StatelessWidget {
 
   Widget _buildSamjeongSummary(BuildContext context, SajuColors colors) {
     final zones = [
-      ('초년운', profile.samjeong.upper),
-      ('중년운', profile.samjeong.middle),
-      ('말년운', profile.samjeong.lower),
+      ('초년운', profile!.samjeong.upper),
+      ('중년운', profile!.samjeong.middle),
+      ('말년운', profile!.samjeong.lower),
     ];
 
     return SajuCard(
@@ -893,9 +924,9 @@ class _GwansangTab extends StatelessWidget {
 
   Widget _buildOgwanHighlight(BuildContext context, SajuColors colors) {
     final features = [
-      ('눈', profile.ogwan.eyes),
-      ('코', profile.ogwan.nose),
-      ('입', profile.ogwan.mouth),
+      ('눈', profile!.ogwan.eyes),
+      ('코', profile!.ogwan.nose),
+      ('입', profile!.ogwan.mouth),
     ];
 
     return SajuCard(
@@ -946,11 +977,11 @@ class _GwansangTab extends StatelessWidget {
 
   Widget _buildTraitsChart(BuildContext context, SajuColors colors) {
     final axes = [
-      ('리더십', profile.traits.leadership),
-      ('온화함', profile.traits.warmth),
-      ('독립성', profile.traits.independence),
-      ('감성', profile.traits.sensitivity),
-      ('에너지', profile.traits.energy),
+      ('리더십', profile!.traits.leadership),
+      ('온화함', profile!.traits.warmth),
+      ('독립성', profile!.traits.independence),
+      ('감성', profile!.traits.sensitivity),
+      ('에너지', profile!.traits.energy),
     ];
 
     return SajuCard(

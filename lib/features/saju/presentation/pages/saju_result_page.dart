@@ -373,10 +373,7 @@ class SajuResultPage extends ConsumerWidget {
       children: [
         SajuButton(
           label: '내 사주와 찰떡인 사람, 만나볼까요?',
-          onPressed: () => context.go(
-            RoutePaths.matchingProfile,
-            extra: {'quickMode': true},
-          ),
+          onPressed: () => context.go(RoutePaths.matchingProfile),
           variant: SajuVariant.filled,
           color: elementColor,
           size: SajuSize.lg,

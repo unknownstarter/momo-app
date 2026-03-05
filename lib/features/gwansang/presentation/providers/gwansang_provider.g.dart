@@ -25,23 +25,5 @@ final gwansangAnalysisNotifierProvider = AutoDisposeAsyncNotifierProvider<
 
 typedef _$GwansangAnalysisNotifier
     = AutoDisposeAsyncNotifier<GwansangAnalysisResult?>;
-String _$photoValidatorHash() => r'photoValidator';
-
-/// 사진 유효성 검증 Provider
-///
-/// Copied from [PhotoValidator].
-@ProviderFor(PhotoValidator)
-final photoValidatorProvider =
-    AutoDisposeAsyncNotifierProvider<PhotoValidator, bool?>.internal(
-  PhotoValidator.new,
-  name: r'photoValidatorProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$photoValidatorHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-typedef _$PhotoValidator = AutoDisposeAsyncNotifier<bool?>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

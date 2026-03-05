@@ -117,7 +117,6 @@ abstract final class SupabaseBuckets {
   static const profileImages = 'profile-images';
   static const chatImages = 'chat-images';
   static const sajuCards = 'saju-cards';
-  static const gwansangPhotos = 'gwansang-photos';
 }
 
 /// Supabase Edge Function 이름
@@ -244,8 +243,8 @@ abstract final class FiveElementRelations {
 /// 앱 전반의 제한값과 비즈니스 규칙
 abstract final class AppLimits {
   // --- 프로필 ---
-  static const maxPhotos = 6;
-  static const minPhotos = 1;
+  static const maxPhotos = 5;
+  static const minPhotos = 3;
   static const maxBioLength = 300;
   static const minBioLength = 10;
   static const maxNameLength = 20;

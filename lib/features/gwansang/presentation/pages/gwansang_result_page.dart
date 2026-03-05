@@ -16,7 +16,6 @@ import '../../../../core/theme/theme_extensions.dart';
 import '../../../../core/theme/tokens/saju_colors.dart';
 import '../../../../core/theme/tokens/saju_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
-import '../../domain/entities/face_measurements.dart';
 import '../../domain/entities/gwansang_entity.dart';
 import '../providers/gwansang_provider.dart';
 
@@ -50,7 +49,6 @@ class _GwansangResultPageState extends ConsumerState<GwansangResultPage> {
     animalType: 'cat',
     animalModifier: '신비로운',
     animalTypeKorean: '고양이',
-    measurements: FaceMeasurements.fromJson(const {}),
     photoUrls: const [],
     headline: '타고난 리더형 관상, 눈빛에 결단력이 서려 있어요',
     samjeong: const SamjeongReading(

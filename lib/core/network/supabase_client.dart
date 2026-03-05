@@ -82,6 +82,12 @@ class SupabaseHelper {
 
   final SupabaseClient _client;
 
+  /// 현재 인증된 사용자의 auth.uid() 반환
+  ///
+  /// Storage RLS 정책에서 폴더명으로 사용됩니다.
+  /// ⚠️ profiles.id와 다릅니다!
+  String? get currentAuthUid => _client.auth.currentUser?.id;
+
   // --- 데이터 조회 ---
 
   /// 단일 레코드 조회 (by ID)

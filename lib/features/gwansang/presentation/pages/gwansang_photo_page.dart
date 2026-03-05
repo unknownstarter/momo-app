@@ -1,7 +1,7 @@
 /// 관상 사진 업로드 페이지 — 얼굴 사진 3장 촬영/선택 화면
 ///
 /// 3단계 가이드에 따라 정면/미소/자연스러운 사진을 수집한다.
-/// image_picker로 카메라/갤러리 선택, FaceAnalyzerService로 얼굴 검증.
+/// image_picker로 카메라/갤러리 선택, 서버 사이드 Claude Vision으로 분석.
 /// 다크 테마(미스틱 모드).
 library;
 
@@ -18,7 +18,6 @@ import '../../../../core/theme/theme_extensions.dart';
 import '../../../../core/theme/tokens/saju_colors.dart';
 import '../../../../core/theme/tokens/saju_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
-import '../providers/gwansang_provider.dart';
 
 /// 사진 단계 가이드 데이터
 class _PhotoGuide {
@@ -66,7 +65,6 @@ class _GwansangPhotoPageState extends ConsumerState<GwansangPhotoPage> {
   final _picker = ImagePicker();
   int _currentPhotoIndex = 0;
   final List<String?> _photoPaths = [null, null, null];
-  bool _isValidating = false;
 
   bool get _allPhotosReady =>
       _photoPaths.every((p) => p != null);
@@ -247,10 +245,6 @@ class _GwansangPhotoPageState extends ConsumerState<GwansangPhotoPage> {
 
   /// 빈 사진 슬롯
   Widget _buildEmptySlot(int index, bool isActive, SajuColors colors) {
-    if (_isValidating && index == _currentPhotoIndex) {
-      return const MomoLoading(size: 48);
-    }
-
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -411,26 +405,6 @@ class _GwansangPhotoPageState extends ConsumerState<GwansangPhotoPage> {
 
       if (image == null) return;
 
-      setState(() => _isValidating = true);
-
-      // 얼굴 검증
-      final isValid =
-          await ref.read(photoValidatorProvider.notifier).validate(image.path);
-
-      if (!mounted) return;
-
-      setState(() => _isValidating = false);
-
-      if (!isValid) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('얼굴이 감지되지 않았어요. 다른 사진을 선택해주세요'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-        return;
-      }
-
       // 사진 저장 및 다음 단계로
       setState(() {
         _photoPaths[index] = image.path;
@@ -441,7 +415,6 @@ class _GwansangPhotoPageState extends ConsumerState<GwansangPhotoPage> {
       });
     } catch (e) {
       if (!mounted) return;
-      setState(() => _isValidating = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('사진을 가져오지 못했어요: $e'),

@@ -69,10 +69,18 @@ class SajuChip extends StatelessWidget {
         ? Border.all(color: resolvedColor, width: 1.5)
         : null;
 
-    // 텍스트 스타일
-    final textColor = isSelected
-        ? resolvedColor
-        : Theme.of(context).colorScheme.onSurface;
+    // 텍스트 스타일 — 밝은 오행 색상(earth 등)은 라이트 배경에서 안 보이므로
+    // HSL 명도를 0.35 이하로 강제하여 가독성 확보
+    Color chipTextColor;
+    if (isSelected) {
+      final hsl = HSLColor.fromColor(resolvedColor);
+      chipTextColor = hsl.lightness > 0.45
+          ? hsl.withLightness(0.35).withSaturation((hsl.saturation * 1.2).clamp(0.0, 1.0)).toColor()
+          : resolvedColor;
+    } else {
+      chipTextColor = Theme.of(context).colorScheme.onSurface;
+    }
+    final textColor = chipTextColor;
     final textStyle = TextStyle(
       fontSize: size.fontSize,
       fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,

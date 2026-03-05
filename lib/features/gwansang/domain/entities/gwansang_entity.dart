@@ -4,8 +4,6 @@
 /// 순수 Dart 클래스로 외부 의존성이 없다.
 library;
 
-import 'face_measurements.dart';
-
 /// 관상 traits 5축 (관상학 기반)
 ///
 /// 삼정(三停)/오관(五官)에서 자연스럽게 도출되는 성격 특성 축.
@@ -155,7 +153,6 @@ class GwansangProfile {
     required this.animalType,
     required this.animalModifier,
     required this.animalTypeKorean,
-    required this.measurements,
     required this.photoUrls,
     required this.headline,
     required this.samjeong,
@@ -181,7 +178,6 @@ class GwansangProfile {
   /// 동물 한글명. 예: "고양이", "공룡"
   final String animalTypeKorean;
 
-  final FaceMeasurements measurements;
   final List<String> photoUrls;
 
   /// 한줄 헤드라인 (관상학 기반)
@@ -222,7 +218,6 @@ class GwansangProfile {
     String? animalType,
     String? animalModifier,
     String? animalTypeKorean,
-    FaceMeasurements? measurements,
     List<String>? photoUrls,
     String? headline,
     SamjeongReading? samjeong,
@@ -241,7 +236,6 @@ class GwansangProfile {
       animalType: animalType ?? this.animalType,
       animalModifier: animalModifier ?? this.animalModifier,
       animalTypeKorean: animalTypeKorean ?? this.animalTypeKorean,
-      measurements: measurements ?? this.measurements,
       photoUrls: photoUrls ?? this.photoUrls,
       headline: headline ?? this.headline,
       samjeong: samjeong ?? this.samjeong,

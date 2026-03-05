@@ -420,21 +420,11 @@ GoRouter appRouter(Ref ref) {
         },
       ),
 
-      // 매칭 프로필 완성 (Phase B 온보딩)
-      // extra: Map<String, dynamic>? — {quickMode: bool, gwansangPhotoUrls: List<String>?}
+      // 매칭 프로필 완성
       GoRoute(
         path: RoutePaths.matchingProfile,
         name: RouteNames.matchingProfile,
-        builder: (context, state) {
-          final data = state.extra as Map<String, dynamic>? ?? {};
-          final quickMode = data['quickMode'] as bool? ?? false;
-          final gwansangPhotoUrls =
-              data['gwansangPhotoUrls'] as List<String>?;
-          return MatchingProfilePage(
-            quickMode: quickMode,
-            gwansangPhotoUrls: gwansangPhotoUrls,
-          );
-        },
+        builder: (context, state) => const MatchingProfilePage(),
       ),
 
       // 프로필 편집

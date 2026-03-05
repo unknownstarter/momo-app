@@ -3,6 +3,7 @@ library;
 
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/di/providers.dart';
@@ -26,13 +27,10 @@ class GwansangAnalysisResult {
 class GwansangAnalysisNotifier extends _$GwansangAnalysisNotifier {
   @override
   FutureOr<GwansangAnalysisResult?> build() {
-    ref.onDispose(() {
-      ref.read(faceAnalyzerServiceProvider).dispose();
-    });
     return null;
   }
 
-  /// 전체 관상 분석 실행
+  /// 전체 관상 분석 실행 (Claude Vision API)
   Future<void> analyze({
     required String userId,
     required List<String> photoLocalPaths,
@@ -42,28 +40,48 @@ class GwansangAnalysisNotifier extends _$GwansangAnalysisNotifier {
   }) async {
     state = const AsyncLoading();
 
-    state = await AsyncValue.guard(() async {
-      final faceAnalyzer = ref.read(faceAnalyzerServiceProvider);
+    debugPrint('[GwansangProvider] analyze 시작: userId=$userId, photos=${photoLocalPaths.length}, gender=$gender, age=$age');
 
-      final images = photoLocalPaths.map((p) => File(p)).toList();
-      final measurements = await faceAnalyzer.analyzeMultiple(images);
+    if (photoLocalPaths.isEmpty) {
+      state = AsyncError(
+        Exception('관상 분석을 위한 사진이 없어요. 사진을 등록해 주세요.'),
+        StackTrace.current,
+      );
+      return;
+    }
 
-      if (measurements == null) {
-        throw Exception('얼굴을 감지하지 못했어요. 정면 사진으로 다시 시도해주세요.');
+    // 파일 존재 여부 사전 검증
+    for (final path in photoLocalPaths) {
+      final exists = File(path).existsSync();
+      debugPrint('[GwansangProvider] 사진 파일: $path (존재: $exists)');
+      if (!exists) {
+        state = AsyncError(
+          Exception('사진 파일을 찾을 수 없어요: $path'),
+          StackTrace.current,
+        );
+        return;
       }
+    }
 
+    state = await AsyncValue.guard(() async {
+      debugPrint('[GwansangProvider] Repository 호출 시작 (Claude Vision)...');
       final repository = ref.read(gwansangRepositoryProvider);
       final profile = await repository.analyzeGwansang(
         userId: userId,
         photoLocalPaths: photoLocalPaths,
-        measurements: measurements,
         sajuData: sajuData,
         gender: gender,
         age: age,
       );
+      debugPrint('[GwansangProvider] 관상 분석 완료: animalType=${profile.animalType}, headline=${profile.headline}');
 
       return GwansangAnalysisResult(profile: profile, isNewAnalysis: true);
     });
+
+    if (state.hasError) {
+      debugPrint('[GwansangProvider] 관상 분석 실패: ${state.error}');
+      debugPrint('[GwansangProvider] 스택: ${state.stackTrace}');
+    }
   }
 
   /// 기존 관상 프로필 로드
@@ -80,19 +98,5 @@ class GwansangAnalysisNotifier extends _$GwansangAnalysisNotifier {
 
   void reset() {
     state = const AsyncData(null);
-  }
-}
-
-/// 사진 유효성 검증 Provider
-@riverpod
-class PhotoValidator extends _$PhotoValidator {
-  @override
-  FutureOr<bool?> build() {
-    return null;
-  }
-
-  Future<bool> validate(String path) async {
-    final analyzer = ref.read(faceAnalyzerServiceProvider);
-    return analyzer.validatePhoto(File(path));
   }
 }

@@ -4,7 +4,6 @@
 /// snake_case JSON 키를 사용하며, 도메인 엔티티로의 변환 메서드를 제공합니다.
 library;
 
-import '../../domain/entities/face_measurements.dart';
 import '../../domain/entities/gwansang_entity.dart';
 
 /// 관상 프로필 DTO
@@ -159,7 +158,6 @@ class GwansangProfileModel {
       animalType: animalType,
       animalModifier: animalModifier,
       animalTypeKorean: animalTypeKorean,
-      measurements: FaceMeasurements.fromJson(measurements),
       photoUrls: photoUrls,
       headline: headline,
       samjeong: SamjeongReading.fromJson(samjeong),

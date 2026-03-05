@@ -218,6 +218,8 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
     final photoPath = data['photoPath'] as String?;
     final gender = data['gender'] as String? ?? 'unknown';
 
+    debugPrint('[DestinyAnalysis] 관상 분석 시작: photoPath=$photoPath, gender=$gender');
+
     // 나이 계산
     final birthDateStr = data['birthDate'] as String?;
     int age = 25;
@@ -236,6 +238,7 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
       'personality_traits': profile.personalityTraits,
     };
 
+    debugPrint('[DestinyAnalysis] 관상 analyze 호출: userId=${data['userId']}, photoCount=${photoPath != null ? 1 : 0}');
     ref.read(gwansangAnalysisNotifierProvider.notifier).analyze(
           userId: data['userId'] as String? ?? '',
           photoLocalPaths: photoPath != null ? [photoPath] : [],
