@@ -251,14 +251,18 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
 
   void _tryNavigate() {
     if (_hasNavigated || !mounted) return;
+    if (!_animationComplete || _sajuResult == null) return;
 
-    // 둘 다 완료 + 애니메이션 완료
-    if (_animationComplete && _sajuResult != null && _gwansangResult != null) {
+    // 사주 완료 + (관상 완료 OR 관상 에러/미실행) + 애니메이션 완료 → 결과 페이지
+    final gwansangState = ref.read(gwansangAnalysisNotifierProvider);
+    final gwansangDone = _gwansangResult != null || gwansangState.hasError || !_gwansangStarted;
+
+    if (gwansangDone) {
       _hasNavigated = true;
       AnalyticsService.completeDestinyAnalysis();
       context.go(RoutePaths.destinyResult, extra: {
         'sajuResult': _sajuResult,
-        'gwansangResult': _gwansangResult,
+        'gwansangResult': _gwansangResult, // null이면 사주만 표시
       });
     }
   }
@@ -297,14 +301,9 @@ class _DestinyAnalysisPageState extends ConsumerState<DestinyAnalysisPage>
         _gwansangResult = next.value;
         _tryNavigate();
       } else if (next.hasError) {
+        debugPrint('[DestinyAnalysis] 관상 분석 실패 (graceful): ${next.error}');
         _gwansangResult = null;
-        if (_animationComplete && _sajuResult != null) {
-          _hasNavigated = true;
-          context.go(RoutePaths.destinyResult, extra: {
-            'sajuResult': _sajuResult,
-            'gwansangResult': null,
-          });
-        }
+        _tryNavigate();
       }
     });
 

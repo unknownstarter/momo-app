@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/services/analytics_service.dart';
@@ -33,6 +37,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
 
   late final AnimationController _fadeController;
   late final Animation<double> _fadeAnimation;
+  StreamSubscription<AuthState>? _authSubscription;
 
   @override
   void initState() {
@@ -47,20 +52,57 @@ class _LoginPageState extends ConsumerState<LoginPage>
       curve: Curves.easeOut,
     );
     _fadeController.forward();
+
+    // Supabase auth 스트림 직접 구독 — 위젯 빌드 사이클과 무관하게 동작
+    // 카카오 OAuth 브라우저가 열려 있어도 딥링크 수신 시 확실히 감지
+    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen(
+      (data) {
+        debugPrint('[LoginPage] onAuthStateChange: ${data.event}');
+        if (_awaitingKakaoCallback &&
+            (data.event == AuthChangeEvent.signedIn ||
+             data.event == AuthChangeEvent.tokenRefreshed)) {
+          debugPrint('[LoginPage] 카카오 로그인 성공 감지 — 브라우저 닫기 시도');
+          closeInAppWebView();
+          if (mounted) {
+            setState(() {
+              _awaitingKakaoCallback = false;
+              _isKakaoLoading = false;
+            });
+          }
+        }
+      },
+      onError: (Object error, StackTrace stackTrace) {
+        // OAuth 에러 (이메일 중복 등) — 딥링크 또는 내부 에러
+        debugPrint('[LoginPage] onAuthStateChange 에러: $error');
+        closeInAppWebView();
+        if (mounted) {
+          setState(() {
+            _awaitingKakaoCallback = false;
+            _isKakaoLoading = false;
+            _isAppleLoading = false;
+          });
+          _showErrorSnackBar(_friendlyErrorMessage(error));
+        }
+      },
+    );
   }
 
   @override
   void dispose() {
+    _authSubscription?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     _fadeController.dispose();
     super.dispose();
   }
 
-  /// 카카오 OAuth 브라우저에서 앱 복귀 시 스피너 해제
+  /// 카카오 OAuth 브라우저에서 앱 복귀 시 인앱 브라우저 닫기 + 스피너 해제
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed && _awaitingKakaoCallback) {
-      // 사용자가 브라우저에서 돌아옴
+      debugPrint('[LoginPage] 앱 resumed — 브라우저 닫기 시도');
+      // 인앱 브라우저(SFSafariViewController)가 자동으로 안 닫히는 iOS 이슈 대응
+      closeInAppWebView();
+
       // Supabase가 딥링크를 처리할 시간을 준 뒤 스피너 해제
       Future.delayed(const Duration(milliseconds: 1500), () {
         if (mounted && _isKakaoLoading) {
@@ -162,10 +204,27 @@ class _LoginPageState extends ConsumerState<LoginPage>
   }
 
   String _friendlyErrorMessage(Object error) {
+    // AuthException: errorCode 필드로 정확히 매칭 (toString보다 신뢰성 높음)
+    if (error is AuthException) {
+      final code = (error.code ?? '').toLowerCase();
+      final message = error.message.toLowerCase();
+      if (code.contains('identity_already_exists') ||
+          code.contains('user_already_exists') ||
+          message.contains('already linked')) {
+        return '이미 다른 방법으로 가입된 계정이에요. 기존 로그인 방법을 이용해 주세요';
+      }
+    }
+
     final msg = error.toString().toLowerCase();
     if (msg.contains('cancel')) return '로그인이 취소되었어요';
     if (msg.contains('network') || msg.contains('socket')) {
       return '네트워크 연결을 확인해 주세요';
+    }
+    // fallback: toString에서도 identity 충돌 감지
+    if (msg.contains('identity_already_exists') ||
+        msg.contains('user_already_exists') ||
+        msg.contains('already linked')) {
+      return '이미 다른 방법으로 가입된 계정이에요. 기존 로그인 방법을 이용해 주세요';
     }
     if (msg.contains('kakao')) {
       return '카카오 로그인에 문제가 발생했어요';

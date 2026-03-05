@@ -1,6 +1,6 @@
-# 테스크 마스터 — 2026-03-04 (v14)
+# 테스크 마스터 — 2026-03-05 (v15)
 
-> **작성일**: 2026-02-24 | **갱신**: 2026-03-04
+> **작성일**: 2026-02-24 | **갱신**: 2026-03-05
 > **목적**: 다음에 할 일을 한곳에 정리해, 다른 디바이스에서 보고 연속으로 작업할 수 있게 함.
 > **참조**: PRD `docs/plans/2026-02-24-app-design.md`, 개선 제안서 `docs/plans/2026-02-24-saju-궁합-engine-improvement-proposal.md`, dev-log `docs/dev-log/2026-02-24-progress.md`
 
@@ -88,14 +88,14 @@ fvm flutter build ios --no-codesign --debug   # iOS 빌드 확인
 > 상세 문서: `docs/dev-log/2026-02-26-debug-bypass.md`
 > 검증: `grep -rn "BYPASS-\|TODO(PROD)" lib/ --include="*.dart"` → **0건**
 
-### 현재 앱 상태 요약 (2026-03-04 v4)
+### 현재 앱 상태 요약 (2026-03-05 v5)
 
 - **작동하는 것**: 온보딩(7스텝, SMS 필수) → 프로필 저장 → 데이팅 프로필(8필드) → 추천 리스트 → 홈(추천 그리드) → 프로필 상세(인라인 궁합, Hero) → 궁합 프리뷰
 - **실연동된 것**: Apple/Kakao 로그인(Supabase Auth), SMS 인증(Firebase Phone Auth), 프로필 저장(phone 포함), 매칭 프로필 저장, 궁합 계산, 라우터 가드(비로그인 접근 차단), profiles→auth.users DB 트리거 동기화
-- **🔴 현재 고장**: 사주 분석 (destiny_analysis_page에서 에러 발생, 원인 미확인 — 진단 로그 추가 완료, 다음 테스트 필요)
+- **2026-03-05 수정**: Edge Function JWT 401 해결(verify_jwt=false), 분석 네비게이션 데드락 수정, 뒤로가기 수정, 카카오 OAuth 브라우저 닫힘 수정(LaunchMode.externalApplication), 1인1계정 정책 적용
 - **Mock인 것**: 추천 목록(`getDailyRecommendations`), 좋아요(`sendLike`/`getLikes`), 채팅
-- **직전 완료**: Sprint A BYPASS 제거 + Auth 디버깅 6건 수정 + DB 트리거 배포
-- **다음 작업**: **🔴 사주 분석 디버깅** → Sprint B — 실데이터 매칭
+- **직전 완료**: 사주 분석 디버깅 + 카카오 OAuth 브라우저 수정 + 1인1계정 정책
+- **다음 작업**: E2E 전체 플로우 재테스트 → Sprint B — 실데이터 매칭
 
 ---
 
@@ -141,10 +141,10 @@ fvm flutter build ios --no-codesign --debug   # iOS 빌드 확인
 
 | # | Task | 담당 | 상태 |
 |---|------|------|------|
-| DBG1 | **앱 재설치 + 온보딩 → Xcode 콘솔 로그 확인** — `[SajuRepo]`, `[DestinyAnalysis]` 검색 | 노아님+아리 | ⬜ |
-| DBG2 | **실패 단계 특정 후 해당 Edge Function/DB 쿼리 디버깅** | 아리 | ⬜ |
-| DBG3 | **DB 트리거 동기화 검증** — profiles INSERT 후 auth.users에 display_name/phone 반영 확인 | 아리 | ⬜ |
-| DBG4 | **수정 완료 후 E2E 전체 플로우 검증** — 로그인→온보딩→분석→결과→프로필→홈 | 아리 | ⬜ |
+| DBG1 | **앱 재설치 + 온보딩 → Xcode 콘솔 로그 확인** — `[SajuRepo]`, `[DestinyAnalysis]` 검색 | 노아님+아리 | ✅ |
+| DBG2 | **실패 단계 특정 후 해당 Edge Function/DB 쿼리 디버깅** — JWT 401 해결(verify_jwt=false 재배포) | 아리 | ✅ |
+| DBG3 | **네비게이션 데드락 수정** — gwansang 에러+애니메이션 타이밍 교착 해결 | 아리 | ✅ |
+| DBG4 | **수정 완료 후 E2E 전체 플로우 검증** — 로그인→온보딩→분석→결과→프로필→홈 | 아리 | 🔶 테스트 대기 |
 
 ---
 
@@ -406,6 +406,22 @@ fvm flutter build ios --no-codesign --debug   # iOS 빌드 확인
 
 ---
 
+### 2026-03-05
+
+| # | 항목 | 상태 |
+|---|------|------|
+| FIX1 | **Edge Function JWT 401 수정** — generate-saju-insight, generate-gwansang-reading에 `--no-verify-jwt` 재배포 | ✅ |
+| FIX2 | **분석 페이지 네비게이션 데드락 수정** — gwansang 에러 시 `_tryNavigate()` 교착 해결 | ✅ |
+| FIX3 | **뒤로가기 수정** — destiny_result→matchingProfile `context.go`→`context.push`, "나중에" 버튼 `context.pop()` | ✅ |
+| FIX4 | **카카오 OAuth 브라우저 닫힘 수정** — `LaunchMode.externalApplication` + `onAuthStateChange` 스트림 구독 | ✅ |
+| FIX5 | **사주&관상 결과 페이지 X 버튼 제거** — 불필요한 닫기 버튼 + 홈 경로 삭제 | ✅ |
+| POL1 | **1인1계정 정책** — `enable_manual_linking=true` (이메일 자동 병합 차단) | ✅ |
+| POL2 | **전화번호 UNIQUE 제약** — `profiles.phone` partial unique index (DB 레벨 방어) | ✅ |
+| POL3 | **중복 계정 안내 UI** — `_friendlyErrorMessage`에 identity 충돌 감지 + 토스트 | ✅ |
+| POL4 | **TOCTOU 레이스 방지** — `_onPhoneVerified()` unique violation 시 온보딩 차단 | ✅ |
+
+---
+
 ### 🔥 Sprint B — 실데이터 매칭 (Sprint A 이후)
 
 | # | Task | 담당 | 의존성 | 상태 |
@@ -491,7 +507,10 @@ fvm flutter build ios --no-codesign --debug   # iOS 빌드 확인
 - [x] ~~Sprint A 인프라 설정 (노아님)~~ ✅ 완료 (2026-03-04)
 - [x] ~~Sprint A BYPASS 제거 (아리)~~ ✅ 완료 (2026-03-04) — A3~A10 + Auth 디버깅 A11~A17
 - [x] ~~UX 고도화~~ ✅ 완료 (2026-03-02)
-- [ ] **🔴 사주 분석 디버깅 (DBG1~DBG4)** — Xcode 콘솔 `[SajuRepo]` 로그 확인 → 실패 단계 특정 → 수정
-- [ ] **Sprint B — 실데이터 매칭** — DBG 완료 후 B1~B4 진행
+- [x] ~~사주 분석 디버깅 (DBG1~DBG3)~~ ✅ 완료 (2026-03-05) — JWT 401 + 네비게이션 데드락 + 뒤로가기
+- [x] ~~카카오 OAuth 브라우저 닫힘~~ ✅ 완료 (2026-03-05) — LaunchMode.externalApplication
+- [x] ~~1인1계정 정책~~ ✅ 완료 (2026-03-05) — manual_linking + phone unique + 중복 안내 UI
+- [ ] **E2E 전체 플로우 재테스트 (DBG4)** — 로그인→온보딩→분석→결과→프로필→홈
+- [ ] **Sprint B — 실데이터 매칭** — E2E 검증 후 B1~B4 진행
 - [ ] `lib/core/di/providers.dart` 확인 (새 Repository/DataSource 추가 시 반드시 등록)
 - [ ] 작업 완료 시 본 테스크 마스터 상태(⬜→✅) 및 dev-log 업데이트

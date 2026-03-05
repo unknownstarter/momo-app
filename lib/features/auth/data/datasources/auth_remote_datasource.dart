@@ -49,6 +49,10 @@ class AuthRemoteDatasource {
         OAuthProvider.kakao,
         redirectTo: 'com.dropdown.momo://login-callback/',
         scopes: '',
+        // iOS: SFSafariViewController(기본값)는 OAuth 완료 후 자동 닫힘이 안 됨.
+        // externalApplication으로 외부 Safari를 열면 딥링크 리다이렉트 시
+        // 자동으로 앱 복귀 + 브라우저 잔존 문제 없음.
+        authScreenLaunchMode: LaunchMode.externalApplication,
       );
     } catch (e) {
       throw AuthFailure.socialLoginFailed('Kakao', e);

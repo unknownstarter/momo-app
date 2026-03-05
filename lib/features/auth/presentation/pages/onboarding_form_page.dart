@@ -500,8 +500,17 @@ class _OnboardingFormPageState extends State<OnboardingFormPage> {
           'is_phone_verified': true,
         }).eq('auth_id', authId);
       }
-    } catch (_) {
-      // 프로필 업데이트 실패해도 인증 자체는 성공 처리
+    } catch (e) {
+      // 23505 = unique_violation: TOCTOU 레이스로 다른 유저가 먼저 같은 번호 인증 완료
+      final msg = e.toString();
+      if (msg.contains('23505') || msg.contains('unique')) {
+        await fb.FirebaseAuth.instance.signOut();
+        if (!mounted) return;
+        setState(() => _smsVerifying = false);
+        _showSnack('이미 다른 계정에서 사용 중인 번호예요.');
+        return; // _smsVerified = false 유지 → 온보딩 진행 차단
+      }
+      // 기타 네트워크 일시 오류 등은 성공 처리 (번호는 최종 INSERT에서 재시도)
     }
 
     // Firebase는 전화 인증용으로만 사용 → 즉시 로그아웃

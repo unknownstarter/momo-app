@@ -325,7 +325,13 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
           ),
           const Spacer(),
           GestureDetector(
-            onTap: () => context.go(RoutePaths.home),
+            onTap: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go(RoutePaths.home);
+              }
+            },
             child: Text(
               '나중에',
               style: theme.textTheme.labelMedium?.copyWith(

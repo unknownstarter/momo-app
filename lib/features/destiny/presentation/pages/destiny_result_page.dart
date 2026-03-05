@@ -141,23 +141,9 @@ class _DestinyResultPageState extends ConsumerState<DestinyResultPage>
             backgroundColor: colors.bgPrimary,
             body: NestedScrollView(
               headerSliverBuilder: (context, innerBoxIsScrolled) => [
-                // 닫기 버튼
-                SliverAppBar(
-                  expandedHeight: 0,
-                  floating: true,
-                  pinned: false,
-                  backgroundColor: Colors.transparent,
-                  surfaceTintColor: Colors.transparent,
-                  leading: const SizedBox.shrink(),
-                  actions: [
-                    IconButton(
-                      onPressed: () => context.go(RoutePaths.home),
-                      icon: Icon(
-                        Icons.close,
-                        color: colors.textSecondary,
-                      ),
-                    ),
-                  ],
+                // 상단 여백
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: SajuSpacing.space16),
                 ),
 
                 // 공통 헤더
@@ -395,7 +381,7 @@ class _DestinyResultPageState extends ConsumerState<DestinyResultPage>
           label: '내 사주와 찰떡인 사람, 만나볼까요?',
           onPressed: () {
             AnalyticsService.clickFindMatchesInDestinyResult();
-            context.go(
+            context.push(
               RoutePaths.matchingProfile,
               extra: {'quickMode': true},
             );
