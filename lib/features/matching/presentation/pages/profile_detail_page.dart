@@ -1464,21 +1464,38 @@ class _BottomActionBar extends ConsumerWidget {
     );
   }
 
-  void _handleSendLike(BuildContext context, WidgetRef ref) {
+  Future<void> _handleSendLike(BuildContext context, WidgetRef ref) async {
     AnalyticsService.likeSent(source: 'profile_detail');
-    final repo = ref.read(matchingRepositoryProvider);
-    repo.sendLike(profile.userId);
 
-    // 로컬 상태 갱신
-    ref.read(sentLikesProvider.notifier).refresh();
+    final success = await ref
+        .read(sendLikeNotifierProvider.notifier)
+        .sendLike(profile.userId);
 
-    Navigator.of(context).pop();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${profile.name}님에게 좋아요를 보냈어요'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    if (!context.mounted) return;
+
+    if (success) {
+      // 로컬 상태 갱신
+      ref.read(sentLikesProvider.notifier).refresh();
+
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${profile.name}님에게 좋아요를 보냈어요'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } else {
+      // SendLikeNotifier 상태에서 에러 메시지 표시
+      final errorState = ref.read(sendLikeNotifierProvider);
+      if (errorState is AsyncError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorState.error.toString()),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _handleAcceptLike(BuildContext context, WidgetRef ref) async {

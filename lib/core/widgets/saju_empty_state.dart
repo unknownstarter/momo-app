@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../constants/app_constants.dart';
-import '../theme/app_theme.dart';
 import '../theme/tokens/saju_spacing.dart';
 
 /// 빈 상태 공통 위젯 — 캐릭터 + 메시지 + 선택적 CTA

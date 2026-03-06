@@ -80,7 +80,7 @@ fvm flutter build ios --no-codesign --debug   # iOS 빌드 확인
 | Project ID | `ejngitwtzecqbhbqfnsc` |
 | 로컬 config | `supabase/config.toml` (project_id: ejngitwtzecqbhbqfnsc) |
 | Edge Functions | `supabase/functions/` 디렉토리 |
-| 주요 함수 | `calculate-saju`, `calculate-compatibility`, `generate-gwansang-reading` |
+| 주요 함수 | `calculate-saju`, `calculate-compatibility`, `batch-calculate-compatibility`, `generate-daily-recommendations`, `generate-gwansang-reading` |
 
 ### ✅ 디버그 바이패스 — 전체 제거 완료 (2026-03-04)
 
@@ -88,14 +88,14 @@ fvm flutter build ios --no-codesign --debug   # iOS 빌드 확인
 > 상세 문서: `docs/dev-log/2026-02-26-debug-bypass.md`
 > 검증: `grep -rn "BYPASS-\|TODO(PROD)" lib/ --include="*.dart"` → **0건**
 
-### 현재 앱 상태 요약 (2026-03-05 v5)
+### 현재 앱 상태 요약 (2026-03-06 v6)
 
-- **작동하는 것**: 온보딩(7스텝, SMS 필수) → 프로필 저장 → 데이팅 프로필(8필드) → 추천 리스트 → 홈(추천 그리드) → 프로필 상세(인라인 궁합, Hero) → 궁합 프리뷰
-- **실연동된 것**: Apple/Kakao 로그인(Supabase Auth), SMS 인증(Firebase Phone Auth), 프로필 저장(phone 포함), 매칭 프로필 저장, 궁합 계산, 라우터 가드(비로그인 접근 차단), profiles→auth.users DB 트리거 동기화
-- **2026-03-05 수정**: Edge Function JWT 401 해결, 분석 네비게이션 데드락 수정, 카카오 OAuth 브라우저 수정, 1인1계정 정책, 관상 Edge Function 3중 수정(모델 ID/한글 검증/사주 편향 제거), UI 반응형(칩/뱃지/텍스트), SajuChip alignment 버그 수정, 로그인 필수화(둘러보기 제거)
-- **Mock인 것**: 추천 목록(`getDailyRecommendations`), 좋아요(`sendLike`/`getLikes`), 채팅
-- **직전 완료**: 관상 Edge Function 수정 + UI 반응형 + 로그인 필수화 + SajuChip 버그 수정
-- **다음 작업**: 프로필 상세페이지 개선 → Sprint B — 실데이터 매칭
+- **작동하는 것**: 온보딩(7스텝, SMS 필수) → 프로필 저장 → 데이팅 프로필(8필드) → 추천 리스트 → 홈(섹션별 추천) → 프로필 상세(인라인 궁합, Hero, 사진 열람) → 궁합 프리뷰
+- **실연동된 것**: Apple/Kakao 로그인(Supabase Auth), SMS 인증(Firebase Phone Auth), 프로필 저장(phone 포함), 매칭 프로필 저장, 궁합 계산, **매칭 추천(섹션별 daily_matches + Edge Functions)**, **사진 열람(무료 3회/일 + 30P)**, 라우터 가드(비로그인 접근 차단), profiles→auth.users DB 트리거 동기화
+- **2026-03-06**: 매칭 추천 & 수익화 Phase 1 완료 — batch-calculate-compatibility, generate-daily-recommendations, 섹션별 홈 UI, 프로필 상세 사진 열람 게이팅, Task 12 통합 검증
+- **Mock인 것**: 일일 무료 사용량 초기값(DailyUsageNotifier는 로컬 상태만), 채팅
+- **직전 완료**: 매칭 추천 Phase 1 MVP (Task 12 Final Integration)
+- **다음 작업**: 프로필 상세페이지 개선(PD1~PD3) 또는 E2E 전체 플로우 재테스트(DBG4)
 
 ---
 
@@ -428,6 +428,15 @@ fvm flutter build ios --no-codesign --debug   # iOS 빌드 확인
 | UI4 | **칩 → 컴팩트 태그** — 결과 페이지 매력 키워드/성격 특성을 태그 Container로 변경 | ✅ |
 | AUTH1 | **로그인 필수화** — 둘러보기 버튼 제거 + publicPaths에서 home 제거 | ✅ |
 
+### 2026-03-06 — 매칭 추천 & 수익화 Phase 1 (Task 12 완료)
+
+| # | 항목 | 상태 |
+|---|------|------|
+| M1 | **Task 12 Step 1** — flutter analyze 0 errors + iOS build 성공 | ✅ |
+| M2 | **Task 12 Step 2** — 매칭 레이어 Mock 제거 확인, match_profile_model 주석 정리 | ✅ |
+| M3 | **Task 12 Step 3** — 테스크 마스터 현황 반영 (실연동 목록, 다음 작업) | ✅ |
+| M4 | **Task 12 Step 4** — Final commit | ✅ |
+
 ---
 
 ### 🔥 다음 작업 — 프로필 상세페이지 개선
@@ -533,6 +542,7 @@ fvm flutter build ios --no-codesign --debug   # iOS 빌드 확인
 - [x] ~~1인1계정 정책~~ ✅ 완료 (2026-03-05) — manual_linking + phone unique + 중복 안내 UI
 - [ ] **프로필 상세페이지 개선 (PD1~PD3)** — UI/UX 개선
 - [ ] **E2E 전체 플로우 재테스트 (DBG4)** — 로그인→온보딩→분석→결과→프로필→홈
-- [ ] **Sprint B — 실데이터 매칭** — E2E 검증 후 B1~B4 진행
+- [x] **매칭 추천 & 수익화 Phase 1** — 2026-03-06 Task 12 완료 (섹션별 추천, 사진 열람, Edge Functions)
+- [ ] **Sprint B 남은 작업** — E2E 검증 후 B3(캐릭터 동적 매핑), B4(실유저 테스트) 등
 - [ ] `lib/core/di/providers.dart` 확인 (새 Repository/DataSource 추가 시 반드시 등록)
 - [ ] 작업 완료 시 본 테스크 마스터 상태(⬜→✅) 및 dev-log 업데이트
