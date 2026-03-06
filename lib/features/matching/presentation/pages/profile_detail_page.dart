@@ -11,6 +11,8 @@ import '../../../../core/services/haptic_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/theme_extensions.dart';
 import '../../../../core/widgets/widgets.dart';
+import '../../../points/domain/entities/point_entity.dart';
+import '../../../points/presentation/providers/points_provider.dart';
 import '../../../saju/presentation/providers/saju_provider.dart';
 import '../../domain/entities/match_profile.dart';
 import '../providers/matching_provider.dart';
@@ -59,6 +61,7 @@ class ProfileDetailPage extends ConsumerStatefulWidget {
 class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
   late final ScrollController _scrollController;
   double _scrollOffset = 0;
+  bool _isPhotoRevealed = false;
 
   @override
   void initState() {
@@ -75,6 +78,27 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
 
   void _onScroll() {
     setState(() => _scrollOffset = _scrollController.offset);
+  }
+
+  Future<void> _handlePhotoReveal() async {
+    HapticService.medium();
+    final success = await ref
+        .read(photoRevealNotifierProvider.notifier)
+        .revealPhoto(widget.profile.userId);
+    if (!mounted) return;
+    if (success) {
+      setState(() => _isPhotoRevealed = true);
+    } else {
+      final state = ref.read(photoRevealNotifierProvider);
+      if (state is AsyncError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(state.error.toString()),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -147,6 +171,12 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                           elementPastel: elementPastel,
                           scrollOffset: _scrollOffset,
                           heroTag: widget.heroTag,
+                          isPhotoRevealed: _isPhotoRevealed,
+                          onReveal: _handlePhotoReveal,
+                          photoRevealState:
+                              ref.watch(photoRevealNotifierProvider),
+                          dailyUsage:
+                              ref.watch(dailyUsageNotifierProvider),
                         ),
                       ),
                     ),
@@ -205,6 +235,10 @@ class _HeroSection extends StatelessWidget {
     required this.elementPastel,
     required this.scrollOffset,
     this.heroTag,
+    required this.isPhotoRevealed,
+    required this.onReveal,
+    required this.photoRevealState,
+    required this.dailyUsage,
   });
 
   final MatchProfile profile;
@@ -212,6 +246,10 @@ class _HeroSection extends StatelessWidget {
   final Color elementPastel;
   final double scrollOffset;
   final String? heroTag;
+  final bool isPhotoRevealed;
+  final VoidCallback onReveal;
+  final AsyncValue<void> photoRevealState;
+  final DailyUsage dailyUsage;
 
   @override
   Widget build(BuildContext context) {
@@ -223,12 +261,26 @@ class _HeroSection extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        // 패럴랙스 블러 사진 배경
+        // 패럴랙스 블러 사진 배경 — 사진 열람 시 블러 해제 애니메이션
         Transform.translate(
           offset: Offset(0, scrollOffset * 0.3),
           child: profile.photoUrl != null
-              ? ImageFiltered(
-                  imageFilter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
+              ? TweenAnimationBuilder<double>(
+                  tween: Tween<double>(
+                    begin: isPhotoRevealed ? 25.0 : 25.0,
+                    end: isPhotoRevealed ? 0.0 : 25.0,
+                  ),
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeOut,
+                  builder: (context, sigma, child) {
+                    return ImageFiltered(
+                      imageFilter: ImageFilter.blur(
+                        sigmaX: sigma.clamp(0.01, 25.0),
+                        sigmaY: sigma.clamp(0.01, 25.0),
+                      ),
+                      child: child,
+                    );
+                  },
                   child: Image.network(
                     profile.photoUrl!,
                     fit: BoxFit.cover,
@@ -263,45 +315,56 @@ class _HeroSection extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // 캐릭터 아바타
-              _wrapHero(
-                  tag: heroTag,
-                  child: Container(
-                    width: 96,
-                    height: 96,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: elementPastel.withValues(alpha: 0.3),
-                      border: Border.all(
-                        color: elementColor.withValues(alpha: 0.4),
-                        width: 2.5,
+              // 캐릭터 아바타 — 사진 열람 시 페이드아웃
+              TweenAnimationBuilder<double>(
+                tween: Tween<double>(
+                  begin: isPhotoRevealed ? 1.0 : 1.0,
+                  end: isPhotoRevealed ? 0.0 : 1.0,
+                ),
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeOut,
+                builder: (context, opacity, child) {
+                  return Opacity(opacity: opacity, child: child);
+                },
+                child: _wrapHero(
+                    tag: heroTag,
+                    child: Container(
+                      width: 96,
+                      height: 96,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: elementPastel.withValues(alpha: 0.3),
+                        border: Border.all(
+                          color: elementColor.withValues(alpha: 0.4),
+                          width: 2.5,
+                        ),
                       ),
-                    ),
-                    child: ClipOval(
-                      child: profile.characterAssetPath != null
-                          ? Image.asset(
-                              profile.characterAssetPath!,
-                              width: 96,
-                              height: 96,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, _, _) => Center(
+                      child: ClipOval(
+                        child: profile.characterAssetPath != null
+                            ? Image.asset(
+                                profile.characterAssetPath!,
+                                width: 96,
+                                height: 96,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, _, _) => Center(
+                                  child: Icon(
+                                    Icons.person_rounded,
+                                    size: 40,
+                                    color:
+                                        elementColor.withValues(alpha: 0.3),
+                                  ),
+                                ),
+                              )
+                            : Center(
                                 child: Icon(
                                   Icons.person_rounded,
                                   size: 40,
-                                  color:
-                                      elementColor.withValues(alpha: 0.3),
+                                  color: elementColor.withValues(alpha: 0.3),
                                 ),
                               ),
-                            )
-                          : Center(
-                              child: Icon(
-                                Icons.person_rounded,
-                                size: 40,
-                                color: elementColor.withValues(alpha: 0.3),
-                              ),
-                            ),
+                      ),
                     ),
-                  ),
+                ),
               ),
 
               const SizedBox(height: 6),
@@ -379,38 +442,52 @@ class _HeroSection extends StatelessWidget {
           ),
         ),
 
-        // 잠금 안내
-        Positioned(
-          top: MediaQuery.of(context).padding.top + 48,
-          left: 16,
-          child: Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.4),
-              borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+        // 사진 열람 버튼 또는 잠금 안내
+        if (!isPhotoRevealed && profile.photoUrl != null)
+          Positioned(
+            bottom: 16,
+            left: 20,
+            right: 20,
+            child: _PhotoRevealButton(
+              remainingFree: dailyUsage.remainingFreePhotoReveals,
+              cost: AppLimits.photoRevealCost,
+              isLoading: photoRevealState is AsyncLoading,
+              onTap: onReveal,
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.lock_outline_rounded,
-                  size: 12,
-                  color: Colors.white.withValues(alpha: 0.7),
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  '좋아요하면 사진 공개',
-                  style: TextStyle(
-                    fontFamily: AppTheme.fontFamily,
-                    fontSize: 11,
+          )
+        else if (!isPhotoRevealed)
+          // 사진 없을 때 기존 잠금 안내
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 48,
+            left: 16,
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.lock_outline_rounded,
+                    size: 12,
                     color: Colors.white.withValues(alpha: 0.7),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 4),
+                  Text(
+                    '사진 미등록',
+                    style: TextStyle(
+                      fontFamily: AppTheme.fontFamily,
+                      fontSize: 11,
+                      color: Colors.white.withValues(alpha: 0.7),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
       ],
     );
   }
@@ -463,6 +540,77 @@ class _HeroSection extends StatelessWidget {
     if (score >= 60) return '좋음';
     if (score >= 40) return '보통';
     return '도전';
+  }
+}
+
+// =============================================================================
+// 사진 열람 버튼 — 블러 사진 위에 표시
+// =============================================================================
+
+class _PhotoRevealButton extends StatelessWidget {
+  const _PhotoRevealButton({
+    required this.remainingFree,
+    required this.cost,
+    required this.isLoading,
+    required this.onTap,
+  });
+
+  final int remainingFree;
+  final int cost;
+  final bool isLoading;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasFree = remainingFree > 0;
+    final label = hasFree
+        ? '사진 보기 (무료 $remainingFree회 남음)'
+        : '사진 보기 (${cost}P)';
+
+    return GestureDetector(
+      onTap: isLoading ? null : onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.15),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isLoading)
+              const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              )
+            else
+              Icon(
+                hasFree ? Icons.visibility_rounded : Icons.lock_open_rounded,
+                size: 16,
+                color: Colors.white.withValues(alpha: 0.9),
+              ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                fontFamily: AppTheme.fontFamily,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
