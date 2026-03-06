@@ -23,6 +23,12 @@ abstract final class HomeLayout {
   static const gridChildAspectRatio = 0.72;
   static const gridMaxItems = 6; // 2열 × 3행
 
+  // ── Section-specific max items ──
+  static const destinyMaxItems = 5;
+  static const compatMaxItems = 6; // 2열 × 3행
+  static const gwansangMaxItems = 4;
+  static const newUsersMaxItems = 4;
+
   // ── Animation stagger ──
   static const sectionStaggerMs = 100; // 섹션 간 등장 딜레이
 

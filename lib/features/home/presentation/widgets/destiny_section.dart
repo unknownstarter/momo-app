@@ -9,25 +9,26 @@ import '../../../matching/presentation/providers/matching_provider.dart';
 import '../constants/home_layout.dart';
 import 'section_header.dart';
 
-/// 홈 섹션: 관상 매칭 (관상 traits 유사도 기반)
+/// 홈 섹션: 운명의 매칭 (궁합 85%+ 또는 일주 합)
 ///
-/// 2열 그리드, 최대 4명. 데이터 없으면 SizedBox.shrink().
-class GwansangMatchSection extends ConsumerWidget {
-  const GwansangMatchSection({super.key});
+/// 수평 스크롤 카드, 금색 테두리 (isPremium), 최대 5명.
+/// 데이터 없으면 SizedBox.shrink() 반환.
+class DestinySection extends ConsumerWidget {
+  const DestinySection({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sectionedAsync = ref.watch(sectionedRecommendationsNotifierProvider);
 
     return sectionedAsync.when(
-      loading: () => _buildGridSkeleton(),
+      loading: () => _buildSkeleton(),
       error: (_, _) => const SizedBox.shrink(),
       data: (sectioned) {
-        final profiles = sectioned.gwansangMatches;
+        final profiles = sectioned.destinyMatches;
         if (profiles.isEmpty) return const SizedBox.shrink();
 
         final displayProfiles =
-            profiles.take(HomeLayout.gwansangMaxItems).toList();
+            profiles.take(HomeLayout.destinyMaxItems).toList();
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -35,28 +36,22 @@ class GwansangMatchSection extends ConsumerWidget {
             Padding(
               padding: HomeLayout.screenPadding,
               child: SectionHeader(
-                title: '관상 매칭',
+                title: '오늘의 운명 매칭',
                 actionLabel: '더보기',
                 onAction: () {
-                  AnalyticsService.clickSeeMoreInHome(section: 'gwansang');
+                  AnalyticsService.clickSeeMoreInHome(section: 'destiny');
                   context.go(RoutePaths.matching);
                 },
               ),
             ),
             HomeLayout.gapHeaderContent,
-            Padding(
-              padding: HomeLayout.screenPadding,
-              child: GridView.builder(
-                padding: EdgeInsets.zero,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: HomeLayout.gridCrossAxisCount,
-                  crossAxisSpacing: HomeLayout.gridSpacing,
-                  mainAxisSpacing: HomeLayout.gridSpacing,
-                  childAspectRatio: HomeLayout.gridChildAspectRatio,
-                ),
+            SizedBox(
+              height: 220,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: HomeLayout.screenPadding,
                 itemCount: displayProfiles.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 12),
                 itemBuilder: (context, index) {
                   final profile = displayProfiles[index];
                   return SajuMatchCard(
@@ -70,15 +65,16 @@ class GwansangMatchSection extends ConsumerWidget {
                     compatibilityScore: profile.compatibilityScore,
                     isPhoneVerified: profile.isPhoneVerified,
                     showCharacterInstead: true,
-                    heroTag: 'gwansang_char_${profile.userId}_$index',
+                    isPremium: true,
+                    width: 160,
+                    heroTag: 'destiny_char_${profile.userId}_$index',
                     onTap: () {
-                      AnalyticsService.clickCardInHome(section: 'gwansang');
+                      AnalyticsService.clickCardInHome(section: 'destiny');
                       context.push(
                         RoutePaths.profileDetail,
                         extra: {
                           'profile': profile,
-                          'heroTag':
-                              'gwansang_char_${profile.userId}_$index',
+                          'heroTag': 'destiny_char_${profile.userId}_$index',
                         },
                       );
                     },
@@ -92,29 +88,26 @@ class GwansangMatchSection extends ConsumerWidget {
     );
   }
 
-  static Widget _buildGridSkeleton() {
+  static Widget _buildSkeleton() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: HomeLayout.screenPadding,
-          child: const SectionHeader(title: '관상 매칭'),
+          child: const SectionHeader(title: '오늘의 운명 매칭'),
         ),
         HomeLayout.gapHeaderContent,
-        Padding(
-          padding: HomeLayout.screenPadding,
-          child: GridView.builder(
-            padding: EdgeInsets.zero,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: HomeLayout.gridCrossAxisCount,
-              crossAxisSpacing: HomeLayout.gridSpacing,
-              mainAxisSpacing: HomeLayout.gridSpacing,
-              childAspectRatio: HomeLayout.gridChildAspectRatio,
+        SizedBox(
+          height: 220,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: HomeLayout.screenPadding,
+            itemCount: 3,
+            separatorBuilder: (_, _) => const SizedBox(width: 12),
+            itemBuilder: (_, _) => const SizedBox(
+              width: 160,
+              child: SkeletonCard(),
             ),
-            itemCount: 4,
-            itemBuilder: (_, _) => const SkeletonCard(),
           ),
         ),
       ],

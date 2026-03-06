@@ -9,11 +9,11 @@ import '../../../matching/presentation/providers/matching_provider.dart';
 import '../constants/home_layout.dart';
 import 'section_header.dart';
 
-/// 홈 섹션: 관상 매칭 (관상 traits 유사도 기반)
+/// 홈 섹션: 새로 가입한 인연
 ///
 /// 2열 그리드, 최대 4명. 데이터 없으면 SizedBox.shrink().
-class GwansangMatchSection extends ConsumerWidget {
-  const GwansangMatchSection({super.key});
+class NewUsersSection extends ConsumerWidget {
+  const NewUsersSection({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -23,11 +23,11 @@ class GwansangMatchSection extends ConsumerWidget {
       loading: () => _buildGridSkeleton(),
       error: (_, _) => const SizedBox.shrink(),
       data: (sectioned) {
-        final profiles = sectioned.gwansangMatches;
+        final profiles = sectioned.newUserMatches;
         if (profiles.isEmpty) return const SizedBox.shrink();
 
         final displayProfiles =
-            profiles.take(HomeLayout.gwansangMaxItems).toList();
+            profiles.take(HomeLayout.newUsersMaxItems).toList();
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -35,10 +35,10 @@ class GwansangMatchSection extends ConsumerWidget {
             Padding(
               padding: HomeLayout.screenPadding,
               child: SectionHeader(
-                title: '관상 매칭',
+                title: '새로 가입한 인연',
                 actionLabel: '더보기',
                 onAction: () {
-                  AnalyticsService.clickSeeMoreInHome(section: 'gwansang');
+                  AnalyticsService.clickSeeMoreInHome(section: 'new_users');
                   context.go(RoutePaths.matching);
                 },
               ),
@@ -70,15 +70,16 @@ class GwansangMatchSection extends ConsumerWidget {
                     compatibilityScore: profile.compatibilityScore,
                     isPhoneVerified: profile.isPhoneVerified,
                     showCharacterInstead: true,
-                    heroTag: 'gwansang_char_${profile.userId}_$index',
+                    isNew: true,
+                    heroTag: 'new_user_char_${profile.userId}_$index',
                     onTap: () {
-                      AnalyticsService.clickCardInHome(section: 'gwansang');
+                      AnalyticsService.clickCardInHome(section: 'new_users');
                       context.push(
                         RoutePaths.profileDetail,
                         extra: {
                           'profile': profile,
                           'heroTag':
-                              'gwansang_char_${profile.userId}_$index',
+                              'new_user_char_${profile.userId}_$index',
                         },
                       );
                     },
@@ -98,7 +99,7 @@ class GwansangMatchSection extends ConsumerWidget {
       children: [
         Padding(
           padding: HomeLayout.screenPadding,
-          child: const SectionHeader(title: '관상 매칭'),
+          child: const SectionHeader(title: '새로 가입한 인연'),
         ),
         HomeLayout.gapHeaderContent,
         Padding(

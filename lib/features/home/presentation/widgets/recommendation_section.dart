@@ -10,60 +10,74 @@ import '../../../matching/presentation/providers/matching_provider.dart';
 import '../constants/home_layout.dart';
 import 'section_header.dart';
 
-/// 홈 섹션 3: 궁합 매칭 추천 2열 그리드 (★ 메인)
+/// 홈 섹션: 궁합이 좋은 인연들 (2열 그리드)
 ///
 /// 헤더와 그리드의 좌우 패딩을 자체 관리.
 /// [HomeSection]에서는 `applyHorizontalPadding: false`로 사용.
+/// 데이터 없으면 SizedBox.shrink() 반환.
 class RecommendationSection extends ConsumerWidget {
   const RecommendationSection({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final recommendations = ref.watch(dailyRecommendationsProvider);
+    final sectionedAsync = ref.watch(sectionedRecommendationsNotifierProvider);
 
+    return sectionedAsync.when(
+      loading: () => _buildGridSkeleton(),
+      error: (_, _) => const SizedBox.shrink(),
+      data: (sectioned) {
+        final profiles = sectioned.compatibilityMatches;
+        if (profiles.isEmpty) return const SizedBox.shrink();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: HomeLayout.screenPadding,
+              child: SectionHeader(
+                title: '궁합이 좋은 인연들',
+                actionLabel: '더보기',
+                onAction: () {
+                  AnalyticsService.clickSeeMoreInHome(
+                      section: 'compatibility');
+                  context.go(RoutePaths.matching);
+                },
+              ),
+            ),
+            HomeLayout.gapHeaderContent,
+            _RecommendationGrid(profiles: profiles),
+          ],
+        );
+      },
+    );
+  }
+
+  static Widget _buildGridSkeleton() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: HomeLayout.screenPadding,
-          child: SectionHeader(
-            title: '궁합 매칭 추천 이성',
-            actionLabel: '더보기',
-            onAction: () {
-              AnalyticsService.clickSeeMoreInHome(section: 'recommendation');
-              context.go(RoutePaths.matching);
-            },
-          ),
+          child: const SectionHeader(title: '궁합이 좋은 인연들'),
         ),
         HomeLayout.gapHeaderContent,
-        recommendations.when(
-          loading: () => _buildGridSkeleton(),
-          error: (_, _) => Padding(
-            padding: HomeLayout.screenPadding,
-            child: const _EmptyState(message: '추천을 불러오지 못했어요'),
+        Padding(
+          padding: HomeLayout.screenPadding,
+          child: GridView.builder(
+            padding: EdgeInsets.zero,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: HomeLayout.gridCrossAxisCount,
+              crossAxisSpacing: HomeLayout.gridSpacing,
+              mainAxisSpacing: HomeLayout.gridSpacing,
+              childAspectRatio: HomeLayout.gridChildAspectRatio,
+            ),
+            itemCount: 4,
+            itemBuilder: (_, _) => const SkeletonCard(),
           ),
-          data: (profiles) => _RecommendationGrid(profiles: profiles),
         ),
       ],
-    );
-  }
-
-  static Widget _buildGridSkeleton() {
-    return Padding(
-      padding: HomeLayout.screenPadding,
-      child: GridView.builder(
-        padding: EdgeInsets.zero,
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: HomeLayout.gridCrossAxisCount,
-          crossAxisSpacing: HomeLayout.gridSpacing,
-          mainAxisSpacing: HomeLayout.gridSpacing,
-          childAspectRatio: HomeLayout.gridChildAspectRatio,
-        ),
-        itemCount: 4,
-        itemBuilder: (_, _) => const SkeletonCard(),
-      ),
     );
   }
 }
@@ -75,14 +89,8 @@ class _RecommendationGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (profiles.isEmpty) {
-      return Padding(
-        padding: HomeLayout.screenPadding,
-        child: const _EmptyState(message: '아직 추천이 준비되지 않았어요'),
-      );
-    }
-
-    final displayProfiles = profiles.take(HomeLayout.gridMaxItems).toList();
+    final displayProfiles =
+        profiles.take(HomeLayout.compatMaxItems).toList();
 
     return Padding(
       padding: HomeLayout.screenPadding,
@@ -110,44 +118,19 @@ class _RecommendationGrid extends StatelessWidget {
             compatibilityScore: profile.compatibilityScore,
             isPhoneVerified: profile.isPhoneVerified,
             showCharacterInstead: true,
-            heroTag: 'home_char_${profile.userId}_$index',
+            heroTag: 'compat_char_${profile.userId}_$index',
             onTap: () {
-              AnalyticsService.clickCardInHome(section: 'recommendation');
+              AnalyticsService.clickCardInHome(section: 'compatibility');
               context.push(
                 RoutePaths.profileDetail,
                 extra: {
                   'profile': profile,
-                  'heroTag': 'home_char_${profile.userId}_$index',
+                  'heroTag': 'compat_char_${profile.userId}_$index',
                 },
               );
             },
           );
         },
-      ),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 200,
-      child: Center(
-        child: Text(
-          message,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.color
-                    ?.withValues(alpha: 0.5),
-              ),
-        ),
       ),
     );
   }
