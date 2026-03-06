@@ -10,6 +10,7 @@ import '../../../../core/theme/theme_extensions.dart';
 import '../../../../core/theme/tokens/saju_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../home/presentation/providers/my_analysis_provider.dart';
 
 /// 프로필 탭 — 내 프로필 보기
 ///
@@ -96,13 +97,29 @@ class _ProfileContent extends StatelessWidget {
                     ],
                   ),
                 ),
-                // 내 캐릭터 (오행 배정 전에는 기본 나무리)
-                Image.asset(
-                  CharacterAssets.namuriWoodDefault,
-                  width: 72,
-                  height: 72,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                // 내 캐릭터 (사주 오행 기반 동적 선택)
+                Consumer(
+                  builder: (context, ref, _) {
+                    final analysisAsync = ref.watch(myAnalysisProvider);
+                    final assetPath = analysisAsync.maybeWhen(
+                      data: (data) {
+                        if (data.saju != null) {
+                          final element =
+                              data.saju!.dominantElement ?? FiveElementType.wood;
+                          return CharacterAssets.defaultFor(element);
+                        }
+                        return CharacterAssets.namuriWoodDefault;
+                      },
+                      orElse: () => CharacterAssets.namuriWoodDefault,
+                    );
+                    return Image.asset(
+                      assetPath,
+                      width: 72,
+                      height: 72,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                    );
+                  },
                 ),
               ],
             ),
@@ -216,14 +233,6 @@ class _ProfileContent extends StatelessWidget {
             ),
           ),
 
-          SajuSpacing.gap32,
-
-          // ---- 6. 로그아웃 ----
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: _LogoutButton(),
-          ),
-
           // 플로팅 네비바 뒤 여백
           SizedBox(height: MediaQuery.of(context).padding.bottom + 88),
         ],
@@ -322,40 +331,3 @@ class _MenuTile extends StatelessWidget {
   }
 }
 
-class _LogoutButton extends ConsumerWidget {
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return OutlinedButton(
-      onPressed: () async {
-        AnalyticsService.clickLogout();
-        final confirmed = await showDialog<bool>(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: const Text('로그아웃'),
-            content: const Text('로그아웃 할까요?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(false),
-                child: const Text('취소'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(true),
-                child: const Text('로그아웃'),
-              ),
-            ],
-          ),
-        );
-        if (confirmed == true && context.mounted) {
-          await ref.read(authNotifierProvider.notifier).signOut();
-          if (context.mounted) {
-            context.go(RoutePaths.login);
-          }
-        }
-      },
-      style: OutlinedButton.styleFrom(
-        foregroundColor: context.sajuColors.textSecondary,
-      ),
-      child: const Text('로그아웃'),
-    );
-  }
-}
