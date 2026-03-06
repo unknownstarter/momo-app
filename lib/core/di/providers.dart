@@ -66,7 +66,10 @@ SajuRemoteDatasource sajuRemoteDatasource(Ref ref) {
 /// 사주 Repository Provider
 @riverpod
 SajuRepository sajuRepository(Ref ref) {
-  return SajuRepositoryImpl(ref.watch(sajuRemoteDatasourceProvider));
+  return SajuRepositoryImpl(
+    ref.watch(sajuRemoteDatasourceProvider),
+    ref.watch(supabaseHelperProvider),
+  );
 }
 
 // =============================================================================

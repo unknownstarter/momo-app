@@ -7,6 +7,8 @@ library;
 
 import 'package:flutter/foundation.dart';
 
+import '../../../../core/constants/app_constants.dart';
+import '../../../../core/network/supabase_client.dart';
 import '../../domain/entities/saju_entity.dart';
 import '../../domain/repositories/saju_repository.dart';
 import '../datasources/saju_remote_datasource.dart';
@@ -32,9 +34,10 @@ const _elementToCharacter = <String, String>{
 ///
 /// 최종적으로 두 결과를 조합하여 완전한 [SajuProfile] 엔티티를 반환합니다.
 class SajuRepositoryImpl implements SajuRepository {
-  const SajuRepositoryImpl(this._datasource);
+  const SajuRepositoryImpl(this._datasource, this._supabaseHelper);
 
   final SajuRemoteDatasource _datasource;
+  final SupabaseHelper _supabaseHelper;
 
   @override
   Future<SajuProfile> analyzeSaju({
@@ -83,6 +86,25 @@ class SajuRepositoryImpl implements SajuRepository {
       characterType: character,
     );
     debugPrint('[SajuRepo] Step 4 완료: 전체 사주 분석 성공!');
+
+    // Step 4.5: 배치 궁합 계산 비동기 트리거 (fire-and-forget)
+    // 사주 분석 완료 후 다른 유저와의 궁합을 백그라운드로 계산합니다.
+    // UI를 블로킹하지 않으며, 실패해도 사주 분석 결과에 영향을 주지 않습니다.
+    try {
+      _supabaseHelper
+          .invokeFunction(
+            SupabaseFunctions.batchCalculateCompatibility,
+            body: {'userId': userId},
+            timeout: const Duration(seconds: 60),
+          )
+          .then((_) => debugPrint('[SajuRepo] 배치 궁합 계산 완료'))
+          .catchError(
+            (Object e) =>
+                debugPrint('[SajuRepo] 배치 궁합 계산 실패 (무시): $e'),
+          );
+    } catch (_) {
+      // 트리거 자체가 실패해도 무시 — 사주 분석 결과에 영향 없음
+    }
 
     // Step 5: 실제 DB ID로 엔티티 생성
     return sajuModel.toEntity(
