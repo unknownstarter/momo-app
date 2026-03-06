@@ -13,6 +13,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/tokens/saju_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../../core/domain/entities/user_entity.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 import '../providers/matching_profile_provider.dart';
 
 /// 데이팅 프로필 완성 페이지 — 단일 스크롤 폼
@@ -22,9 +23,10 @@ import '../providers/matching_profile_provider.dart';
 /// **필수**: 키, 직업, 활동 지역
 /// **선택**: 자기소개, 체형, 종교, 관심사, 이상형
 ///
-/// 사진(최소 3장) + 필수 + 선택 정보를 한 화면에서 수집한다.
+/// 사진(최소 1장) + 필수 + 선택 정보를 한 화면에서 수집한다.
 class MatchingProfilePage extends ConsumerStatefulWidget {
-  const MatchingProfilePage({super.key});
+  const MatchingProfilePage({super.key, this.isEditMode = false});
+  final bool isEditMode;
 
   @override
   ConsumerState<MatchingProfilePage> createState() =>
@@ -103,6 +105,31 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
   void initState() {
     super.initState();
     _loadExistingPhotos();
+    if (widget.isEditMode) {
+      _prefillFromProfile();
+    }
+  }
+
+  /// 편집 모드: 기존 프로필 데이터로 폼을 채움
+  Future<void> _prefillFromProfile() async {
+    try {
+      final repo = ref.read(profileRepositoryProvider);
+      final profile = await repo.getProfile();
+      if (profile != null && mounted) {
+        setState(() {
+          _heightController.text = profile.height?.toString() ?? '';
+          _occupationController.text = profile.occupation ?? '';
+          _selectedLocation = profile.location;
+          _bioController.text = profile.bio ?? '';
+          _selectedBodyType = profile.bodyType;
+          _selectedReligion = profile.religion;
+          _selectedInterests.addAll(profile.interests);
+          _idealTypeController.text = profile.idealType ?? '';
+        });
+      }
+    } catch (_) {
+      // 실패해도 빈 상태로 진행
+    }
   }
 
   /// DB에서 기존 사진 로드 (profiles.profile_images)
@@ -191,6 +218,36 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
       return p.startsWith('http') ? p : (localToUrl[p] ?? p);
     }).toList();
 
+    // --- 편집 모드: updateProfile + pop ---
+    if (widget.isEditMode) {
+      try {
+        final repo = ref.read(profileRepositoryProvider);
+        await repo.updateProfile({
+          'profile_images': photoUrls,
+          'height': int.parse(_heightController.text.trim()),
+          'occupation': _occupationController.text.trim(),
+          'location': _selectedLocation,
+          'bio': _bioController.text.trim(),
+          'interests': _selectedInterests.toList(),
+          'religion': _selectedReligion?.name,
+          'body_type': _selectedBodyType?.name,
+          'ideal_type': _idealTypeController.text.trim().isNotEmpty
+              ? _idealTypeController.text.trim()
+              : null,
+        });
+        if (!mounted) return;
+        ref.invalidate(currentUserProfileProvider);
+        setState(() => _isSubmitting = false);
+        context.pop();
+      } catch (e) {
+        if (!mounted) return;
+        setState(() => _isSubmitting = false);
+        _showSnack('저장에 실패했어요. 다시 시도해주세요.');
+      }
+      return;
+    }
+
+    // --- 온보딩 모드: 기존 로직 ---
     final result = await ref
         .read(matchingProfileNotifierProvider.notifier)
         .saveMatchingProfile(
@@ -272,7 +329,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SajuSpacing.gap16,
+                    const SizedBox(height: 20),
 
                     // 캐릭터 가이드
                     SajuCharacterBubble(
@@ -281,11 +338,11 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
                       elementColor: SajuColor.earth,
                       size: SajuSize.md,
                     ),
-                    SajuSpacing.gap24,
+                    const SizedBox(height: 28),
 
                     // ─── 섹션 0: 사진 ───
                     _buildSectionHeader('내 사진', isRequired: true),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Text(
                       '최소 $_minPhotos장, 최대 $_maxPhotos장',
                       style: const TextStyle(
@@ -293,33 +350,33 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
                         color: Color(0xFFA0A0A0),
                       ),
                     ),
-                    SajuSpacing.gap12,
+                    SajuSpacing.gap16,
                     _buildPhotoGrid(),
-                    SajuSpacing.gap32,
+                    const SizedBox(height: 40),
 
                     // ─── 섹션 1: 필수 정보 ───
                     _buildSectionHeader('필수 정보', isRequired: true),
-                    SajuSpacing.gap16,
+                    const SizedBox(height: 20),
                     _buildRequiredSection(),
-                    SajuSpacing.gap32,
+                    const SizedBox(height: 40),
 
                     // ─── 섹션 2: 자기소개 ───
                     _buildSectionHeader('자기소개'),
-                    SajuSpacing.gap16,
+                    const SizedBox(height: 20),
                     _buildBioSection(),
-                    SajuSpacing.gap32,
+                    const SizedBox(height: 40),
 
                     // ─── 섹션 3: 나에 대해 ───
                     _buildSectionHeader('나에 대해'),
-                    SajuSpacing.gap16,
+                    const SizedBox(height: 20),
                     _buildAboutMeSection(),
-                    SajuSpacing.gap32,
+                    const SizedBox(height: 40),
 
                     // ─── 섹션 4: 이상형 ───
                     _buildSectionHeader('이상형'),
-                    SajuSpacing.gap16,
+                    const SizedBox(height: 20),
                     _buildIdealTypeSection(),
-                    SajuSpacing.gap32,
+                    const SizedBox(height: 40),
 
                     // 하단 여백 (버튼 영역만큼)
                     const SizedBox(height: 80),
@@ -340,6 +397,8 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
   // 상단 바
   // =========================================================================
 
+  /// 상단 앱바 — 뒤로가기/나중에 없음. 필수 정보 입력 후에만 진행 가능.
+  /// 영역 유지로 하단 콘텐츠가 끌려 올라오지 않도록 좌우에 빈 공간 배치.
   Widget _buildTopBar(ThemeData theme) {
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -348,58 +407,21 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
       ),
       child: Row(
         children: [
-          GestureDetector(
-            onTap: () {
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.go(RoutePaths.home);
-              }
-            },
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.06),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Icon(
-                Icons.arrow_back_ios_new,
-                size: 18,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
+          widget.isEditMode
+              ? IconButton(
+                  onPressed: () => context.pop(),
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+                )
+              : const SizedBox(width: 40, height: 40),
           const Spacer(),
           Text(
-            '프로필 완성하기',
+            widget.isEditMode ? '프로필 편집' : '프로필 완성하기',
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w600,
             ),
           ),
           const Spacer(),
-          GestureDetector(
-            onTap: () {
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.go(RoutePaths.home);
-              }
-            },
-            child: Text(
-              '나중에',
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: theme.colorScheme.outline,
-              ),
-            ),
-          ),
+          const SizedBox(width: 40, height: 40),
         ],
       ),
     );
@@ -471,7 +493,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
           ],
           size: SajuSize.lg,
         ),
-        SajuSpacing.gap24,
+        const SizedBox(height: 28),
 
         // 직업
         SajuInput(
@@ -480,14 +502,14 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
           controller: _occupationController,
           size: SajuSize.lg,
         ),
-        SajuSpacing.gap24,
+        const SizedBox(height: 28),
 
         // 활동 지역
         _buildFieldLabel('활동 지역'),
-        SajuSpacing.gap8,
+        SajuSpacing.gap12,
         Wrap(
-          spacing: 8,
-          runSpacing: 8,
+          spacing: 10,
+          runSpacing: 10,
           children: _locationOptions.map((loc) {
             final isSelected = _selectedLocation == loc;
             return SajuChip(
@@ -519,7 +541,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
           maxLength: AppLimits.maxBioLength,
           size: SajuSize.lg,
         ),
-        SajuSpacing.gap4,
+        SajuSpacing.gap8,
         Align(
           alignment: Alignment.centerRight,
           child: ValueListenableBuilder<TextEditingValue>(
@@ -551,10 +573,10 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
       children: [
         // 체형
         _buildFieldLabel('체형'),
-        SajuSpacing.gap8,
+        SajuSpacing.gap12,
         Wrap(
-          spacing: 8,
-          runSpacing: 8,
+          spacing: 10,
+          runSpacing: 10,
           children: BodyType.values.map((type) {
             final isSelected = _selectedBodyType == type;
             return SajuChip(
@@ -568,14 +590,14 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
             );
           }).toList(),
         ),
-        SajuSpacing.gap24,
+        const SizedBox(height: 28),
 
         // 종교
         _buildFieldLabel('종교'),
-        SajuSpacing.gap8,
+        SajuSpacing.gap12,
         Wrap(
-          spacing: 8,
-          runSpacing: 8,
+          spacing: 10,
+          runSpacing: 10,
           children: Religion.values.map((rel) {
             final isSelected = _selectedReligion == rel;
             return SajuChip(
@@ -589,14 +611,14 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
             );
           }).toList(),
         ),
-        SajuSpacing.gap24,
+        const SizedBox(height: 28),
 
         // 관심사
         _buildFieldLabel('관심사/취미'),
-        SajuSpacing.gap8,
+        SajuSpacing.gap12,
         Wrap(
-          spacing: 8,
-          runSpacing: 8,
+          spacing: 10,
+          runSpacing: 10,
           children: _presetInterests.map((interest) {
             final isSelected = _selectedInterests.contains(interest);
             return SajuChip(
@@ -618,7 +640,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
             );
           }).toList(),
         ),
-        SajuSpacing.gap12,
+        SajuSpacing.gap16,
 
         // 커스텀 관심사
         Row(
@@ -651,10 +673,10 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
         if (_selectedInterests
             .where((i) => !_presetInterests.contains(i))
             .isNotEmpty) ...[
-          SajuSpacing.gap8,
+          SajuSpacing.gap12,
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: 10,
+            runSpacing: 10,
             children: _selectedInterests
                 .where((i) => !_presetInterests.contains(i))
                 .map((interest) {
@@ -690,7 +712,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
           maxLength: 200,
           size: SajuSize.lg,
         ),
-        SajuSpacing.gap4,
+        SajuSpacing.gap8,
         Align(
           alignment: Alignment.centerRight,
           child: ValueListenableBuilder<TextEditingValue>(
@@ -735,11 +757,15 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
         ],
       ),
       child: SajuButton(
-        label: _isSubmitting ? '저장 중...' : '프로필 완성!',
+        label: _isSubmitting
+            ? '저장 중...'
+            : widget.isEditMode
+                ? '저장'
+                : '프로필 완성!',
         onPressed: _isSubmitting ? null : _submitProfile,
         color: SajuColor.earth,
         size: SajuSize.xl,
-        leadingIcon: _isSubmitting ? null : Icons.celebration,
+        leadingIcon: _isSubmitting ? null : (widget.isEditMode ? Icons.save : Icons.celebration),
       ),
     );
   }

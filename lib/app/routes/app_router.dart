@@ -342,6 +342,7 @@ GoRouter appRouter(Ref ref) {
           return DestinyResultPage(
             sajuResult: data['sajuResult'],
             gwansangResult: data['gwansangResult'],
+            initialTab: data['initialTab'] as int?,
           );
         },
       ),
@@ -431,7 +432,7 @@ GoRouter appRouter(Ref ref) {
         path: RoutePaths.editProfile,
         name: RouteNames.editProfile,
         builder: (context, state) =>
-            const _PlaceholderPage(title: 'Edit Profile'),
+            const MatchingProfilePage(isEditMode: true),
       ),
 
       // 설정
