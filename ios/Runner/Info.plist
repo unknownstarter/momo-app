@@ -70,6 +70,10 @@
 			</array>
 		</dict>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>프로필 사진 촬영을 위해 카메라에 접근합니다.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>프로필 사진을 선택하기 위해 사진 라이브러리에 접근합니다.</string>
 	<key>NSContactsUsageDescription</key>
 	<string>아는 사람을 매칭에서 제외하기 위해 연락처에 접근합니다. 전화번호는 암호화되어 저장됩니다.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
