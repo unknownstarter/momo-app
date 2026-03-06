@@ -24,6 +24,7 @@ import '../../features/chat/presentation/pages/chat_list_page.dart';
 import '../../features/chat/presentation/pages/chat_room_page.dart';
 import '../../features/profile/presentation/pages/matching_profile_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
+import '../../features/profile/presentation/pages/settings_page.dart';
 import '../../features/gwansang/presentation/pages/gwansang_analysis_page.dart';
 import '../../features/gwansang/presentation/pages/gwansang_bridge_page.dart';
 import '../../features/gwansang/presentation/pages/gwansang_photo_page.dart';
@@ -439,8 +440,7 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: RoutePaths.settings,
         name: RouteNames.settings,
-        builder: (context, state) =>
-            const _PlaceholderPage(title: 'Settings'),
+        builder: (context, state) => const SettingsPage(),
       ),
 
       // 결제
