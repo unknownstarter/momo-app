@@ -45,6 +45,38 @@ class MatchingRemoteDatasource {
   final SupabaseClient _client;
 
   // ===========================================================================
+  // 차단 연락처 프로필 ID 조회
+  // ===========================================================================
+
+  /// 차단 연락처에 해당하는 프로필 ID 목록 조회
+  ///
+  /// DB RPC 함수 `get_blocked_profile_ids`를 호출하여,
+  /// 유저가 동기화한 연락처 해시와 매칭되는 프로필 ID를 반환합니다.
+  /// 실패 시 빈 Set을 반환합니다 (추천이 차단 없이 계속 표시되도록).
+  Future<Set<String>> fetchBlockedProfileIds(String userId) async {
+    try {
+      final result = await _client.rpc(
+        'get_blocked_profile_ids',
+        params: {'p_user_id': userId},
+      );
+
+      if (result == null) return {};
+
+      // RPC returns List of uuid values
+      if (result is List) {
+        return result
+            .map((row) => row is String ? row : row.toString())
+            .toSet();
+      }
+
+      return {};
+    } catch (_) {
+      // RPC 함수 미배포 또는 에러 시 빈 Set 반환
+      return {};
+    }
+  }
+
+  // ===========================================================================
   // Edge Function 호출
   // ===========================================================================
 
@@ -173,11 +205,17 @@ class MatchingRemoteDatasource {
       }
     }
 
-    // 6. 결합: daily_match + profile + gwansang + compatibility
+    // 6. 차단 연락처 프로필 제외 (이중 안전장치 — Edge Function에서도 제외함)
+    final blockedIds = await fetchBlockedProfileIds(userId);
+
+    // 7. 결합: daily_match + profile + gwansang + compatibility
     final results = <Map<String, dynamic>>[];
     for (final match in dailyMatches) {
       final recommendedId = match['recommended_id'] as String;
       final compatId = match['compatibility_id'] as String?;
+
+      // 차단 연락처 프로필 건너뛰기
+      if (blockedIds.contains(recommendedId)) continue;
 
       results.add({
         // daily_matches 필드
@@ -356,8 +394,13 @@ class MatchingRemoteDatasource {
       senderMap[p['id'] as String] = Map<String, dynamic>.from(p);
     }
 
-    // 3. 결합
-    return likes.map((like) {
+    // 3. 차단 연락처 프로필 제외
+    final blockedIds = await fetchBlockedProfileIds(userId);
+
+    // 4. 결합 (차단된 sender 제외)
+    return likes
+        .where((like) => !blockedIds.contains(like['sender_id'] as String))
+        .map((like) {
       final senderId = like['sender_id'] as String;
       return {
         'like_id': like['id'],

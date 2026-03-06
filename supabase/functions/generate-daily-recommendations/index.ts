@@ -139,6 +139,22 @@ async function buildExclusionSet(
     for (const m of matches2) excluded.add(m.user1_id);
   }
 
+  // 4. 연락처 차단 (blocked_phone_hashes) — "아는 사람 피하기" 기능
+  // RPC 함수로 전화번호 해시 매칭된 프로필 ID를 가져옴
+  const { data: blockedProfiles, error: blockedErr } = await supabase
+    .rpc("get_blocked_profile_ids", { p_user_id: userId });
+  if (blockedErr) {
+    console.error("Error fetching blocked profiles:", blockedErr.message);
+    // 에러여도 계속 진행 — 차단 필터링 없이 추천 생성
+  }
+  if (blockedProfiles) {
+    for (const row of blockedProfiles) {
+      // RPC returns SETOF uuid, so each row is the uuid directly
+      const id = typeof row === "string" ? row : row.id ?? row;
+      if (id) excluded.add(id as string);
+    }
+  }
+
   return excluded;
 }
 

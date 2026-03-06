@@ -85,3 +85,34 @@ CREATE POLICY "blocked_phones_insert_own" ON public.blocked_phone_hashes
 CREATE POLICY "blocked_phones_delete_own" ON public.blocked_phone_hashes
   FOR DELETE
   USING (user_id = (SELECT id FROM public.profiles WHERE auth_id = auth.uid()));
+
+-- ============================================================
+-- 4. RPC: 차단 연락처에 해당하는 프로필 ID 반환
+-- ============================================================
+-- 유저가 동기화한 연락처 해시와 다른 유저의 전화번호 해시를 비교하여
+-- 매칭 추천에서 제외해야 할 프로필 ID를 반환합니다.
+-- phone 컬럼에서 숫자만 추출 → 뒤 8자리 → SHA256 해시 비교
+-- SECURITY DEFINER: 모든 profiles.phone을 읽을 수 있어야 하므로 (RLS 우회)
+
+CREATE OR REPLACE FUNCTION public.get_blocked_profile_ids(p_user_id uuid)
+RETURNS SETOF uuid
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT p.id
+  FROM profiles p
+  JOIN blocked_phone_hashes bph ON bph.user_id = p_user_id
+  WHERE p.phone IS NOT NULL
+    AND p.id != p_user_id
+    AND encode(
+          sha256(
+            right(
+              regexp_replace(p.phone, '[^0-9]', '', 'g'),
+              8
+            )::bytea
+          ),
+          'hex'
+        ) = bph.phone_hash;
+$$;
