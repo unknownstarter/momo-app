@@ -50,4 +50,33 @@ post_install do |installer|
       ]
     end
   end
+
+  # Patch flutter_contacts crash: rootViewController is nil at registration time
+  # See: https://github.com/QuisApp/flutter_contacts/issues/171
+  plugin_swift = File.join(
+    installer.sandbox.root.parent, '.symlinks', 'plugins',
+    'flutter_contacts', 'ios', 'Classes', 'SwiftFlutterContactsPlugin.swift'
+  )
+  if File.exist?(plugin_swift)
+    content = File.read(plugin_swift)
+    crash_line = 'let rootViewController = UIApplication.shared.delegate!.window!!.rootViewController!'
+    if content.include?(crash_line)
+      patched = content.gsub(
+        crash_line,
+        <<~'SWIFT'.chomp
+        // Patched: safely unwrap rootViewController to prevent crash on app startup
+                guard let delegate = UIApplication.shared.delegate,
+                      let window = delegate.window ?? nil,
+                      let rootViewController = window.rootViewController else {
+                    let fallbackInstance = SwiftFlutterContactsPlugin(UIViewController())
+                    registrar.addMethodCallDelegate(fallbackInstance, channel: channel)
+                    eventChannel.setStreamHandler(fallbackInstance)
+                    return
+                }
+        SWIFT
+      )
+      File.write(plugin_swift, patched)
+      Pod::UI.puts "Patched flutter_contacts rootViewController crash"
+    end
+  end
 end
