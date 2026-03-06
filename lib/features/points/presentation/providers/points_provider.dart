@@ -4,7 +4,7 @@
 ///
 /// Provider 구성:
 /// - [UserPointsNotifier]: 포인트 잔액 상태 관리 (Mock: 500P 시작)
-/// - [DailyUsageNotifier]: 일일 무료 좋아요/수락 사용량
+/// - [DailyUsageNotifier]: 일일 무료 좋아요/수락/사진 열람 사용량
 /// - [SendLikeNotifier]: 좋아요 전송 비즈니스 로직 (무료→포인트 차감 순서)
 library;
 
@@ -79,6 +79,7 @@ class UserPointsNotifier extends _$UserPointsNotifier {
 /// 주요 메서드:
 /// - [useFreeLike]: 무료 좋아요 1회 사용
 /// - [useFreeAccept]: 무료 수락 1회 사용
+/// - [useFreePhotoReveal]: 무료 사진 열람 1회 사용
 @riverpod
 class DailyUsageNotifier extends _$DailyUsageNotifier {
   @override
@@ -99,6 +100,7 @@ class DailyUsageNotifier extends _$DailyUsageNotifier {
       date: current.date,
       freeLikesUsed: current.freeLikesUsed + 1,
       freeAcceptsUsed: current.freeAcceptsUsed,
+      freePhotoRevealsUsed: current.freePhotoRevealsUsed,
     );
   }
 
@@ -110,6 +112,19 @@ class DailyUsageNotifier extends _$DailyUsageNotifier {
       date: current.date,
       freeLikesUsed: current.freeLikesUsed,
       freeAcceptsUsed: current.freeAcceptsUsed + 1,
+      freePhotoRevealsUsed: current.freePhotoRevealsUsed,
+    );
+  }
+
+  /// 무료 사진 열람 1회 사용
+  void useFreePhotoReveal() {
+    final current = state;
+    state = DailyUsage(
+      userId: current.userId,
+      date: current.date,
+      freeLikesUsed: current.freeLikesUsed,
+      freeAcceptsUsed: current.freeAcceptsUsed,
+      freePhotoRevealsUsed: current.freePhotoRevealsUsed + 1,
     );
   }
 }

@@ -24,6 +24,45 @@ final dailyRecommendationsProvider = AutoDisposeAsyncNotifierProvider<
 );
 
 typedef _$DailyRecommendations = AutoDisposeAsyncNotifier<List<MatchProfile>>;
+String _$sectionedRecommendationsNotifierHash() =>
+    r'sectionedRecommendationsNotifier';
+
+/// 섹션별 추천 Provider
+///
+/// Copied from [SectionedRecommendationsNotifier].
+@ProviderFor(SectionedRecommendationsNotifier)
+final sectionedRecommendationsNotifierProvider =
+    AutoDisposeAsyncNotifierProvider<SectionedRecommendationsNotifier,
+        SectionedRecommendations>.internal(
+  SectionedRecommendationsNotifier.new,
+  name: r'sectionedRecommendationsNotifierProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$sectionedRecommendationsNotifierHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$SectionedRecommendationsNotifier
+    = AutoDisposeAsyncNotifier<SectionedRecommendations>;
+String _$photoRevealNotifierHash() => r'photoRevealNotifier';
+
+/// 사진 열람 Provider
+///
+/// Copied from [PhotoRevealNotifier].
+@ProviderFor(PhotoRevealNotifier)
+final photoRevealNotifierProvider =
+    AutoDisposeNotifierProvider<PhotoRevealNotifier, AsyncValue<void>>.internal(
+  PhotoRevealNotifier.new,
+  name: r'photoRevealNotifierProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$photoRevealNotifierHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$PhotoRevealNotifier = AutoDisposeNotifier<AsyncValue<void>>;
 String _$compatibilityPreviewHash() => r'compatibilityPreview';
 
 /// 궁합 프리뷰 상태 관리
