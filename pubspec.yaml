@@ -26,6 +26,11 @@ dependencies:
   freezed_annotation: ^2.4.4
   json_annotation: ^4.9.0
 
+  # --- 연락처 차단 (아는 사람 제외) ---
+  crypto: ^3.0.3
+  flutter_contacts: ^1.1.9+2
+  permission_handler: ^11.3.1
+
   # --- 결제 ---
   purchases_flutter: ^8.4.1  # RevenueCat
 
