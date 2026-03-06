@@ -85,7 +85,28 @@ final sajuRepositoryProvider = AutoDisposeProvider<SajuRepository>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef SajuRepositoryRef = AutoDisposeProviderRef<SajuRepository>;
-String _$matchingRepositoryHash() => r'matchingRepository_di';
+String _$matchingRemoteDatasourceHash() => r'matchingRemoteDatasource_di';
+
+/// 매칭 데이터소스 Provider
+///
+/// Copied from [matchingRemoteDatasource].
+@ProviderFor(matchingRemoteDatasource)
+final matchingRemoteDatasourceProvider =
+    AutoDisposeProvider<MatchingRemoteDatasource>.internal(
+  matchingRemoteDatasource,
+  name: r'matchingRemoteDatasourceProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$matchingRemoteDatasourceHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef MatchingRemoteDatasourceRef
+    = AutoDisposeProviderRef<MatchingRemoteDatasource>;
+String _$matchingRepositoryHash() => r'matchingRepository_di_v2';
 
 /// 매칭 Repository Provider
 ///

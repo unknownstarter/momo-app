@@ -6,6 +6,7 @@
 library;
 
 import '../../../../core/domain/entities/compatibility_entity.dart';
+import '../entities/daily_recommendation.dart';
 import '../entities/like_entity.dart';
 import '../entities/match_entity.dart';
 import '../entities/match_profile.dart';
@@ -59,4 +60,27 @@ abstract class MatchingRepository {
   ///
   /// 받은 좋아요 목록과 해당 유저의 프로필을 함께 반환합니다.
   Future<List<({Like like, MatchProfile profile})>> getReceivedLikesWithProfiles();
+
+  /// 배치 궁합 계산 트리거
+  ///
+  /// 현재 유저에 대해 후보 유저들과의 궁합을 일괄 계산합니다.
+  /// Edge Function이 saju_compatibility 테이블에 결과를 저장합니다.
+  Future<void> triggerBatchCompatibility();
+
+  /// 일일 추천 생성 (필요 시)
+  ///
+  /// 오늘의 추천 목록이 없으면 생성합니다.
+  /// [isInitial]이 true면 온보딩 직후 첫 추천 (5명)을 생성합니다.
+  Future<void> ensureDailyRecommendations({bool isInitial = false});
+
+  /// 섹션별 일일 추천 조회
+  ///
+  /// 운명의 매칭, 궁합 매칭, 관상 매칭, 신규 유저 등
+  /// 섹션별로 분류된 추천 목록을 반환합니다.
+  Future<SectionedRecommendations> getSectionedRecommendations();
+
+  /// 사진 열람
+  ///
+  /// [targetUserId]의 사진을 열람 처리하고 포인트를 차감합니다.
+  Future<void> revealPhoto(String targetUserId, {required int pointsSpent});
 }

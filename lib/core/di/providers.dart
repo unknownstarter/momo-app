@@ -18,6 +18,7 @@ import '../../features/chat/data/datasources/chat_remote_datasource.dart';
 import '../../features/chat/data/repositories/mock_chat_repository.dart';
 import '../../features/gwansang/data/datasources/gwansang_remote_datasource.dart';
 import '../../features/gwansang/data/repositories/gwansang_repository_impl.dart';
+import '../../features/matching/data/datasources/matching_remote_datasource.dart';
 import '../../features/matching/data/repositories/matching_repository_impl.dart';
 import '../../features/profile/data/repositories/profile_repository_impl.dart';
 import '../../features/saju/data/datasources/saju_remote_datasource.dart';
@@ -72,16 +73,25 @@ SajuRepository sajuRepository(Ref ref) {
 // Matching
 // =============================================================================
 
+/// 매칭 데이터소스 Provider
+@riverpod
+MatchingRemoteDatasource matchingRemoteDatasource(Ref ref) {
+  return MatchingRemoteDatasource(
+    supabaseHelper: ref.watch(supabaseHelperProvider),
+    supabaseClient: ref.watch(supabaseClientProvider),
+  );
+}
+
 /// 매칭 Repository Provider
 ///
-/// Phase 1: 실궁합(calculate-compatibility) 연동 구현체 사용.
-/// 추천/좋아요는 Mock 유지. 테스트 시 Mock으로 교체 가능.
+/// Supabase 실연동 구현체. 추천/좋아요/궁합 모두 실데이터.
 @riverpod
 MatchingRepository matchingRepository(Ref ref) {
   return MatchingRepositoryImpl(
     authRepository: ref.watch(authRepositoryProvider),
     sajuRepository: ref.watch(sajuRepositoryProvider),
     supabaseHelper: ref.watch(supabaseHelperProvider),
+    remoteDatasource: ref.watch(matchingRemoteDatasourceProvider),
   );
 }
 

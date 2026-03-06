@@ -1,13 +1,15 @@
 /// 매칭 Repository 구현체
 ///
-/// - [MatchingRepositoryImpl]: 실궁합 Edge Function 연동 + 추천/좋아요는 Mock
-/// - [MockMatchingRepository]: 전부 Mock (테스트/개발용)
+/// Supabase DB + Edge Functions를 통해 실제 매칭 데이터를 처리합니다.
+/// [MatchingRemoteDatasource]가 raw Map을 반환하면,
+/// 이 Repository에서 도메인 Entity로 변환합니다.
 library;
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/domain/entities/compatibility_entity.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/supabase_client.dart';
+import '../../domain/entities/daily_recommendation.dart';
 import '../../domain/entities/like_entity.dart';
 import '../../domain/entities/match_entity.dart';
 import '../../domain/entities/match_profile.dart';
@@ -15,257 +17,122 @@ import '../../domain/entities/sent_like.dart';
 import '../../domain/repositories/matching_repository.dart';
 import '../../../auth/domain/repositories/auth_repository.dart';
 import '../../../saju/domain/repositories/saju_repository.dart';
+import '../datasources/matching_remote_datasource.dart';
 
 // =============================================================================
-// Mock 매칭 프로필 데이터
-// =============================================================================
-
-/// Mock 추천 프로필 목록 (궁합 점수 내림차순)
-const _mockProfiles = <MatchProfile>[
-  MatchProfile(
-    userId: 'mock-user-001',
-    name: '하늘',
-    age: 26,
-    bio: '바다처럼 깊은 마음을 가진 사람이에요',
-    characterName: '물결이',
-    characterAssetPath: CharacterAssets.mulgyeoriWaterDefault,
-    elementType: 'water',
-    compatibilityScore: 92,
-    animalType: 'wolf',
-    animalModifier: '깊은 눈의',
-    animalTypeKorean: '늑대',
-    gwansangTraits: {'leadership': 45, 'warmth': 80, 'independence': 70, 'sensitivity': 85, 'energy': 40},
-    height: 168,
-    location: '서울 마포구',
-    occupation: '디자이너',
-    bodyType: '마른',
-    isPhoneVerified: true,
-  ),
-  MatchProfile(
-    userId: 'mock-user-002',
-    name: '수아',
-    age: 24,
-    bio: '밝은 에너지로 주변을 환하게 해요',
-    characterName: '불꼬리',
-    characterAssetPath: CharacterAssets.bulkkoriFireDefault,
-    elementType: 'fire',
-    compatibilityScore: 78,
-    animalType: 'fox',
-    animalModifier: '장난기 가득한',
-    animalTypeKorean: '여우',
-    gwansangTraits: {'leadership': 60, 'warmth': 75, 'independence': 55, 'sensitivity': 70, 'energy': 85},
-    height: 163,
-    location: '서울 강남구',
-    occupation: '마케터',
-    bodyType: '보통',
-    isPhoneVerified: true,
-  ),
-  MatchProfile(
-    userId: 'mock-user-003',
-    name: '지은',
-    age: 27,
-    bio: '함께 성장하는 관계를 꿈꿔요',
-    characterName: '나무리',
-    characterAssetPath: CharacterAssets.namuriWoodDefault,
-    elementType: 'wood',
-    compatibilityScore: 65,
-    height: 165,
-    location: '서울 송파구',
-    occupation: '개발자',
-    isPhoneVerified: false,
-  ),
-  MatchProfile(
-    userId: 'mock-user-004',
-    name: '민서',
-    age: 25,
-    bio: '따뜻하고 안정적인 사람을 만나고 싶어요',
-    characterName: '흙순이',
-    characterAssetPath: CharacterAssets.heuksuniEarthDefault,
-    elementType: 'earth',
-    compatibilityScore: 54,
-    animalType: 'rabbit',
-    animalModifier: '수줍은',
-    animalTypeKorean: '토끼',
-    gwansangTraits: {'leadership': 35, 'warmth': 90, 'independence': 40, 'sensitivity': 80, 'energy': 50},
-    height: 160,
-    location: '경기 성남시',
-    occupation: '간호사',
-    bodyType: '보통',
-    isPhoneVerified: true,
-  ),
-  MatchProfile(
-    userId: 'mock-user-005',
-    name: '서현',
-    age: 28,
-    bio: '결단력 있고 목표가 뚜렷한 편이에요',
-    characterName: '쇠동이',
-    characterAssetPath: CharacterAssets.soedongiMetalDefault,
-    elementType: 'metal',
-    compatibilityScore: 45,
-    animalType: 'tiger',
-    animalModifier: '당당한',
-    animalTypeKorean: '호랑이',
-    gwansangTraits: {'leadership': 90, 'warmth': 40, 'independence': 85, 'sensitivity': 30, 'energy': 80},
-    height: 170,
-    location: '서울 서초구',
-    occupation: '변호사',
-    bodyType: '마른',
-    isPhoneVerified: true,
-  ),
-  MatchProfile(
-    userId: 'mock-user-006',
-    name: '유진',
-    age: 25,
-    bio: '반짝이는 순간을 소중히 여기는 사람이에요',
-    characterName: '황금토끼',
-    characterAssetPath: CharacterAssets.goldTokkiDefault,
-    elementType: 'metal',
-    compatibilityScore: 88,
-    height: 162,
-    location: '서울 용산구',
-    occupation: '뮤지션',
-    isPhoneVerified: false,
-  ),
-  MatchProfile(
-    userId: 'mock-user-007',
-    name: '다은',
-    age: 26,
-    bio: '조용하지만 깊은 이야기를 나누고 싶어요',
-    characterName: '검은토끼',
-    characterAssetPath: CharacterAssets.blackTokkiDefault,
-    elementType: 'water',
-    compatibilityScore: 71,
-    animalType: 'snake',
-    animalModifier: '신비로운',
-    animalTypeKorean: '뱀',
-    gwansangTraits: {'leadership': 50, 'warmth': 55, 'independence': 75, 'sensitivity': 90, 'energy': 35},
-    height: 167,
-    location: '서울 종로구',
-    occupation: '작가',
-    bodyType: '살짝 통통',
-    isPhoneVerified: true,
-  ),
-];
-
-/// 프로필별 Mock 궁합 강점 데이터
-const _mockStrengths = <String, List<String>>{
-  'mock-user-001': [
-    '수(水) 기운의 깊은 교감으로 서로의 내면을 이해해요',
-    '감성적 파장이 맞아 대화가 자연스럽게 흘러요',
-    '서로의 부족함을 채워주는 상생 관계예요',
-  ],
-  'mock-user-002': [
-    '화(火) 기운의 열정이 관계에 활력을 불어넣어요',
-    '서로의 꿈을 응원하며 함께 성장할 수 있어요',
-    '밝은 에너지가 어두운 날에도 빛이 되어줘요',
-  ],
-  'mock-user-003': [
-    '목(木) 기운의 성장 에너지가 관계를 발전시켜요',
-    '서로를 존중하는 자세로 건강한 관계를 만들어요',
-    '유연한 소통으로 갈등을 지혜롭게 풀어나가요',
-  ],
-  'mock-user-004': [
-    '토(土) 기운의 안정감이 관계의 기반이 되어요',
-    '변함없는 마음으로 서로를 지켜줄 수 있어요',
-    '실용적인 가치관이 맞아 일상이 편안해요',
-  ],
-  'mock-user-005': [
-    '금(金) 기운의 결단력이 관계에 방향성을 줘요',
-    '서로의 원칙을 존중하며 신뢰를 쌓아가요',
-    '명확한 소통으로 오해를 줄일 수 있어요',
-  ],
-  'mock-user-006': [
-    '금(金) 기운의 빛나는 직관이 서로를 깊이 이해하게 해요',
-    '운명적 끌림이 강해 첫 만남부터 자연스러운 교감이 있어요',
-    '서로의 꿈을 비추는 거울 같은 존재가 될 수 있어요',
-  ],
-  'mock-user-007': [
-    '수(水) 기운의 신비로운 매력이 관계에 깊이를 더해요',
-    '말보다 마음으로 통하는 교감이 특별해요',
-    '서로의 내면을 존중하며 조용히 성장하는 관계예요',
-  ],
-};
-
-/// 프로필별 Mock 궁합 도전 과제 데이터
-const _mockChallenges = <String, List<String>>{
-  'mock-user-001': [
-    '감정이 깊어 때로는 서로의 기분에 영향을 많이 받을 수 있어요',
-    '내성적인 면이 겹쳐 새로운 도전에 소극적일 수 있어요',
-    '서로의 감정 표현 방식이 달라 오해가 생길 수 있어요',
-  ],
-  'mock-user-002': [
-    '서로의 에너지가 강해 가끔 충돌이 있을 수 있어요',
-    '급한 성격이 겹쳐 인내심을 기르면 좋겠어요',
-    '독립적인 성향이 강해 함께하는 시간 조율이 필요해요',
-  ],
-  'mock-user-003': [
-    '서로에게 기대하는 바가 달라 조율이 필요해요',
-    '가치관의 차이가 때로는 갈등의 원인이 될 수 있어요',
-    '속도감이 달라 서로의 페이스를 맞추는 노력이 필요해요',
-  ],
-  'mock-user-004': [
-    '안정을 추구하다 새로운 시도를 놓칠 수 있어요',
-    '변화에 대한 두려움이 관계 발전을 늦출 수 있어요',
-    '서로의 루틴을 존중하면서도 새로움을 찾아보세요',
-  ],
-  'mock-user-005': [
-    '고집이 강한 면이 만나면 타협이 어려울 수 있어요',
-    '감정 표현에 서툴러 상대가 서운할 수 있어요',
-    '목표 지향적 성향이 겹쳐 관계에 소홀할 수 있어요',
-  ],
-  'mock-user-006': [
-    '서로의 이상이 높아 현실과의 괴리를 느낄 수 있어요',
-    '완벽주의적 성향이 겹쳐 작은 것에 예민해질 수 있어요',
-    '빛나는 순간만 추구하다 일상의 소중함을 놓칠 수 있어요',
-  ],
-  'mock-user-007': [
-    '조용한 성격이 겹쳐 서로의 마음을 확인하기 어려울 수 있어요',
-    '내면으로 감정을 삭이면 오해가 쌓일 수 있어요',
-    '변화를 두려워해 관계가 정체될 수 있어요',
-  ],
-};
-
-// =============================================================================
-// 실구현 (Phase 1: 실궁합 연동)
+// 실구현 (Supabase 연동)
 // =============================================================================
 
 /// 매칭 Repository 실구현
 ///
-/// 궁합 프리뷰만 [calculate-compatibility] Edge Function으로 계산하고,
-/// 추천/좋아요는 Phase 1에서 Mock 유지.
+/// [MatchingRemoteDatasource]를 통해 Supabase DB/Edge Functions에 접근하고,
+/// raw Map 결과를 도메인 Entity로 변환합니다.
 class MatchingRepositoryImpl implements MatchingRepository {
   const MatchingRepositoryImpl({
     required AuthRepository authRepository,
     required SajuRepository sajuRepository,
     required SupabaseHelper supabaseHelper,
+    required MatchingRemoteDatasource remoteDatasource,
   })  : _authRepository = authRepository,
         _sajuRepository = sajuRepository,
-        _supabaseHelper = supabaseHelper;
+        _supabaseHelper = supabaseHelper,
+        _remoteDatasource = remoteDatasource;
 
   final AuthRepository _authRepository;
   final SajuRepository _sajuRepository;
   final SupabaseHelper _supabaseHelper;
+  final MatchingRemoteDatasource _remoteDatasource;
+
+  // ===========================================================================
+  // 현재 유저 ID 헬퍼
+  // ===========================================================================
+
+  /// 현재 로그인된 유저의 profiles.id를 반환합니다.
+  /// 로그인되어 있지 않거나 프로필이 없으면 예외를 던집니다.
+  Future<String> _getCurrentUserId() async {
+    final profile = await _authRepository.getCurrentUserProfile();
+    if (profile == null) {
+      throw Exception(MatchingFailure.sajuRequired().message);
+    }
+    return profile.id;
+  }
+
+  // ===========================================================================
+  // 추천 목록
+  // ===========================================================================
 
   @override
   Future<List<MatchProfile>> getDailyRecommendations() async {
-    await Future<void>.delayed(const Duration(milliseconds: 800));
-    return _mockProfiles;
+    final userId = await _getCurrentUserId();
+    final rawList = await _remoteDatasource.fetchDailyRecommendations(userId);
+
+    if (rawList.isEmpty) return [];
+
+    return rawList
+        .map(_mapToMatchProfile)
+        .toList()
+      ..sort((a, b) => b.compatibilityScore.compareTo(a.compatibilityScore));
   }
 
   @override
-  Future<Compatibility> getCompatibilityPreview(String partnerId) async {
-    // Mock 파트너인 경우 로컬 Mock 데이터로 처리
-    // (daily_matches 실연동 전까지 추천 프로필이 Mock이므로)
-    if (partnerId.startsWith('mock-user-')) {
-      return _getMockCompatibility(partnerId);
+  Future<SectionedRecommendations> getSectionedRecommendations() async {
+    final userId = await _getCurrentUserId();
+    final rawList = await _remoteDatasource.fetchDailyRecommendations(userId);
+
+    if (rawList.isEmpty) return const SectionedRecommendations();
+
+    final destinyMatches = <MatchProfile>[];
+    final compatibilityMatches = <MatchProfile>[];
+    final gwansangMatches = <MatchProfile>[];
+    final newUserMatches = <MatchProfile>[];
+
+    for (final raw in rawList) {
+      final profile = _mapToMatchProfile(raw);
+      final section = raw['section'] as String? ?? 'compatibility';
+
+      switch (section) {
+        case 'destiny':
+          destinyMatches.add(profile);
+        case 'gwansang':
+          gwansangMatches.add(profile);
+        case 'new_user':
+          newUserMatches.add(profile);
+        case 'compatibility':
+        default:
+          compatibilityMatches.add(profile);
+      }
     }
 
-    final myProfile = await _authRepository.getCurrentUserProfile();
-    if (myProfile == null) {
-      throw Exception(MatchingFailure.sajuRequired().message);
+    return SectionedRecommendations(
+      destinyMatches: destinyMatches,
+      compatibilityMatches: compatibilityMatches,
+      gwansangMatches: gwansangMatches,
+      newUserMatches: newUserMatches,
+    );
+  }
+
+  // ===========================================================================
+  // 궁합 프리뷰
+  // ===========================================================================
+
+  @override
+  Future<Compatibility> getCompatibilityPreview(String partnerId) async {
+    final userId = await _getCurrentUserId();
+
+    // 1. DB 캐시에서 먼저 조회
+    final cached = await _remoteDatasource.fetchCompatibilityScore(
+      userId,
+      partnerId,
+    );
+
+    if (cached != null) {
+      return _mapToCompatibility(cached, userId, partnerId);
     }
-    final mySaju = await _sajuRepository.getSajuForCompatibility(myProfile.id);
-    final partnerSaju = await _sajuRepository.getSajuForCompatibility(partnerId);
+
+    // 2. 캐시 없으면 Edge Function으로 실시간 계산
+    final mySaju = await _sajuRepository.getSajuForCompatibility(userId);
+    final partnerSaju =
+        await _sajuRepository.getSajuForCompatibility(partnerId);
     if (mySaju == null || partnerSaju == null) {
       throw Exception(MatchingFailure.sajuRequired().message);
     }
@@ -284,11 +151,12 @@ class MatchingRepositoryImpl implements MatchingRepository {
 
     final map = Map<String, dynamic>.from(response);
     final calculatedAt = DateTime.tryParse(
-      map['calculatedAt'] as String? ?? '',
-    ) ?? DateTime.now();
+          map['calculatedAt'] as String? ?? '',
+        ) ??
+        DateTime.now();
     return Compatibility(
       id: 'compat-$partnerId-${calculatedAt.millisecondsSinceEpoch}',
-      userId: myProfile.id,
+      userId: userId,
       partnerId: partnerId,
       score: (map['score'] as num?)?.toInt() ?? 0,
       fiveElementScore: (map['fiveElementScore'] as num?)?.toInt(),
@@ -302,196 +170,310 @@ class MatchingRepositoryImpl implements MatchingRepository {
     );
   }
 
-  /// Mock 파트너용 궁합 데이터 (daily_matches 실연동 전까지 사용)
-  Compatibility _getMockCompatibility(String partnerId) {
-    final profile = _mockProfiles.firstWhere(
-      (p) => p.userId == partnerId,
-      orElse: () => _mockProfiles.first,
-    );
-    final strengths = _mockStrengths[partnerId] ??
-        _mockStrengths[_mockProfiles.first.userId]!;
-    final challenges = _mockChallenges[partnerId] ??
-        _mockChallenges[_mockProfiles.first.userId]!;
-
-    return Compatibility(
-      id: 'compat-$partnerId',
-      userId: 'mock-current-user',
-      partnerId: partnerId,
-      score: profile.compatibilityScore,
-      fiveElementScore: (profile.compatibilityScore * 0.9).round(),
-      dayPillarScore:
-          (profile.compatibilityScore * 1.1).round().clamp(0, 100),
-      overallAnalysis:
-          '${profile.name}님과의 사주 궁합을 분석했어요. '
-          '오행과 일주의 조화를 바탕으로 두 분의 인연을 읽어보았답니다.',
-      strengths: strengths,
-      challenges: challenges,
-      advice:
-          '서로의 다른 점을 인정하고 존중하면, 더없이 좋은 관계로 발전할 수 있어요. '
-          '가끔은 상대의 입장에서 생각해보는 시간을 가져보세요.',
-      aiStory:
-          '운명의 실이 두 사람을 이어주고 있어요. '
-          '${profile.name}님의 기운이 당신의 사주와 아름다운 조화를 만들어내고 있답니다.',
-      calculatedAt: DateTime.now(),
-    );
-  }
+  // ===========================================================================
+  // 좋아요
+  // ===========================================================================
 
   @override
   Future<void> sendLike(String receiverId, {bool isPremium = false}) async {
-    await Future<void>.delayed(const Duration(milliseconds: 500));
+    final userId = await _getCurrentUserId();
+    await _remoteDatasource.sendLike(
+      userId,
+      receiverId,
+      isPremium: isPremium,
+    );
   }
 
   @override
   Future<void> acceptLike(String likeId) async {
-    await Future<void>.delayed(const Duration(milliseconds: 500));
+    await _remoteDatasource.acceptLike(likeId);
   }
 
   @override
   Future<void> rejectLike(String likeId) async {
-    await Future<void>.delayed(const Duration(milliseconds: 500));
+    await _remoteDatasource.rejectLike(likeId);
   }
 
   @override
   Future<List<Like>> getReceivedLikes() async {
-    await Future<void>.delayed(const Duration(milliseconds: 600));
-    return _mockReceivedLikes;
+    final userId = await _getCurrentUserId();
+    final rawList = await _remoteDatasource.fetchReceivedLikes(userId);
+
+    return rawList.map((raw) {
+      return Like(
+        id: raw['like_id'] as String? ?? '',
+        senderId: raw['id'] as String? ?? '',
+        receiverId: userId,
+        isPremium: raw['is_premium'] as bool? ?? false,
+        status: LikeStatus.pending,
+        sentAt: DateTime.tryParse(raw['sent_at'] as String? ?? '') ??
+            DateTime.now(),
+      );
+    }).toList();
   }
 
   @override
   Future<List<SentLike>> getSentLikes() async {
-    await Future<void>.delayed(const Duration(milliseconds: 600));
-    return _mockSentLikes;
+    final userId = await _getCurrentUserId();
+    final rawList = await _remoteDatasource.fetchSentLikes(userId);
+
+    return rawList.map((raw) {
+      final receiverId = raw['id'] as String? ?? '';
+      final statusStr = raw['status'] as String? ?? 'pending';
+      final status = _parseLikeStatus(statusStr);
+
+      final like = Like(
+        id: raw['like_id'] as String? ?? '',
+        senderId: userId,
+        receiverId: receiverId,
+        isPremium: raw['is_premium'] as bool? ?? false,
+        status: status,
+        sentAt: DateTime.tryParse(raw['sent_at'] as String? ?? '') ??
+            DateTime.now(),
+        respondedAt: raw['responded_at'] != null
+            ? DateTime.tryParse(raw['responded_at'] as String)
+            : null,
+      );
+
+      final profile = _mapToMatchProfile(raw);
+
+      return SentLike(like: like, profile: profile);
+    }).toList();
   }
 
   @override
   Future<List<Match>> getActiveMatches() async {
-    await Future<void>.delayed(const Duration(milliseconds: 400));
-    return _mockActiveMatches;
+    // TODO: active matches 쿼리 추가 시 실구현 전환
+    // 현재 datasource에 fetchActiveMatches가 없으므로 빈 리스트 반환
+    return [];
   }
 
   @override
-  Future<List<({Like like, MatchProfile profile})>> getReceivedLikesWithProfiles() async {
-    await Future<void>.delayed(const Duration(milliseconds: 600));
-    return _mockReceivedLikes.map((like) {
-      final profile = _mockProfiles.firstWhere(
-        (p) => p.userId == like.senderId,
-        orElse: () => _mockProfiles.first,
+  Future<List<({Like like, MatchProfile profile})>>
+      getReceivedLikesWithProfiles() async {
+    final userId = await _getCurrentUserId();
+    final rawList = await _remoteDatasource.fetchReceivedLikes(userId);
+
+    return rawList.map((raw) {
+      final like = Like(
+        id: raw['like_id'] as String? ?? '',
+        senderId: raw['id'] as String? ?? '',
+        receiverId: userId,
+        isPremium: raw['is_premium'] as bool? ?? false,
+        status: LikeStatus.pending,
+        sentAt: DateTime.tryParse(raw['sent_at'] as String? ?? '') ??
+            DateTime.now(),
       );
+
+      final profile = _mapToMatchProfile(raw);
+
       return (like: like, profile: profile);
     }).toList();
+  }
+
+  // ===========================================================================
+  // 배치 궁합 / 일일 추천 트리거
+  // ===========================================================================
+
+  @override
+  Future<void> triggerBatchCompatibility() async {
+    final userId = await _getCurrentUserId();
+    await _remoteDatasource.triggerBatchCompatibility(userId);
+  }
+
+  @override
+  Future<void> ensureDailyRecommendations({bool isInitial = false}) async {
+    final userId = await _getCurrentUserId();
+    await _remoteDatasource.triggerDailyRecommendations(
+      userId,
+      isInitial: isInitial,
+    );
+  }
+
+  // ===========================================================================
+  // 사진 열람
+  // ===========================================================================
+
+  @override
+  Future<void> revealPhoto(
+    String targetUserId, {
+    required int pointsSpent,
+  }) async {
+    final userId = await _getCurrentUserId();
+    await _remoteDatasource.recordPhotoReveal(userId, targetUserId, pointsSpent);
+  }
+
+  // ===========================================================================
+  // Map → Entity 변환 헬퍼
+  // ===========================================================================
+
+  /// raw Map → MatchProfile 변환
+  ///
+  /// daily_matches + profiles + gwansang + compatibility가 결합된 맵에서
+  /// MatchProfile 도메인 엔티티를 생성합니다.
+  MatchProfile _mapToMatchProfile(Map<String, dynamic> raw) {
+    final userId = (raw['recommended_id'] as String?) ??
+        (raw['id'] as String?) ??
+        '';
+    final name = raw['name'] as String? ?? '익명';
+    final birthDateStr = raw['birth_date'] as String?;
+    final age = _calculateAge(birthDateStr);
+    final bio = raw['bio'] as String? ?? '';
+    final dominantElement = raw['dominant_element'] as String? ?? 'wood';
+    final characterType = raw['character_type'] as String?;
+
+    // 프로필 이미지
+    final profileImages = raw['profile_images'];
+    String? photoUrl;
+    if (profileImages is List && profileImages.isNotEmpty) {
+      photoUrl = profileImages.first as String?;
+    }
+
+    // 캐릭터 에셋
+    final characterAssetPath =
+        CharacterAssets.defaultForString(characterType ?? dominantElement);
+    final characterName =
+        CharacterAssets.nameForString(characterType ?? dominantElement);
+
+    // 관상 데이터
+    final animalType = raw['gwansang_animal_type'] as String? ??
+        raw['animal_type'] as String?;
+    final animalModifier = raw['gwansang_animal_modifier'] as String?;
+    final animalTypeKorean = raw['gwansang_animal_type_korean'] as String?;
+
+    Map<String, int>? gwansangTraits;
+    final rawTraits = raw['gwansang_traits'];
+    if (rawTraits is Map) {
+      gwansangTraits = <String, int>{};
+      for (final entry in rawTraits.entries) {
+        gwansangTraits[entry.key.toString()] =
+            (entry.value as num?)?.toInt() ?? 0;
+      }
+    }
+
+    // 궁합 점수
+    final compatibilityScore =
+        (raw['compatibility_score'] as num?)?.toInt() ?? 0;
+
+    return MatchProfile(
+      userId: userId,
+      name: name,
+      age: age,
+      bio: bio,
+      photoUrl: photoUrl,
+      characterName: characterName,
+      characterAssetPath: characterAssetPath,
+      elementType: dominantElement,
+      compatibilityScore: compatibilityScore,
+      animalType: animalType,
+      animalModifier: animalModifier,
+      animalTypeKorean: animalTypeKorean,
+      gwansangTraits: gwansangTraits,
+      height: (raw['height'] as num?)?.toInt(),
+      location: raw['location'] as String?,
+      occupation: raw['occupation'] as String?,
+      bodyType: raw['body_type'] as String?,
+      religion: raw['religion'] as String?,
+      isPhoneVerified: raw['is_phone_verified'] as bool? ?? false,
+    );
+  }
+
+  /// raw Map → Compatibility 변환
+  Compatibility _mapToCompatibility(
+    Map<String, dynamic> raw,
+    String userId,
+    String partnerId,
+  ) {
+    final calculatedAt = DateTime.tryParse(
+          raw['calculated_at'] as String? ??
+              raw['created_at'] as String? ??
+              '',
+        ) ??
+        DateTime.now();
+
+    // strengths/challenges는 List<dynamic> 또는 null일 수 있음
+    final rawStrengths = raw['strengths'];
+    final strengths = rawStrengths is List
+        ? rawStrengths.map((e) => e.toString()).toList()
+        : <String>[];
+
+    final rawChallenges = raw['challenges'];
+    final challenges = rawChallenges is List
+        ? rawChallenges.map((e) => e.toString()).toList()
+        : <String>[];
+
+    return Compatibility(
+      id: raw['id'] as String? ??
+          'compat-$partnerId-${calculatedAt.millisecondsSinceEpoch}',
+      userId: userId,
+      partnerId: partnerId,
+      score: (raw['total_score'] as num?)?.toInt() ??
+          (raw['score'] as num?)?.toInt() ??
+          0,
+      fiveElementScore: (raw['five_element_score'] as num?)?.toInt(),
+      dayPillarScore: (raw['day_pillar_score'] as num?)?.toInt(),
+      overallAnalysis: raw['overall_analysis'] as String?,
+      strengths: strengths,
+      challenges: challenges,
+      advice: raw['advice'] as String?,
+      aiStory: raw['ai_story'] as String?,
+      calculatedAt: calculatedAt,
+    );
+  }
+
+  /// 생년월일 문자열에서 만 나이 계산
+  int _calculateAge(String? birthDateStr) {
+    if (birthDateStr == null || birthDateStr.isEmpty) return 0;
+    final birthDate = DateTime.tryParse(birthDateStr);
+    if (birthDate == null) return 0;
+
+    final now = DateTime.now();
+    int age = now.year - birthDate.year;
+    if (now.month < birthDate.month ||
+        (now.month == birthDate.month && now.day < birthDate.day)) {
+      age--;
+    }
+    return age.clamp(0, 150);
+  }
+
+  /// 문자열 → LikeStatus 변환
+  LikeStatus _parseLikeStatus(String status) {
+    return switch (status) {
+      'pending' => LikeStatus.pending,
+      'accepted' => LikeStatus.accepted,
+      'rejected' => LikeStatus.rejected,
+      'expired' => LikeStatus.expired,
+      _ => LikeStatus.pending,
+    };
   }
 }
 
 // =============================================================================
-// Mock 상태별 데이터 (추천 4명, 보낸 2명, 받은 2명, 활성 매칭 1명)
+// @deprecated Mock Repository (Task 12에서 제거 예정)
 // =============================================================================
 
-/// 보낸 좋아요 Mock — mock-user-003(대기중), mock-user-006(수락됨)
-final _mockSentLikes = <SentLike>[
-  SentLike(
-    like: Like(
-      id: 'sent-like-001',
-      senderId: 'mock-current-user',
-      receiverId: 'mock-user-003',
-      isPremium: false,
-      status: LikeStatus.pending,
-      sentAt: DateTime.now().subtract(const Duration(hours: 12)),
-    ),
-    profile: _mockProfiles.firstWhere((p) => p.userId == 'mock-user-003'),
-  ),
-  SentLike(
-    like: Like(
-      id: 'sent-like-002',
-      senderId: 'mock-current-user',
-      receiverId: 'mock-user-006',
-      isPremium: true,
-      status: LikeStatus.accepted,
-      sentAt: DateTime.now().subtract(const Duration(days: 1)),
-      respondedAt: DateTime.now().subtract(const Duration(hours: 3)),
-    ),
-    profile: _mockProfiles.firstWhere((p) => p.userId == 'mock-user-006'),
-  ),
-];
-
-/// 받은 좋아요 Mock — mock-user-001, mock-user-002
-final _mockReceivedLikes = <Like>[
-  Like(
-    id: 'like-001',
-    senderId: 'mock-user-001',
-    receiverId: 'mock-current-user',
-    isPremium: true,
-    status: LikeStatus.pending,
-    sentAt: DateTime.now().subtract(const Duration(hours: 2)),
-  ),
-  Like(
-    id: 'like-002',
-    senderId: 'mock-user-002',
-    receiverId: 'mock-current-user',
-    isPremium: false,
-    status: LikeStatus.pending,
-    sentAt: DateTime.now().subtract(const Duration(hours: 5)),
-  ),
-];
-
-/// 활성 매칭 Mock — mock-user-006 (보낸 좋아요 accepted → 매칭 확정)
-final _mockActiveMatches = <Match>[
-  Match(
-    id: 'match-001',
-    user1Id: 'mock-current-user',
-    user2Id: 'mock-user-006',
-    likeId: 'sent-like-002',
-    matchedAt: DateTime.now().subtract(const Duration(hours: 3)),
-  ),
-];
-
-// =============================================================================
-// Mock Repository 구현
-// =============================================================================
-
-/// Mock 매칭 Repository
+/// @deprecated Mock 매칭 Repository — 실구현으로 전환 완료
 ///
-/// 하드코딩된 데이터를 반환하며, 네트워크 지연을 시뮬레이션합니다.
+/// 하드코딩된 데이터를 반환합니다.
+/// Task 12 (Final Integration & Cleanup)에서 제거됩니다.
+@Deprecated('실구현으로 전환 완료. Task 12에서 제거 예정')
 class MockMatchingRepository implements MatchingRepository {
   @override
   Future<List<MatchProfile>> getDailyRecommendations() async {
     await Future<void>.delayed(const Duration(milliseconds: 800));
-    return _mockProfiles;
+    return [];
   }
 
   @override
   Future<Compatibility> getCompatibilityPreview(String partnerId) async {
     await Future<void>.delayed(const Duration(milliseconds: 600));
-
-    final profile = _mockProfiles.firstWhere(
-      (p) => p.userId == partnerId,
-      orElse: () => _mockProfiles.first,
-    );
-
-    final strengths = _mockStrengths[partnerId] ??
-        _mockStrengths[_mockProfiles.first.userId]!;
-    final challenges = _mockChallenges[partnerId] ??
-        _mockChallenges[_mockProfiles.first.userId]!;
-
     return Compatibility(
-      id: 'compat-$partnerId',
-      userId: 'mock-current-user',
+      id: 'mock-compat-$partnerId',
+      userId: 'mock-user',
       partnerId: partnerId,
-      score: profile.compatibilityScore,
-      fiveElementScore: (profile.compatibilityScore * 0.9).round(),
-      dayPillarScore: (profile.compatibilityScore * 1.1).round().clamp(0, 100),
-      overallAnalysis:
-          '${profile.name}님과의 궁합은 ${profile.compatibilityScore}점으로, '
-          '${profile.elementType == 'water' ? '수(水)' : profile.elementType == 'fire' ? '화(火)' : profile.elementType == 'wood' ? '목(木)' : profile.elementType == 'earth' ? '토(土)' : '금(金)'}'
-          ' 기운이 서로의 기운과 조화를 이루고 있어요.',
-      strengths: strengths,
-      challenges: challenges,
-      advice:
-          '서로의 다른 점을 인정하고 존중하면, 더없이 좋은 관계로 발전할 수 있어요. '
-          '가끔은 상대의 입장에서 생각해보는 시간을 가져보세요.',
-      aiStory:
-          '운명의 실이 두 사람을 이어주고 있어요. '
-          '${profile.name}님의 ${profile.elementType == 'water' ? '깊고 맑은 수(水)' : profile.elementType == 'fire' ? '뜨겁고 밝은 화(火)' : profile.elementType == 'wood' ? '성장하는 목(木)' : profile.elementType == 'earth' ? '든든한 토(土)' : '빛나는 금(金)'}'
-          ' 기운이 당신의 사주와 아름다운 조화를 만들어내고 있답니다.',
+      score: 75,
+      strengths: ['Mock 강점'],
+      challenges: ['Mock 도전'],
       calculatedAt: DateTime.now(),
     );
   }
@@ -513,31 +495,39 @@ class MockMatchingRepository implements MatchingRepository {
 
   @override
   Future<List<Like>> getReceivedLikes() async {
-    await Future<void>.delayed(const Duration(milliseconds: 600));
-    return _mockReceivedLikes;
+    return [];
   }
 
   @override
   Future<List<SentLike>> getSentLikes() async {
-    await Future<void>.delayed(const Duration(milliseconds: 600));
-    return _mockSentLikes;
+    return [];
   }
 
   @override
   Future<List<Match>> getActiveMatches() async {
-    await Future<void>.delayed(const Duration(milliseconds: 400));
-    return _mockActiveMatches;
+    return [];
   }
 
   @override
-  Future<List<({Like like, MatchProfile profile})>> getReceivedLikesWithProfiles() async {
-    await Future<void>.delayed(const Duration(milliseconds: 600));
-    return _mockReceivedLikes.map((like) {
-      final profile = _mockProfiles.firstWhere(
-        (p) => p.userId == like.senderId,
-        orElse: () => _mockProfiles.first,
-      );
-      return (like: like, profile: profile);
-    }).toList();
+  Future<List<({Like like, MatchProfile profile})>>
+      getReceivedLikesWithProfiles() async {
+    return [];
   }
+
+  @override
+  Future<void> triggerBatchCompatibility() async {}
+
+  @override
+  Future<void> ensureDailyRecommendations({bool isInitial = false}) async {}
+
+  @override
+  Future<SectionedRecommendations> getSectionedRecommendations() async {
+    return const SectionedRecommendations();
+  }
+
+  @override
+  Future<void> revealPhoto(
+    String targetUserId, {
+    required int pointsSpent,
+  }) async {}
 }
