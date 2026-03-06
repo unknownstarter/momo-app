@@ -15,8 +15,8 @@
 - [ ] Identifiers → `+` → **Services IDs** 선택
 - [ ] Description: `Momo Login`, Identifier: `com.dropdown.momo.web`
 - [ ] 생성 후 **Sign In with Apple** 체크 → Configure
-  - **Domains**: `csjdfvxyjnpmbkjbomyf.supabase.co`
-  - **Return URLs**: `https://csjdfvxyjnpmbkjbomyf.supabase.co/auth/v1/callback`
+  - **Domains**: `ejngitwtzecqbhbqfnsc.supabase.co`
+  - **Return URLs**: `https://ejngitwtzecqbhbqfnsc.supabase.co/auth/v1/callback`
 - [ ] Save → Continue → Register
 
 ### 1-3. Key 생성 (Server-to-Server 인증)
@@ -71,7 +71,7 @@
 
 ### 2-6. Redirect URI 등록
 - [ ] 좌측 메뉴 → **카카오 로그인** → **Redirect URI**
-- [ ] 추가: `https://csjdfvxyjnpmbkjbomyf.supabase.co/auth/v1/callback`
+- [ ] 추가: `https://ejngitwtzecqbhbqfnsc.supabase.co/auth/v1/callback`
 
 ### 메모할 값
 | 항목 | 값 | 어디서? |
@@ -85,7 +85,7 @@
 ## 3. Supabase Dashboard 설정
 
 ### 3-1. Apple Provider 활성화
-- [ ] [Supabase Dashboard](https://supabase.com/dashboard/project/csjdfvxyjnpmbkjbomyf/auth/providers)
+- [ ] [Supabase Dashboard](https://supabase.com/dashboard/project/ejngitwtzecqbhbqfnsc/auth/providers)
 - [ ] Authentication → Providers → Apple → **Enable**
 - [ ] Service ID (Client ID): `com.dropdown.momo.web` (위 1-2)
 - [ ] Secret Key: `.p8` 파일 내용을 JWT로 생성하거나 직접 붙여넣기
@@ -111,7 +111,7 @@
 ```bash
 # 이미 main.dart에 기본값이 있으므로, 커스텀 값이 필요할 때만:
 flutter run \
-  --dart-define=SUPABASE_URL=https://csjdfvxyjnpmbkjbomyf.supabase.co \
+  --dart-define=SUPABASE_URL=https://ejngitwtzecqbhbqfnsc.supabase.co \
   --dart-define=SUPABASE_ANON_KEY=your_anon_key
 ```
 

@@ -16,11 +16,11 @@ import '../../../../core/network/supabase_client.dart';
 // 테이블/함수명 상수
 // =============================================================================
 
-const _dailyMatchesTable = 'daily_matches';
+const _dailyMatchesTable = SupabaseTables.dailyMatches;
 const _profilesTable = SupabaseTables.profiles;
 const _likesTable = SupabaseTables.likes;
 const _compatibilityTable = SupabaseTables.sajuCompatibility;
-const _userActionsTable = 'user_actions';
+const _userActionsTable = SupabaseTables.userActions;
 const _dailyUsageTable = SupabaseTables.dailyUsage;
 const _userPointsTable = SupabaseTables.userPoints;
 const _pointTransactionsTable = SupabaseTables.pointTransactions;

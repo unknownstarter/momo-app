@@ -77,8 +77,8 @@ fvm flutter build ios --no-codesign --debug   # iOS 빌드 확인
 
 | 항목 | 값 |
 |------|-----|
-| Project ID | `csjdfvxyjnpmbkjbomyf` |
-| 로컬 config | `supabase/config.toml` (project_id: momo-app) |
+| Project ID | `ejngitwtzecqbhbqfnsc` |
+| 로컬 config | `supabase/config.toml` (project_id: ejngitwtzecqbhbqfnsc) |
 | Edge Functions | `supabase/functions/` 디렉토리 |
 | 주요 함수 | `calculate-saju`, `calculate-compatibility`, `generate-gwansang-reading` |
 

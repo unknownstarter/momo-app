@@ -135,7 +135,10 @@ class _LoginPageState extends ConsumerState<LoginPage>
       if (!mounted) return;
 
       context.go(hasProfile ? RoutePaths.home : RoutePaths.onboarding);
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('[LoginPage] Apple 로그인 에러: $e');
+      debugPrint('[LoginPage] 에러 타입: ${e.runtimeType}');
+      debugPrint('[LoginPage] 스택트레이스: $st');
       if (!mounted) return;
       _showErrorSnackBar(_friendlyErrorMessage(e));
     } finally {

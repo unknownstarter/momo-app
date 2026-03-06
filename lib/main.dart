@@ -38,11 +38,11 @@ Future<void> main() async {
   await Supabase.initialize(
     url: const String.fromEnvironment(
       'SUPABASE_URL',
-      defaultValue: 'https://csjdfvxyjnpmbkjbomyf.supabase.co',
+      defaultValue: 'https://ejngitwtzecqbhbqfnsc.supabase.co',
     ),
     anonKey: const String.fromEnvironment(
       'SUPABASE_ANON_KEY',
-      defaultValue: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzamRmdnh5am5wbWJramJvbXlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNjUyNDksImV4cCI6MjA4Nzc0MTI0OX0.E3-4aMdDkzY8VGxqh_GEQXnkGAdPjDWpB8XDLQBqyek',
+      defaultValue: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVqbmdpdHd0emVjcWJoYnFmbnNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3NTkzNjEsImV4cCI6MjA4ODMzNTM2MX0.Ogec-Be9CD8_eCQT_En_Bv0gmXb04Ly_ORrmH15fuqE',
     ),
     authOptions: const FlutterAuthClientOptions(
       // PKCE 플로우 (소셜 로그인 리다이렉트용)

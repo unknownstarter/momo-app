@@ -102,7 +102,9 @@ abstract final class SupabaseTables {
   static const blocks = 'blocks';
   static const reports = 'reports';
   static const subscriptions = 'subscriptions';
-  static const dailyRecommendations = 'daily_recommendations';
+  static const dailyMatches = 'daily_matches';
+  /// @deprecated Use [dailyMatches] instead. Kept for backward compatibility.
+  static const dailyRecommendations = dailyMatches;
   static const sajuCompatibility = 'saju_compatibility';
   static const userPoints = 'user_points';
   static const pointTransactions = 'point_transactions';
@@ -110,6 +112,7 @@ abstract final class SupabaseTables {
   static const characterItems = 'character_items';
   static const purchases = 'purchases';
   static const gwansangProfiles = 'gwansang_profiles';
+  static const userActions = 'user_actions';
 }
 
 /// Supabase Storage 버킷명

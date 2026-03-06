@@ -47,7 +47,7 @@ fvm flutter build ios --no-codesign --debug
 | iOS Bundle ID | `com.dropdown.momo` |
 | Android App ID | `com.dropdown.momo` |
 | Flutter SDK | **3.41.2** (FVM 고정) |
-| Supabase Project | `csjdfvxyjnpmbkjbomyf` |
+| Supabase Project | `ejngitwtzecqbhbqfnsc` |
 
 ---
 

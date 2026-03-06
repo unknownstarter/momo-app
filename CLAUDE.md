@@ -72,7 +72,7 @@
 | **iOS Bundle ID** | `com.dropdown.momo` |
 | **Android App ID** | `com.dropdown.momo` |
 | **GitHub** | `unknownstarter/momo-app` |
-| **Supabase Project** | `csjdfvxyjnpmbkjbomyf` |
+| **Supabase Project** | `ejngitwtzecqbhbqfnsc` |
 
 > **주의**: feature 이름(saju, gwansang), 위젯 prefix(Saju~), DB 테이블명(saju_profiles)은 도메인 용어이므로 momo로 변경하지 않음.
 
@@ -84,7 +84,7 @@
 |------|------|------|
 | **Frontend** | Flutter 3.38+ | iOS, Android, Web |
 | **Backend** | Supabase | PostgreSQL + Edge Functions + Auth + Storage + Realtime |
-| **사주 엔진** | @fullstackfamily/manseryeok (Edge Function) | 한국천문연구원(KASI) 데이터 기반 만세력, 절기·음력·진태양시 보정 |
+| **사주 엔진** | @fullstackfamily/manseryeok (Edge Function) | 한국천문연구원(KASI) 데이터 기반 만세력, 절기·음력 + 자체 진태양시 보정 (경도·균시차·서머타임) |
 | **AI** | Claude API | 사주 해석, 개인화 인사이트, 궁합 스토리텔링 |
 | **관상 ML** | Google ML Kit | 온디바이스 얼굴 측정 (삼정/오관) |
 | **인증** | Supabase Auth | Apple + Kakao 소셜 로그인 (Google 제거) |
@@ -230,10 +230,16 @@ feature/
 - **[규칙]** Edge Function에서 필수 파라미터가 누락될 수 있으면, 400 에러 대신 기본값으로 fallback하고 정상 처리할 것 (예: userName → "사용자")
 
 ### Edge Function & AI 프롬프트 규칙 (2026-03-05 추가)
+- **[규칙]** Edge Function 배포 시 **반드시** `--no-verify-jwt` 플래그 사용. Supabase 유저 JWT는 ES256 알고리즘을 사용하지만 Edge Function 기본 검증기는 HS256만 지원하여 `Invalid JWT` 에러 발생 (2026-03-06 사고)
 - **[규칙]** Edge Function에서 Claude API 모델 ID는 기존 작동 중인 함수와 동일하게 맞출 것. 최신 ID: `claude-sonnet-4-6`, `claude-haiku-4-5-20251001`
 - **[규칙]** 관상 분석 프롬프트에 사주/오행 데이터를 절대 전달하지 말 것. 관상은 순수하게 사진 기반이어야 함. 사주 데이터가 들어가면 동물상 선택이 편향됨
+- **[규칙]** 사주 시주(時柱) 계산은 반드시 진태양시 보정 후 결정. manseryeok 라이브러리는 연/월/일주만 사용하고, 시주는 자체 보정 로직으로 계산 (경도보정 + 균시차 + 서머타임). 기본 경도: 서울 126.978°E. 점신과 동일 방식 (2026-03-06 검증 완료)
 - **[규칙]** 한글 문자열 비어있음 검증: `length < 2`가 아니라 `length < 1` 사용 (한글 1자 = length 1)
 - **[규칙]** 로그인 필수 정책 (2026-03-05): 소셜 로그인(Apple/Kakao) 완료 없이는 앱 진입 불가. 둘러보기 모드 제거됨
+- **[규칙 2026-03-06]** 매칭 추천은 `saju_compatibility` 캐시 기반. 신규 유저 가입 시 `batch-calculate-compatibility` Edge Function으로 사전 계산 (비용 $0)
+- **[규칙 2026-03-06]** 사진 열람은 일일 무료 3회 + 추가 30P/회. 포인트 부족 시 과금 유도
+- **[규칙 2026-03-06]** DB 테이블명은 `daily_matches` (NOT `daily_recommendations`). Flutter 상수: `SupabaseTables.dailyMatches`. section 값은 `'destiny'|'compatibility'|'gwansang'|'new'`
+- **[규칙 2026-03-06]** 포인트 비용 (조정됨): likeCost=50, premiumLikeCost=100, photoRevealCost=30, dailyFreePhotoRevealLimit=3
 
 ### 연속 작업 / 다음 할 일 (2026-02-24 추가)
 - **다른 디바이스에서 이어서 작업할 때**: 먼저 **테스크 마스터**를 확인할 것.

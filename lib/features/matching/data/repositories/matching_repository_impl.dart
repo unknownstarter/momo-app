@@ -95,7 +95,7 @@ class MatchingRepositoryImpl implements MatchingRepository {
           destinyMatches.add(profile);
         case 'gwansang':
           gwansangMatches.add(profile);
-        case 'new_user':
+        case 'new':
           newUserMatches.add(profile);
         case 'compatibility':
         default:
@@ -448,86 +448,3 @@ class MatchingRepositoryImpl implements MatchingRepository {
   }
 }
 
-// =============================================================================
-// @deprecated Mock Repository (Task 12에서 제거 예정)
-// =============================================================================
-
-/// @deprecated Mock 매칭 Repository — 실구현으로 전환 완료
-///
-/// 하드코딩된 데이터를 반환합니다.
-/// Task 12 (Final Integration & Cleanup)에서 제거됩니다.
-@Deprecated('실구현으로 전환 완료. Task 12에서 제거 예정')
-class MockMatchingRepository implements MatchingRepository {
-  @override
-  Future<List<MatchProfile>> getDailyRecommendations() async {
-    await Future<void>.delayed(const Duration(milliseconds: 800));
-    return [];
-  }
-
-  @override
-  Future<Compatibility> getCompatibilityPreview(String partnerId) async {
-    await Future<void>.delayed(const Duration(milliseconds: 600));
-    return Compatibility(
-      id: 'mock-compat-$partnerId',
-      userId: 'mock-user',
-      partnerId: partnerId,
-      score: 75,
-      strengths: ['Mock 강점'],
-      challenges: ['Mock 도전'],
-      calculatedAt: DateTime.now(),
-    );
-  }
-
-  @override
-  Future<void> sendLike(String receiverId, {bool isPremium = false}) async {
-    await Future<void>.delayed(const Duration(milliseconds: 500));
-  }
-
-  @override
-  Future<void> acceptLike(String likeId) async {
-    await Future<void>.delayed(const Duration(milliseconds: 500));
-  }
-
-  @override
-  Future<void> rejectLike(String likeId) async {
-    await Future<void>.delayed(const Duration(milliseconds: 500));
-  }
-
-  @override
-  Future<List<Like>> getReceivedLikes() async {
-    return [];
-  }
-
-  @override
-  Future<List<SentLike>> getSentLikes() async {
-    return [];
-  }
-
-  @override
-  Future<List<Match>> getActiveMatches() async {
-    return [];
-  }
-
-  @override
-  Future<List<({Like like, MatchProfile profile})>>
-      getReceivedLikesWithProfiles() async {
-    return [];
-  }
-
-  @override
-  Future<void> triggerBatchCompatibility() async {}
-
-  @override
-  Future<void> ensureDailyRecommendations({bool isInitial = false}) async {}
-
-  @override
-  Future<SectionedRecommendations> getSectionedRecommendations() async {
-    return const SectionedRecommendations();
-  }
-
-  @override
-  Future<void> revealPhoto(
-    String targetUserId, {
-    required int pointsSpent,
-  }) async {}
-}

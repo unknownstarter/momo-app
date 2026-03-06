@@ -97,7 +97,7 @@
    - Android: 패키지명 = com.dropdown.momo + 키해시 등록
 
 7. Redirect URI 설정:
-   - https://csjdfvxyjnpmbkjbomyf.supabase.co/auth/v1/callback
+   - https://ejngitwtzecqbhbqfnsc.supabase.co/auth/v1/callback
 ```
 
 ### 2.3 Supabase Dashboard 설정
@@ -108,7 +108,7 @@ Authentication > Providers > Kakao
 - Enabled: ON
 - Client ID: {카카오 REST API 키}
 - Client Secret: {카카오 REST API 시크릿}
-- Redirect URL: https://csjdfvxyjnpmbkjbomyf.supabase.co/auth/v1/callback
+- Redirect URL: https://ejngitwtzecqbhbqfnsc.supabase.co/auth/v1/callback
 ```
 
 ### 2.4 카카오에서 획득 가능한 사용자 데이터
@@ -1390,7 +1390,7 @@ KAKAO_NATIVE_APP_KEY=your_kakao_native_app_key
 # PASS 인증 (Phase C)
 PASS_CLIENT_ID=your_pass_client_id
 PASS_CLIENT_SECRET=your_pass_client_secret
-PASS_CALLBACK_URL=https://csjdfvxyjnpmbkjbomyf.supabase.co/functions/v1/callback-identity-verification
+PASS_CALLBACK_URL=https://ejngitwtzecqbhbqfnsc.supabase.co/functions/v1/callback-identity-verification
 ```
 
 ---
