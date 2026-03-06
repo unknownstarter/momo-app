@@ -304,7 +304,10 @@ class _ContactBlockTileState extends ConsumerState<_ContactBlockTile> {
       // 유저 프로필 ID 가져오기
       final user = await ref.read(currentUserProfileProvider.future);
       if (!mounted) return;
-      if (user == null) return;
+      if (user == null) {
+        if (mounted) setState(() => _syncing = false);
+        return;
+      }
 
       final userId = user.id;
       final client = ref.read(supabaseClientProvider);
@@ -350,7 +353,10 @@ class _ContactBlockTileState extends ConsumerState<_ContactBlockTile> {
     try {
       final user = await ref.read(currentUserProfileProvider.future);
       if (!mounted) return;
-      if (user == null) return;
+      if (user == null) {
+        if (mounted) setState(() => _syncing = false);
+        return;
+      }
 
       final userId = user.id;
       final client = ref.read(supabaseClientProvider);
@@ -473,6 +479,9 @@ class _LogoutTile extends ConsumerWidget {
   }
 
   void _showLogoutDialog(BuildContext context, WidgetRef ref) {
+    // Capture notifier before async gap
+    final authNotifier = ref.read(authNotifierProvider.notifier);
+
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -503,7 +512,7 @@ class _LogoutTile extends ConsumerWidget {
           TextButton(
             onPressed: () async {
               Navigator.of(dialogContext).pop();
-              await ref.read(authNotifierProvider.notifier).signOut();
+              await authNotifier.signOut();
               if (context.mounted) {
                 context.go(RoutePaths.login);
               }
@@ -551,6 +560,10 @@ class _DeleteAccountTile extends ConsumerWidget {
   }
 
   void _showDeleteDialog(BuildContext context, WidgetRef ref) {
+    // Capture dependencies before async gaps
+    final client = ref.read(supabaseClientProvider);
+    final authNotifier = ref.read(authNotifierProvider.notifier);
+
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -581,7 +594,7 @@ class _DeleteAccountTile extends ConsumerWidget {
           TextButton(
             onPressed: () {
               Navigator.of(dialogContext).pop();
-              _showFinalConfirmDialog(context, ref);
+              _showFinalConfirmDialog(context, client, authNotifier);
             },
             child: Text(
               '탈퇴하기',
@@ -597,7 +610,11 @@ class _DeleteAccountTile extends ConsumerWidget {
     );
   }
 
-  void _showFinalConfirmDialog(BuildContext context, WidgetRef ref) {
+  void _showFinalConfirmDialog(
+    BuildContext context,
+    dynamic client,
+    dynamic authNotifier,
+  ) {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -629,14 +646,14 @@ class _DeleteAccountTile extends ConsumerWidget {
             onPressed: () async {
               Navigator.of(dialogContext).pop();
               try {
-                final client = ref.read(supabaseClientProvider);
                 final authId = client.auth.currentUser?.id;
                 if (authId != null) {
                   await client.from('profiles').update({
-                    'deleted_at': DateTime.now().toIso8601String(),
+                    'deleted_at': DateTime.now().toUtc().toIso8601String(),
                   }).eq('auth_id', authId);
                 }
-                await ref.read(authNotifierProvider.notifier).signOut();
+                if (!context.mounted) return;
+                await authNotifier.signOut();
                 if (context.mounted) {
                   context.go(RoutePaths.login);
                 }

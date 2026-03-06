@@ -104,19 +104,27 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
   @override
   void initState() {
     super.initState();
-    _loadExistingPhotos();
     if (widget.isEditMode) {
-      _prefillFromProfile();
+      _loadProfileForEdit();
+    } else {
+      _loadExistingPhotos();
     }
   }
 
-  /// 편집 모드: 기존 프로필 데이터로 폼을 채움
-  Future<void> _prefillFromProfile() async {
+  /// 편집 모드: 기존 프로필 데이터를 한번에 로드 (사진 + 폼 데이터)
+  Future<void> _loadProfileForEdit() async {
     try {
       final repo = ref.read(profileRepositoryProvider);
       final profile = await repo.getProfile();
       if (profile != null && mounted) {
         setState(() {
+          // 사진
+          for (final url in profile.profileImageUrls) {
+            if (_photoSlots.length < _maxPhotos) {
+              _photoSlots.add(url);
+            }
+          }
+          // 폼 데이터
           _heightController.text = profile.height?.toString() ?? '';
           _occupationController.text = profile.occupation ?? '';
           _selectedLocation = profile.location;
