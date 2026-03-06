@@ -1,6 +1,6 @@
-# 테스크 마스터 — 2026-03-05 (v16)
+# 테스크 마스터 — 2026-03-06 (v18)
 
-> **작성일**: 2026-02-24 | **갱신**: 2026-03-05
+> **작성일**: 2026-02-24 | **갱신**: 2026-03-06
 > **목적**: 다음에 할 일을 한곳에 정리해, 다른 디바이스에서 보고 연속으로 작업할 수 있게 함.
 > **참조**: PRD `docs/plans/2026-02-24-app-design.md`, 개선 제안서 `docs/plans/2026-02-24-saju-궁합-engine-improvement-proposal.md`, dev-log `docs/dev-log/2026-02-24-progress.md`
 
@@ -88,14 +88,14 @@ fvm flutter build ios --no-codesign --debug   # iOS 빌드 확인
 > 상세 문서: `docs/dev-log/2026-02-26-debug-bypass.md`
 > 검증: `grep -rn "BYPASS-\|TODO(PROD)" lib/ --include="*.dart"` → **0건**
 
-### 현재 앱 상태 요약 (2026-03-06 v6)
+### 현재 앱 상태 요약 (2026-03-06 v7)
 
-- **작동하는 것**: 온보딩(7스텝, SMS 필수) → 프로필 저장 → 데이팅 프로필(8필드) → 추천 리스트 → 홈(섹션별 추천) → 프로필 상세(인라인 궁합, Hero, 사진 열람) → 궁합 프리뷰
-- **실연동된 것**: Apple/Kakao 로그인(Supabase Auth), SMS 인증(Firebase Phone Auth), 프로필 저장(phone 포함), 매칭 프로필 저장, 궁합 계산, **매칭 추천(섹션별 daily_matches + Edge Functions)**, **사진 열람(무료 3회/일 + 30P)**, 라우터 가드(비로그인 접근 차단), profiles→auth.users DB 트리거 동기화
-- **2026-03-06**: 매칭 추천 & 수익화 Phase 1 완료 — batch-calculate-compatibility, generate-daily-recommendations, 섹션별 홈 UI, 프로필 상세 사진 열람 게이팅, Task 12 통합 검증
+- **작동하는 것**: 온보딩(7스텝, SMS 필수) → 프로필 저장 → 데이팅 프로필(8필드) → 추천 리스트 → 홈(섹션별 추천 + 내 운명 분석) → 프로필 상세(인라인 궁합, 라이트 모드 통일) → 프로필 탭(편집/설정/동적 캐릭터) → 궁합 프리뷰
+- **실연동된 것**: Apple/Kakao 로그인(Supabase Auth), SMS 인증(Firebase Phone Auth), 프로필 저장(phone 포함), 매칭 프로필 저장, 궁합 계산, **매칭 추천(섹션별 daily_matches + Edge Functions)**, **사진 열람(무료 3회/일 + 30P)**, 라우터 가드(비로그인 접근 차단), profiles→auth.users DB 트리거 동기화, **연락처 차단(SHA256 해시 기반)**, **프로필 편집(isEditMode, dirty state 감지)**
+- **2026-03-06 (Session 2)**: 프로필 탭 전체 구현 — 프로필 편집(MatchingProfilePage isEditMode), 설정 페이지(Push/연락처 차단/로그아웃/회원 탈퇴), 프로필 상세 라이트 모드 전환, 네이티브 권한 설정(카메라/사진/연락처/알림)
 - **Mock인 것**: 일일 무료 사용량 초기값(DailyUsageNotifier는 로컬 상태만), 채팅
-- **직전 완료**: 매칭 추천 Phase 1 MVP (Task 12 Final Integration)
-- **다음 작업**: 프로필 상세페이지 개선(PD1~PD3) 또는 E2E 전체 플로우 재테스트(DBG4)
+- **직전 완료**: 프로필 탭 전체 구현 + 프로필 상세페이지 라이트 모드 전환
+- **다음 작업**: FCM 푸시 알림 셋팅, 채팅 기능 구체화, 인앱 결제(RevenueCat), 프로필 상세 Hero 섹션 사진 노출 + 블러/유료화 정책
 
 ---
 
@@ -129,8 +129,8 @@ fvm flutter build ios --no-codesign --debug   # iOS 빌드 확인
 
 ## 2. 다음에 할 일 (우선순위순)
 
-> **현재 최우선**: **프로필 상세페이지 개선** — ProfileDetailPage UI/UX 고도화
-> 사주/관상 분석 파이프라인 전체 작동 확인 완료 (2026-03-05). 프로필 상세 개선 후 Sprint B 진입.
+> **현재 최우선**: **Sprint B+ — 프로필 상세 Hero 사진 + FCM + 채팅 + 인앱 결제**
+> 사주/관상 분석 파이프라인 전체 작동 확인 완료 (2026-03-05). 프로필 탭 & 설정 페이지 완료 (2026-03-06 Session 2).
 
 ### 🔴 긴급 — 사주 분석 실패 디버깅 (Sprint B 진입 전 필수)
 
@@ -437,18 +437,34 @@ fvm flutter build ios --no-codesign --debug   # iOS 빌드 확인
 | M3 | **Task 12 Step 3** — 테스크 마스터 현황 반영 (실연동 목록, 다음 작업) | ✅ |
 | M4 | **Task 12 Step 4** — Final commit | ✅ |
 
+### 2026-03-06 (Session 2) — 프로필 탭 & 상세페이지 UX 개선
+
+| # | 항목 | 상태 |
+|---|------|------|
+| PROF1 | **프로필 편집 흙순이 캐릭터 수정** — SajuCharacterBubble에 `characterAssetPath: CharacterAssets.heuksuniEarthDefault` 추가 (텍스트 fallback → 실제 이미지) | ✅ |
+| PROF2 | **프로필 탭 칩 색상 수정** — SajuChip `SajuColor.primary`(파랑) → `SajuColor.earth`(따뜻한 톤) 3곳 | ✅ |
+| PROF3 | **프로필 편집 저장 버튼 UX 개선** — dirty state 감지(초기값 스냅샷 비교), 아이콘 제거, "저장할게요" 라벨, 비활성 시 회색 처리 | ✅ |
+| PROF4 | **프로필 탭 관상 분석 상태 추가** — 사주 완료만 표시 → 사주+관상 2행, `_AnalysisStatusTile` 위젯 추출 | ✅ |
+| PROF5 | **프로필 상세페이지 라이트 모드 전환** — `Theme(data: AppTheme.dark)` 래퍼 제거, 하드코딩 `Colors.white` → `context.sajuColors` 동적 색상 | ✅ |
+| PROF6 | **내 운명 분석 캐릭터 크롭 수정** — `Image.asset` alignment `Alignment(0, -0.3)` 적용 (얼굴 상단 노출) | ✅ |
+| PROF7 | **네이티브 권한 설정** — iOS Info.plist(카메라/사진) + Podfile GCC macros + flutter_contacts crash patch, Android Manifest(카메라/사진/알림) | ✅ |
+| PROF8 | **설정 페이지 구현** — 푸시 알림 토글, 연락처 차단(SHA256), 계정 관리(로그아웃/탈퇴) | ✅ |
+
 ---
 
-### 🔥 다음 작업 — 프로필 상세페이지 개선
+### 🔥 다음 작업 — Sprint B+ (프로필 상세 + 인프라 + 수익화)
 
-> **핵심**: 현재 프로필 상세 페이지(ProfileDetailPage)의 UX/UI 개선
-> **파일**: `lib/features/matching/presentation/pages/profile_detail_page.dart`
+> **핵심**: 프로필 상세 Hero 사진 노출/블러/유료화, FCM 푸시 알림, 채팅, 인앱 결제
+> **순서**: PD(상세 Hero) → FCM → Chat → IAP
 
-| # | Task | 담당 | 상태 |
-|---|------|------|------|
-| PD1 | **프로필 상세페이지 분석 및 개선 포인트 도출** | 아리 | ⬜ |
-| PD2 | **UI/UX 개선 구현** | 아리 | ⬜ |
-| PD3 | **통합 검증** | QA | ⬜ |
+| # | Task | 담당 | 의존성 | 상태 |
+|---|------|------|--------|------|
+| PD1 | **프로필 상세 Hero 섹션 사진 노출** — 블러 처리된 실제 프로필 사진을 Hero 영역에 표시 | 아리 | 없음 | ⬜ |
+| PD2 | **사진 열람 유료화 정책 적용** — 일일 무료 3회 + 30P/회, 블러 해제 애니메이션 | 아리 | PD1 | ⬜ |
+| PD3 | **FCM 푸시 알림 셋팅** — Firebase Cloud Messaging 설정, 디바이스 토큰 저장, 알림 수신 처리 | 노아님+아리 | 없음 | ⬜ |
+| PD4 | **채팅 기능 구체화** — Supabase Realtime 기반 1:1 채팅, MockChatRepository → 실연동 | 아리 | PD3 | ⬜ |
+| PD5 | **인앱 결제 구현 (RevenueCat)** — 포인트 구매, 프리미엄 구독, 스토어 연동 | 아리 | 없음 | ⬜ |
+| PD6 | **통합 검증** — E2E 전체 플로우 재테스트 | QA | PD1~PD5 | ⬜ |
 
 ---
 
@@ -456,8 +472,8 @@ fvm flutter build ios --no-codesign --debug   # iOS 빌드 확인
 
 | # | Task | 담당 | 의존성 | 상태 |
 |---|------|------|--------|------|
-| B1 | **`get-daily-matches` Edge Function 신규 구현** — daily_matches 테이블 기반 오늘의 추천 생성 | Backend | A10 | ⬜ |
-| B2 | **getDailyRecommendations Mock → 실연동** — MatchingRepositoryImpl에서 Mock 제거 | Flutter | B1 | ⬜ |
+| B1 | **`get-daily-matches` Edge Function 신규 구현** — daily_matches 테이블 기반 오늘의 추천 생성 (`generate-daily-recommendations` + `batch-calculate-compatibility` 구현 완료) | Backend | A10 | ✅ |
+| B2 | **getDailyRecommendations Mock → 실연동** — MatchingRepositoryImpl에서 Mock 제거, matching_provider + post_analysis_matches_provider 실연동 완료 | Flutter | B1 | ✅ |
 | B3 | **MatchProfile 캐릭터 동적 매핑** — `dominant_element` → `CharacterAssets` 매핑 로직 | Flutter | B2 | ⬜ |
 | B4 | **궁합 프리뷰 E2E 실유저 테스트** — 실 계정 2개로 전체 플로우 검증 | QA | B2 | 🔶 |
 
@@ -470,17 +486,19 @@ fvm flutter build ios --no-codesign --debug   # iOS 빌드 확인
 | C1 | **sendLike/acceptLike 실연동** — `likes` 테이블 insert + `daily_usage` 무료 횟수 관리 | Flutter + Backend | A10 | ⬜ |
 | C2 | **getReceivedLikes 실연동** — `likes` + `profiles` join 쿼리 | Flutter + Backend | C1 | ⬜ |
 | C3 | **받은 좋아요 목록 페이지 완성** — 수락·거절 플로우 UI | Flutter | C2 | ⬜ |
-| C4 | **프로필 편집 페이지** — `/profile/edit` 라우트 구현 | Flutter | A10 | ⬜ |
+| C4 | **프로필 편집 페이지** — `/profile/edit` 라우트 구현 (Session 2에서 MatchingProfilePage isEditMode로 구현 완료) | Flutter | A10 | ✅ |
 
 ---
 
 ### 🌊 Sprint D — Chat + Payment (Sprint C 이후)
 
+> **참고**: FCM 푸시 알림은 Sprint B+의 PD3으로 우선순위 상향. Chat/Payment도 PD4/PD5로 통합 관리.
+
 | # | Task | 담당 | 의존성 | 상태 |
 |---|------|------|--------|------|
-| D1 | **Chat 실연동** — `MockChatRepository` → `ChatRepositoryImpl` + Supabase Realtime 구독 | Flutter + Backend | C1 | ⬜ |
+| D1 | **Chat 실연동** — `MockChatRepository` → `ChatRepositoryImpl` + Supabase Realtime 구독 (→ PD4로 통합) | Flutter + Backend | C1 | ⬜ |
 | D2 | **매칭 성사 플로우** — 양방향 좋아요 → `matches` insert → `chat_rooms` 자동 생성 DB 트리거 | Backend | C1 | ⬜ |
-| D3 | **Payment RevenueCat 연동** — 인앱 결제 구현, 구독·포인트 모델 | Flutter + Backend | A10 | ⬜ |
+| D3 | **Payment RevenueCat 연동** — 인앱 결제 구현, 구독·포인트 모델 (→ PD5로 통합) | Flutter + Backend | A10 | ⬜ |
 
 ---
 
@@ -491,7 +509,7 @@ fvm flutter build ios --no-codesign --debug   # iOS 빌드 확인
 | E1 | **데이팅용 궁합 규칙집 + 상세 리포트** | PM + 도메인 전문가 | B4 | ⬜ |
 | E2 | **십신 기반 커플 궁합 보강** | Backend + 도메인 | E1 | ⬜ |
 | E3 | **궁합 가중치 A/B 테스트** | Data + Backend | D3 | ⬜ |
-| E4 | **푸시 알림** | Backend + Flutter | D2 | ⬜ |
+| E4 | **푸시 알림** — FCM 기본 셋팅은 PD3에서 선행, 여기서는 고도화 (세분화 알림, 조용한 시간대 등) | Backend + Flutter | PD3 | ⬜ |
 | E5 | **바이럴 공유 + Mixpanel 분석** | Growth | A10 | ⬜ |
 
 ---
@@ -540,9 +558,14 @@ fvm flutter build ios --no-codesign --debug   # iOS 빌드 확인
 - [x] ~~사주 분석 디버깅 (DBG1~DBG3)~~ ✅ 완료 (2026-03-05) — JWT 401 + 네비게이션 데드락 + 뒤로가기
 - [x] ~~카카오 OAuth 브라우저 닫힘~~ ✅ 완료 (2026-03-05) — LaunchMode.externalApplication
 - [x] ~~1인1계정 정책~~ ✅ 완료 (2026-03-05) — manual_linking + phone unique + 중복 안내 UI
-- [ ] **프로필 상세페이지 개선 (PD1~PD3)** — UI/UX 개선
+- [x] **프로필 상세페이지 개선** — 라이트 모드 전환 완료 (PROF5), Hero 사진 노출은 PD1으로 이관
+- [x] **프로필 탭 & 설정 페이지** — 2026-03-06 Session 2 완료 (PROF1~PROF8)
 - [ ] **E2E 전체 플로우 재테스트 (DBG4)** — 로그인→온보딩→분석→결과→프로필→홈
 - [x] **매칭 추천 & 수익화 Phase 1** — 2026-03-06 Task 12 완료 (섹션별 추천, 사진 열람, Edge Functions)
-- [ ] **Sprint B 남은 작업** — E2E 검증 후 B3(캐릭터 동적 매핑), B4(실유저 테스트) 등
+- [ ] **프로필 상세 Hero 사진 (PD1~PD2)** — 블러 처리된 실제 사진 노출 + 유료화
+- [ ] **FCM 푸시 알림 (PD3)** — Firebase Cloud Messaging 설정, 디바이스 토큰, 알림 수신
+- [ ] **채팅 실연동 (PD4)** — Supabase Realtime 1:1 채팅, MockChatRepository 제거
+- [ ] **인앱 결제 (PD5)** — RevenueCat 포인트 구매, 프리미엄 구독
+- [ ] **Sprint B 남은 작업** — B3(캐릭터 동적 매핑), B4(실유저 테스트)
 - [ ] `lib/core/di/providers.dart` 확인 (새 Repository/DataSource 추가 시 반드시 등록)
 - [ ] 작업 완료 시 본 테스크 마스터 상태(⬜→✅) 및 dev-log 업데이트

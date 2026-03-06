@@ -113,9 +113,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
     final elementColor = AppTheme.fiveElementColor(profile.elementType);
     final elementPastel = AppTheme.fiveElementPastel(profile.elementType);
 
-    return Theme(
-      data: AppTheme.dark,
-      child: Builder(
+    return Builder(
         builder: (context) {
           final colors = context.sajuColors;
           final screenHeight = MediaQuery.sizeOf(context).height;
@@ -219,7 +217,6 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
             ),
           );
         },
-      ),
     );
   }
 }
@@ -1055,7 +1052,7 @@ class _StrengthsChallengesList extends StatelessWidget {
           const SizedBox(height: 12),
           ...challenges.take(3).map((text) => _BulletItem(
                 text: text,
-                accentColor: Colors.white.withValues(alpha: 0.3),
+                accentColor: context.sajuColors.textTertiary,
               )),
         ],
       ],
@@ -1075,7 +1072,7 @@ class _SectionTitle extends StatelessWidget {
         fontFamily: AppTheme.fontFamily,
         fontSize: 14,
         fontWeight: FontWeight.w600,
-        color: Colors.white.withValues(alpha: 0.8),
+        color: context.sajuColors.textPrimary,
       ),
     );
   }
@@ -1114,7 +1111,7 @@ class _BulletItem extends StatelessWidget {
                 fontFamily: AppTheme.fontFamily,
                 fontSize: 14,
                 height: 1.5,
-                color: Colors.white.withValues(alpha: 0.6),
+                color: context.sajuColors.textSecondary,
               ),
             ),
           ),
@@ -1589,7 +1586,7 @@ class _CharacterAvatar extends StatelessWidget {
             fontFamily: AppTheme.fontFamily,
             fontSize: 13,
             fontWeight: FontWeight.w500,
-            color: Colors.white.withValues(alpha: 0.6),
+            color: context.sajuColors.textSecondary,
           ),
         ),
       ],

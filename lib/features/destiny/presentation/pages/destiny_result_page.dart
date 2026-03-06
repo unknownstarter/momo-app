@@ -40,10 +40,14 @@ class DestinyResultPage extends ConsumerStatefulWidget {
     super.key,
     this.sajuResult,
     this.gwansangResult,
+    this.initialTab,
   });
 
   final dynamic sajuResult;
   final dynamic gwansangResult;
+
+  /// 초기 탭 인덱스 (0: 사주, 1: 관상). null이면 0.
+  final int? initialTab;
 
   @override
   ConsumerState<DestinyResultPage> createState() => _DestinyResultPageState();
@@ -72,7 +76,11 @@ class _DestinyResultPageState extends ConsumerState<DestinyResultPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(
+      length: 2,
+      vsync: this,
+      initialIndex: widget.initialTab ?? 0,
+    );
   }
 
   @override
@@ -102,9 +110,26 @@ class _DestinyResultPageState extends ConsumerState<DestinyResultPage>
               bottom: false,
               child: NestedScrollView(
               headerSliverBuilder: (context, innerBoxIsScrolled) => [
-                // 상단 여백 (닫기 버튼 영역 유지)
-                const SliverToBoxAdapter(
-                  child: SizedBox(height: 48),
+                // 뒤로가기 버튼 (push로 진입했을 때만 표시)
+                SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: 48,
+                    child: context.canPop()
+                        ? Align(
+                            alignment: Alignment.centerLeft,
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 8),
+                              child: IconButton(
+                                onPressed: () => context.pop(),
+                                icon: const Icon(
+                                  Icons.arrow_back_ios_new_rounded,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                          )
+                        : null,
+                  ),
                 ),
 
                 // 공통 헤더

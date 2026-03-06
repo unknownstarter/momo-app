@@ -20,37 +20,32 @@ class ReceivedLikesSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final receivedLikes = ref.watch(receivedLikesProvider);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // 타이틀은 항상 표시, 뱃지만 데이터에 따라 조건부
-        SectionHeader(
-          title: '받은 좋아요',
-          badgeCount: receivedLikes.valueOrNull?.isNotEmpty == true
-              ? receivedLikes.valueOrNull!.length
-              : null,
-        ),
-        HomeLayout.gapHeaderContent,
-        receivedLikes.when(
-          loading: () => Container(
-            height: 64,
-            decoration: BoxDecoration(
-              color: context.sajuColors.bgSecondary,
-              borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+    // 데이터 없음/에러/로딩 중 → 섹션 전체 숨김 (휑함 방지)
+    return receivedLikes.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (likes) {
+        if (likes.isEmpty) return const SizedBox.shrink();
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            HomeLayout.gapSection,
+            SectionHeader(
+              title: '받은 좋아요',
+              badgeCount: likes.length,
             ),
-          ),
-          error: (_, _) => const SizedBox.shrink(),
-          data: (likes) => _ReceivedLikesCard(
-            count: likes.length,
-            onTap: () {
-              AnalyticsService.clickCardInHome(section: 'received_likes');
-              // "받은" 세그먼트(인덱스 2)로 설정 후 매칭 탭 이동
-              ref.read(matchingTabSegmentProvider.notifier).state = 2;
-              context.go(RoutePaths.matching);
-            },
-          ),
-        ),
-      ],
+            HomeLayout.gapHeaderContent,
+            _ReceivedLikesCard(
+              count: likes.length,
+              onTap: () {
+                AnalyticsService.clickCardInHome(section: 'received_likes');
+                ref.read(matchingTabSegmentProvider.notifier).state = 2;
+                context.go(RoutePaths.matching);
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }

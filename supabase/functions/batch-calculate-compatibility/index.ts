@@ -421,9 +421,15 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
     if (candErr) {
       console.error("[batch-compat] 후보 조회 실패:", candErr.message);
+      // 500 대신 200 + calculated: 0 — 이성 후보 없음/RLS 등은 에러가 아니라 빈 결과
       return new Response(
-        JSON.stringify({ error: "Failed to fetch candidate profiles" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        JSON.stringify({
+          calculated: 0,
+          total: 0,
+          alreadyExisted: 0,
+          message: "Failed to fetch candidate profiles",
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 

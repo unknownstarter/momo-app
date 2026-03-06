@@ -74,8 +74,13 @@ class SectionedRecommendationsNotifier
   @override
   Future<SectionedRecommendations> build() async {
     final repo = ref.watch(matchingRepositoryProvider);
-    await repo.ensureDailyRecommendations();
-    return repo.getSectionedRecommendations();
+    try {
+      await repo.ensureDailyRecommendations();
+      return repo.getSectionedRecommendations();
+    } catch (_) {
+      // EF 미배포, 후보 없음, 네트워크 등 → 에러 대신 빈 섹션 (홈에서 빈 상태 카드 표시)
+      return const SectionedRecommendations();
+    }
   }
 
   /// 추천 목록 새로고침
@@ -83,8 +88,12 @@ class SectionedRecommendationsNotifier
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       final repo = ref.read(matchingRepositoryProvider);
-      await repo.ensureDailyRecommendations();
-      return repo.getSectionedRecommendations();
+      try {
+        await repo.ensureDailyRecommendations();
+        return repo.getSectionedRecommendations();
+      } catch (_) {
+        return const SectionedRecommendations();
+      }
     });
   }
 }

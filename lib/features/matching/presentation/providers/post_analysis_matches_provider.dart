@@ -24,22 +24,30 @@ class PostAnalysisMatches extends _$PostAnalysisMatches {
   }
 
   /// 최초 매칭 5명 조회
+  ///
+  /// EF 미배포·이성 후보 없음·일시 오류 시에도 에러 대신 빈 목록을 반환하여
+  /// "아직 매칭 상대가 없어요" 빈 상태로 보여 준다. (다시 시도해도 동일하면 계속 빈 상태)
   Future<List<MatchProfile>> _fetchInitialMatches() async {
     final repo = ref.read(matchingRepositoryProvider);
 
-    // 최초 매칭: isInitial=true로 상위 5명만 생성
-    await repo.ensureDailyRecommendations(isInitial: true);
-    final sectioned = await repo.getSectionedRecommendations();
+    try {
+      // 최초 매칭: isInitial=true로 상위 5명만 생성
+      await repo.ensureDailyRecommendations(isInitial: true);
+      final sectioned = await repo.getSectionedRecommendations();
 
-    // destiny 섹션에서 최대 5명 (isInitial=true이면 상위 5명이 destiny에 들어감)
-    final matches = sectioned.destinyMatches.take(5).toList();
+      // destiny 섹션에서 최대 5명 (isInitial=true이면 상위 5명이 destiny에 들어감)
+      final matches = sectioned.destinyMatches.take(5).toList();
 
-    // 만약 destiny가 비어있으면 compatibility에서 가져옴
-    if (matches.isEmpty) {
-      return sectioned.compatibilityMatches.take(5).toList();
+      // 만약 destiny가 비어있으면 compatibility에서 가져옴
+      if (matches.isEmpty) {
+        return sectioned.compatibilityMatches.take(5).toList();
+      }
+
+      return matches;
+    } catch (_) {
+      // 404(EF 미배포), 500(후보 조회 실패), 네트워크 등 → 에러 화면 대신 빈 목록
+      return [];
     }
-
-    return matches;
   }
 
   /// 목록 새로고침

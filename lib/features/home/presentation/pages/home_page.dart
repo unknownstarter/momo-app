@@ -7,6 +7,7 @@ import '../widgets/destiny_section.dart';
 import '../widgets/greeting_section.dart';
 import '../widgets/gwansang_match_section.dart';
 import '../widgets/home_section.dart';
+import '../widgets/my_analysis_section.dart';
 import '../widgets/new_users_section.dart';
 import '../widgets/received_likes_section.dart';
 import '../widgets/recommendation_section.dart';
@@ -16,11 +17,12 @@ import '../widgets/recommendation_section.dart';
 /// ## 섹션 구조 (Screen → Section → Item)
 /// 1. 인사 + 캐릭터                [GreetingSection]
 /// 2. 오늘의 연애운                [DailyFortuneSection]
-/// 3. 운명 매칭 (궁합 85%+)         [DestinySection]       — 비어있으면 자동 숨김
-/// 4. 궁합이 좋은 인연들            [RecommendationSection] — 비어있으면 자동 숨김
-/// 5. 받은 좋아요                  [ReceivedLikesSection]
-/// 6. 관상 매칭                    [GwansangMatchSection]  — 비어있으면 자동 숨김
-/// 7. 새로 가입한 인연              [NewUsersSection]       — 비어있으면 자동 숨김
+/// 3. 내 운명 분석 (사주+관상)      [MyAnalysisSection]    — 둘 다 없으면 자동 숨김
+/// 4. 운명 매칭 (궁합 85%+)         [DestinySection]       — 비어있으면 자동 숨김
+/// 5. 궁합이 좋은 인연들            [RecommendationSection] — 비어있으면 자동 숨김
+/// 6. 받은 좋아요                  [ReceivedLikesSection]
+/// 7. 관상 매칭                    [GwansangMatchSection]  — 비어있으면 자동 숨김
+/// 8. 새로 가입한 인연              [NewUsersSection]       — 비어있으면 자동 숨김
 ///
 /// 각 섹션은 독립 위젯 파일로 분리.
 /// [HomeSection] 래퍼가 패딩 + 등장 애니메이션을 통합 관리.
@@ -58,49 +60,46 @@ class HomePage extends ConsumerWidget {
 
               HomeLayout.gapSection,
 
-              // ---- 3. 운명 매칭 (궁합 85%+) — 비어있으면 자동 숨김 ----
+              // ---- 3. 내 운명 분석 (사주 + 관상 카드) ----
+              const HomeSection(
+                sectionName: 'my_analysis',
+                staggerIndex: 2,
+                child: MyAnalysisSection(),
+              ),
+
+              // ---- 4~8: 조건부 섹션 — 빈 데이터면 간격 포함 자동 숨김 ----
+              // 각 섹션이 내부에서 상단 간격을 관리하여 빈 섹션의 간격 누적을 방지.
+
               const HomeSection(
                 sectionName: 'destiny',
-                staggerIndex: 2,
+                staggerIndex: 3,
                 applyHorizontalPadding: false,
                 child: DestinySection(),
               ),
 
-              HomeLayout.gapSection,
-
-              // ---- 4. 궁합이 좋은 인연들 — 비어있으면 자동 숨김 ----
               const HomeSection(
                 sectionName: 'compatibility',
-                staggerIndex: 3,
+                staggerIndex: 4,
                 applyHorizontalPadding: false,
                 child: RecommendationSection(),
               ),
 
-              HomeLayout.gapSection,
-
-              // ---- 5. 받은 좋아요 ----
               const HomeSection(
                 sectionName: 'received_likes',
-                staggerIndex: 4,
+                staggerIndex: 5,
                 child: ReceivedLikesSection(),
               ),
 
-              HomeLayout.gapSection,
-
-              // ---- 6. 관상 매칭 — 비어있으면 자동 숨김 ----
               const HomeSection(
                 sectionName: 'gwansang',
-                staggerIndex: 5,
+                staggerIndex: 6,
                 applyHorizontalPadding: false,
                 child: GwansangMatchSection(),
               ),
 
-              HomeLayout.gapSection,
-
-              // ---- 7. 새로 가입한 인연 — 비어있으면 자동 숨김 ----
               const HomeSection(
                 sectionName: 'new_users',
-                staggerIndex: 6,
+                staggerIndex: 7,
                 applyHorizontalPadding: false,
                 child: NewUsersSection(),
               ),

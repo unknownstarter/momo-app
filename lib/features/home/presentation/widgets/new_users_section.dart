@@ -32,6 +32,7 @@ class NewUsersSection extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            HomeLayout.gapSection,
             Padding(
               padding: HomeLayout.screenPadding,
               child: SectionHeader(
@@ -97,6 +98,7 @@ class NewUsersSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        HomeLayout.gapSection,
         Padding(
           padding: HomeLayout.screenPadding,
           child: const SectionHeader(title: '새로 가입한 인연'),

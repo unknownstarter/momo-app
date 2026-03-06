@@ -32,6 +32,7 @@ class GwansangMatchSection extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            HomeLayout.gapSection,
             Padding(
               padding: HomeLayout.screenPadding,
               child: SectionHeader(
@@ -96,6 +97,7 @@ class GwansangMatchSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        HomeLayout.gapSection,
         Padding(
           padding: HomeLayout.screenPadding,
           child: const SectionHeader(title: '관상 매칭'),

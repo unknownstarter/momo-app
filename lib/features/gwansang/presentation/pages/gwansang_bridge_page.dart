@@ -155,7 +155,7 @@ class _GwansangBridgePageState extends ConsumerState<GwansangBridgePage>
 
                               // Body
                               Text(
-                                '사진 3장으로 당신의 관상을 읽어드려요\n사주와 관상을 함께 보면 운명이 더 선명해져요',
+                                '정면 사진 1장으로 당신의 관상을 읽어드려요\n사주와 관상을 함께 보면 운명이 더 선명해져요',
                                 textAlign: TextAlign.center,
                                 style: Theme.of(context)
                                     .textTheme

@@ -32,6 +32,7 @@ class RecommendationSection extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            HomeLayout.gapSection,
             Padding(
               padding: HomeLayout.screenPadding,
               child: SectionHeader(
@@ -56,6 +57,7 @@ class RecommendationSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        HomeLayout.gapSection,
         Padding(
           padding: HomeLayout.screenPadding,
           child: const SectionHeader(title: '궁합이 좋은 인연들'),

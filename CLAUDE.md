@@ -211,6 +211,7 @@ feature/
 - 듀얼 무드: 라이트(일상 탐색), 다크(사주/궁합/매칭 결과)
 - **[규칙 2026-02-26]** 테마 확장 타입은 `SajuColors`(`lib/core/theme/tokens/saju_colors.dart`)이지 `SajuColorScheme`이 아님. 새 페이지 작성 시 주의
 - **[규칙 2026-03-05]** `Container`/`AnimatedContainer`에 `alignment` 속성을 설정하면 부모 전체 크기로 확장됨. 내용물 센터링은 `Center` 위젯 또는 Row/Column의 `mainAxisAlignment` 사용할 것
+- **[규칙 2026-03-06]** 프로필 편집 등 폼 화면의 저장 버튼은 dirty state 감지 필수. 초기값 스냅샷 저장 → 현재값 비교 → `_hasChanges` getter로 버튼 활성화 제어. TextController.addListener로 실시간 반응
 
 ### Git Workflow
 - 브랜치: `feature/`, `fix/`, `experiment/`, `research/`
@@ -240,6 +241,11 @@ feature/
 - **[규칙 2026-03-06]** 사진 열람은 일일 무료 3회 + 추가 30P/회. 포인트 부족 시 과금 유도
 - **[규칙 2026-03-06]** DB 테이블명은 `daily_matches` (NOT `daily_recommendations`). Flutter 상수: `SupabaseTables.dailyMatches`. section 값은 `'destiny'|'compatibility'|'gwansang'|'new'`
 - **[규칙 2026-03-06]** 포인트 비용 (조정됨): likeCost=50, premiumLikeCost=100, photoRevealCost=30, dailyFreePhotoRevealLimit=3
+
+### 네이티브 권한 & 플러그인 규칙 (2026-03-06 추가)
+- **[규칙]** iOS 카메라/사진 권한: `Info.plist`에 `NSCameraUsageDescription`, `NSPhotoLibraryUsageDescription` 추가 필수 + `Podfile`에 `PERMISSION_CAMERA=1`, `PERMISSION_PHOTOS=1` GCC_PREPROCESSOR_DEFINITIONS 매크로 추가 필수. 둘 다 없으면 런타임 크래시
+- **[규칙]** `flutter_contacts` iOS 크래시 패치: 플러그인이 `AppDelegate.register()` 시점에 `rootViewController`를 force-unwrap하는데, 이 시점에 rootViewController가 nil일 수 있음. `Podfile` post_install hook에서 해당 코드를 optional chaining으로 패치할 것
+- **[규칙]** Android 권한: `READ_MEDIA_IMAGES` (API 33+), `CAMERA`, `POST_NOTIFICATIONS` (API 33+)는 `AndroidManifest.xml`에 선언 필수
 
 ### 연속 작업 / 다음 할 일 (2026-02-24 추가)
 - **다른 디바이스에서 이어서 작업할 때**: 먼저 **테스크 마스터**를 확인할 것.

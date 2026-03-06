@@ -12,7 +12,7 @@ import 'section_header.dart';
 /// 홈 섹션: 운명의 매칭 (궁합 85%+ 또는 일주 합)
 ///
 /// 수평 스크롤 카드, 금색 테두리 (isPremium), 최대 5명.
-/// 데이터 없으면 SizedBox.shrink() 반환.
+/// 데이터 없으면 섹션 전체 숨김 (SizedBox.shrink()).
 class DestinySection extends ConsumerWidget {
   const DestinySection({super.key});
 
@@ -33,6 +33,7 @@ class DestinySection extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            HomeLayout.gapSection,
             Padding(
               padding: HomeLayout.screenPadding,
               child: SectionHeader(
@@ -92,6 +93,7 @@ class DestinySection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        HomeLayout.gapSection,
         Padding(
           padding: HomeLayout.screenPadding,
           child: const SectionHeader(title: '오늘의 운명 매칭'),

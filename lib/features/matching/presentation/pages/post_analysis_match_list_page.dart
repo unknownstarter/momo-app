@@ -110,6 +110,16 @@ class PostAnalysisMatchListPage extends ConsumerWidget {
                     textAlign: TextAlign.center,
                   ),
 
+                  SajuSpacing.gap8,
+
+                  Text(
+                    '처음이시라면 내일부터 추천이 채워져요',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colors.textTertiary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+
                   SajuSpacing.gap24,
                 ],
               ),
@@ -119,12 +129,16 @@ class PostAnalysisMatchListPage extends ConsumerWidget {
             Expanded(
               child: matchesAsync.when(
                 loading: () => _buildLoadingSkeleton(context),
-                error: (error, _) => Center(
+                error: (_, __) => Center(
                   child: SajuErrorState(
-                    message: '추천 프로필을 불러오지 못했어요',
+                    message:
+                        '잠시 문제가 생겼어요.\n아래에서 다시 시도하거나, '
+                        '매칭 탭에서 확인해 주세요.',
                     onRetry: () => ref
                         .read(postAnalysisMatchesProvider.notifier)
                         .refresh(),
+                    characterAssetPath:
+                        CharacterAssets.blackTokki.expression('sad'),
                   ),
                 ),
                 data: (profiles) {
@@ -132,9 +146,11 @@ class PostAnalysisMatchListPage extends ConsumerWidget {
                     return Center(
                       child: SajuEmptyState(
                         message: '아직 매칭 상대가 없어요',
-                        subtitle: '조금만 기다려 주세요,\n운명의 상대를 찾고 있어요',
+                        subtitle:
+                            '내일 다시 오시면 새로운 인연이 채워져 있어요.',
                         characterAssetPath:
-                            CharacterAssets.heuksuniEarthDefault,
+                            CharacterAssets.goldTokki.expression('content'),
+                        characterName: '황금토끼',
                       ),
                     );
                   }

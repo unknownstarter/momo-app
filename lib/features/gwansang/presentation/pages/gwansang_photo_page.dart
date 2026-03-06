@@ -1,6 +1,6 @@
-/// 관상 사진 업로드 페이지 — 얼굴 사진 3장 촬영/선택 화면
+/// 관상 사진 업로드 페이지 — 정면 얼굴 사진 1장 촬영/선택
 ///
-/// 3단계 가이드에 따라 정면/미소/자연스러운 사진을 수집한다.
+/// 온보딩과 동일하게 정면 1장으로 관상 분석.
 /// image_picker로 카메라/갤러리 선택, 서버 사이드 Claude Vision으로 분석.
 /// 다크 테마(미스틱 모드).
 library;
@@ -33,23 +33,11 @@ class _PhotoGuide {
   final IconData icon;
 }
 
-const _photoGuides = [
-  _PhotoGuide(
-    title: '정면 사진',
-    description: '이목구비를 정확하게 분석할 수 있어요',
-    icon: Icons.face,
-  ),
-  _PhotoGuide(
-    title: '미소 사진',
-    description: '웃을 때의 관상이 진짜 관상이에요',
-    icon: Icons.mood,
-  ),
-  _PhotoGuide(
-    title: '자연스러운 사진',
-    description: '일상적인 표정이 전체 인상을 보여줘요',
-    icon: Icons.portrait,
-  ),
-];
+const _photoGuide = _PhotoGuide(
+  title: '정면 사진',
+  description: '이목구비를 정확하게 분석할 수 있어요',
+  icon: Icons.face,
+);
 
 /// 관상 사진 업로드 페이지
 class GwansangPhotoPage extends ConsumerStatefulWidget {
@@ -64,11 +52,9 @@ class GwansangPhotoPage extends ConsumerStatefulWidget {
 
 class _GwansangPhotoPageState extends ConsumerState<GwansangPhotoPage> {
   final _picker = ImagePicker();
-  int _currentPhotoIndex = 0;
-  final List<String?> _photoPaths = [null, null, null];
+  String? _photoPath;
 
-  bool get _allPhotosReady =>
-      _photoPaths.every((p) => p != null);
+  bool get _allPhotosReady => _photoPath != null;
 
   @override
   Widget build(BuildContext context) {
@@ -146,13 +132,10 @@ class _GwansangPhotoPageState extends ConsumerState<GwansangPhotoPage> {
     );
   }
 
-  /// 현재 단계 가이드 헤더
+  /// 정면 사진 가이드 헤더
   Widget _buildCurrentGuide(BuildContext context, SajuColors colors) {
-    final guide = _photoGuides[_currentPhotoIndex];
-
     return Column(
       children: [
-        // 단계 아이콘
         Container(
           width: 56,
           height: 56,
@@ -160,25 +143,19 @@ class _GwansangPhotoPageState extends ConsumerState<GwansangPhotoPage> {
             shape: BoxShape.circle,
             color: AppTheme.mysticGlow.withValues(alpha: 0.12),
           ),
-          child: Icon(guide.icon, size: 28, color: AppTheme.mysticGlow),
+          child: Icon(_photoGuide.icon, size: 28, color: AppTheme.mysticGlow),
         ),
-
         SajuSpacing.gap12,
-
-        // 단계 제목
         Text(
-          '${_currentPhotoIndex + 1}/3 ${guide.title}',
+          _photoGuide.title,
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                 color: colors.textPrimary,
                 fontWeight: FontWeight.w700,
               ),
         ),
-
         SajuSpacing.gap4,
-
-        // 단계 설명
         Text(
-          guide.description,
+          _photoGuide.description,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: colors.textSecondary,
               ),
@@ -187,59 +164,47 @@ class _GwansangPhotoPageState extends ConsumerState<GwansangPhotoPage> {
     );
   }
 
-  /// 3개 사진 슬롯
+  /// 정면 사진 1장 슬롯
   Widget _buildPhotoSlots(BuildContext context, SajuColors colors) {
-    return Center(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(3, (index) {
-          final isActive = index == _currentPhotoIndex;
-          final isFilled = _photoPaths[index] != null;
+    final isFilled = _photoPath != null;
 
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6),
-            child: GestureDetector(
-              onTap: () {
-                if (index <= _currentPhotoIndex || isFilled) {
-                  setState(() => _currentPhotoIndex = index);
-                  if (!isFilled) {
-                    _showPhotoSourceSheet(index);
-                  }
-                }
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeInOut,
-                width: isActive ? 160 : 80,
-                height: isActive ? 200 : 100,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-                  color: isFilled
-                      ? null
-                      : colors.bgElevated.withValues(alpha: 0.5),
-                  border: Border.all(
-                    color: isActive
-                        ? AppTheme.mysticGlow
-                        : (isFilled
-                            ? AppTheme.statusSuccess.withValues(alpha: 0.5)
-                            : colors.borderDefault),
-                    width: isActive ? 2 : 1,
-                    strokeAlign: BorderSide.strokeAlignOutside,
-                  ),
-                  image: isFilled
-                      ? DecorationImage(
-                          image: FileImage(File(_photoPaths[index]!)),
-                          fit: BoxFit.cover,
-                        )
-                      : null,
-                ),
-                child: isFilled
-                    ? _buildPhotoOverlay(index, isActive, colors)
-                    : _buildEmptySlot(index, isActive, colors),
-              ),
+    return Center(
+      child: GestureDetector(
+        onTap: () {
+          if (isFilled) {
+            _showPhotoSourceSheet(0);
+          } else {
+            _showPhotoSourceSheet(0);
+          }
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeInOut,
+          width: 200,
+          height: 240,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+            color: isFilled
+                ? null
+                : colors.bgElevated.withValues(alpha: 0.5),
+            border: Border.all(
+              color: isFilled
+                  ? AppTheme.statusSuccess.withValues(alpha: 0.5)
+                  : AppTheme.mysticGlow,
+              width: 2,
+              strokeAlign: BorderSide.strokeAlignOutside,
             ),
-          );
-        }),
+            image: isFilled
+                ? DecorationImage(
+                    image: FileImage(File(_photoPath!)),
+                    fit: BoxFit.cover,
+                  )
+                : null,
+          ),
+          child: isFilled
+              ? _buildPhotoOverlay(0, true, colors)
+              : _buildEmptySlot(0, true, colors),
+        ),
       ),
     );
   }
@@ -329,28 +294,22 @@ class _GwansangPhotoPageState extends ConsumerState<GwansangPhotoPage> {
     );
   }
 
-  /// 프로그레스 도트
+  /// 프로그레스 도트 (1장이므로 단일 표시)
   Widget _buildProgressDots(SajuColors colors) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(3, (index) {
-        final isFilled = _photoPaths[index] != null;
-        final isCurrent = index == _currentPhotoIndex;
-
-        return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 4),
-          width: isCurrent ? 24 : 8,
+      children: [
+        Container(
+          width: 24,
           height: 8,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(4),
-            color: isFilled
+            color: _photoPath != null
                 ? AppTheme.statusSuccess
-                : (isCurrent
-                    ? AppTheme.mysticGlow
-                    : colors.borderDefault),
+                : AppTheme.mysticGlow,
           ),
-        );
-      }),
+        ),
+      ],
     );
   }
 
@@ -394,7 +353,7 @@ class _GwansangPhotoPageState extends ConsumerState<GwansangPhotoPage> {
     );
   }
 
-  /// 사진 선택 + 얼굴 검증
+  /// 사진 선택
   Future<void> _pickPhoto(int index, ImageSource source) async {
     try {
       final image = await _picker.pickImage(
@@ -406,14 +365,7 @@ class _GwansangPhotoPageState extends ConsumerState<GwansangPhotoPage> {
 
       if (image == null) return;
 
-      // 사진 저장 및 다음 단계로
-      setState(() {
-        _photoPaths[index] = image.path;
-        // 다음 빈 슬롯으로 이동
-        if (index < 2 && _photoPaths[index + 1] == null) {
-          _currentPhotoIndex = index + 1;
-        }
-      });
+      setState(() => _photoPath = image.path);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -427,8 +379,8 @@ class _GwansangPhotoPageState extends ConsumerState<GwansangPhotoPage> {
 
   /// 관상 분석 시작 — 사진을 Storage에 업로드 후 URL로 전달
   Future<void> _onStartAnalysis() async {
-    final validPaths = _photoPaths.whereType<String>().toList();
-    if (validPaths.length < 3) return;
+    if (_photoPath == null) return;
+    final validPaths = [_photoPath!];
 
     // Storage에 업로드 → profiles.profile_images에 저장
     try {

@@ -148,16 +148,19 @@ class _ProfileContent extends StatelessWidget {
                   if (user.location != null)
                     SajuChip(
                       label: user.location!,
+                      color: SajuColor.earth,
                       size: SajuSize.sm,
                     ),
                   if (user.occupation != null)
                     SajuChip(
                       label: user.occupation!,
+                      color: SajuColor.earth,
                       size: SajuSize.sm,
                     ),
                   if (user.mbti != null)
                     SajuChip(
                       label: user.mbti!,
+                      color: SajuColor.earth,
                       size: SajuSize.sm,
                     ),
                 ],
@@ -166,35 +169,33 @@ class _ProfileContent extends StatelessWidget {
             SajuSpacing.gap24,
           ],
 
-          // ---- 4. 사주 분석 상태 ----
+          // ---- 4. 분석 상태 (사주 + 관상) ----
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: SajuCard(
-              content: Row(
-                children: [
-                  Icon(
-                    user.hasSajuProfile
-                        ? Icons.check_circle_outline
-                        : Icons.schedule_outlined,
-                    size: 20,
-                    color: user.hasSajuProfile
-                        ? AppTheme.woodColor
-                        : context.sajuColors.textTertiary,
-                  ),
-                  SajuSpacing.hGap8,
-                  Text(
-                    user.hasSajuProfile
-                        ? '사주 분석 완료'
-                        : '사주 분석을 완료하면 궁합 추천을 받을 수 있어요',
-                    style: textTheme.bodyMedium,
-                  ),
-                ],
-              ),
-              variant: SajuVariant.flat,
-              padding: const EdgeInsets.symmetric(
-                horizontal: SajuSpacing.space16,
-                vertical: SajuSpacing.space8,
-              ),
+            child: Consumer(
+              builder: (context, ref, _) {
+                final analysisAsync = ref.watch(myAnalysisProvider);
+                final hasSaju = user.hasSajuProfile;
+                final hasGwansang = analysisAsync.maybeWhen(
+                  data: (data) => data.gwansang != null,
+                  orElse: () => false,
+                );
+                return Column(
+                  children: [
+                    _AnalysisStatusTile(
+                      label: '사주 분석',
+                      isComplete: hasSaju,
+                      incompleteHint: '궁합 추천을 받을 수 있어요',
+                    ),
+                    SajuSpacing.gap8,
+                    _AnalysisStatusTile(
+                      label: '관상 분석',
+                      isComplete: hasGwansang,
+                      incompleteHint: '동물상 매칭을 받을 수 있어요',
+                    ),
+                  ],
+                );
+              },
             ),
           ),
 
@@ -283,6 +284,47 @@ class _CompletionSection extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _AnalysisStatusTile extends StatelessWidget {
+  const _AnalysisStatusTile({
+    required this.label,
+    required this.isComplete,
+    required this.incompleteHint,
+  });
+
+  final String label;
+  final bool isComplete;
+  final String incompleteHint;
+
+  @override
+  Widget build(BuildContext context) {
+    return SajuCard(
+      content: Row(
+        children: [
+          Icon(
+            isComplete
+                ? Icons.check_circle_outline
+                : Icons.schedule_outlined,
+            size: 20,
+            color: isComplete
+                ? AppTheme.woodColor
+                : context.sajuColors.textTertiary,
+          ),
+          SajuSpacing.hGap8,
+          Text(
+            isComplete ? '$label 완료' : '$label을 완료하면 $incompleteHint',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ],
+      ),
+      variant: SajuVariant.flat,
+      padding: const EdgeInsets.symmetric(
+        horizontal: SajuSpacing.space16,
+        vertical: SajuSpacing.space8,
+      ),
     );
   }
 }

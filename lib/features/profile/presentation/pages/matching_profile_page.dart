@@ -61,6 +61,44 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
   // --- 이상형 ---
   final _idealTypeController = TextEditingController();
 
+  // --- 편집 모드 변경 감지 (dirty state) ---
+  // 초기 로드 시 스냅샷 저장 → 현재값과 비교하여 변경 여부 판단
+  List<String> _initialPhotos = [];
+  String _initialHeight = '';
+  String _initialOccupation = '';
+  String? _initialLocation;
+  String _initialBio = '';
+  BodyType? _initialBodyType;
+  Religion? _initialReligion;
+  Set<String> _initialInterests = {};
+  String _initialIdealType = '';
+
+  bool get _hasChanges {
+    if (!widget.isEditMode) return true;
+    if (!_listEquals(_photoSlots, _initialPhotos)) return true;
+    if (_heightController.text != _initialHeight) return true;
+    if (_occupationController.text != _initialOccupation) return true;
+    if (_selectedLocation != _initialLocation) return true;
+    if (_bioController.text != _initialBio) return true;
+    if (_selectedBodyType != _initialBodyType) return true;
+    if (_selectedReligion != _initialReligion) return true;
+    if (!_setEquals(_selectedInterests, _initialInterests)) return true;
+    if (_idealTypeController.text != _initialIdealType) return true;
+    return false;
+  }
+
+  static bool _listEquals(List<String> a, List<String> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
+
+  static bool _setEquals(Set<String> a, Set<String> b) {
+    return a.length == b.length && a.containsAll(b);
+  }
+
   // =========================================================================
   // 상수
   // =========================================================================
@@ -106,10 +144,17 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
     super.initState();
     if (widget.isEditMode) {
       _loadProfileForEdit();
+      // TextController 변경 시 dirty 체크를 위해 리빌드
+      _heightController.addListener(_onFieldChanged);
+      _occupationController.addListener(_onFieldChanged);
+      _bioController.addListener(_onFieldChanged);
+      _idealTypeController.addListener(_onFieldChanged);
     } else {
       _loadExistingPhotos();
     }
   }
+
+  void _onFieldChanged() => setState(() {});
 
   /// 편집 모드: 기존 프로필 데이터를 한번에 로드 (사진 + 폼 데이터)
   Future<void> _loadProfileForEdit() async {
@@ -133,6 +178,17 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
           _selectedReligion = profile.religion;
           _selectedInterests.addAll(profile.interests);
           _idealTypeController.text = profile.idealType ?? '';
+
+          // 초기 스냅샷 저장 (dirty state 비교용)
+          _initialPhotos = List.of(_photoSlots);
+          _initialHeight = _heightController.text;
+          _initialOccupation = _occupationController.text;
+          _initialLocation = _selectedLocation;
+          _initialBio = _bioController.text;
+          _initialBodyType = _selectedBodyType;
+          _initialReligion = _selectedReligion;
+          _initialInterests = Set.of(_selectedInterests);
+          _initialIdealType = _idealTypeController.text;
         });
       }
     } catch (_) {
@@ -161,6 +217,12 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
 
   @override
   void dispose() {
+    if (widget.isEditMode) {
+      _heightController.removeListener(_onFieldChanged);
+      _occupationController.removeListener(_onFieldChanged);
+      _bioController.removeListener(_onFieldChanged);
+      _idealTypeController.removeListener(_onFieldChanged);
+    }
     _scrollController.dispose();
     _heightController.dispose();
     _occupationController.dispose();
@@ -344,6 +406,7 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
                       characterName: '흙순이',
                       message: '사진과 정보를 채우면\n더 좋은 인연을 만날 수 있어!',
                       elementColor: SajuColor.earth,
+                      characterAssetPath: CharacterAssets.heuksuniEarthDefault,
                       size: SajuSize.md,
                     ),
                     const SizedBox(height: 28),
@@ -764,16 +827,51 @@ class _MatchingProfilePageState extends ConsumerState<MatchingProfilePage> {
           ),
         ],
       ),
-      child: SajuButton(
-        label: _isSubmitting
-            ? '저장 중...'
-            : widget.isEditMode
-                ? '저장'
-                : '프로필 완성!',
-        onPressed: _isSubmitting ? null : _submitProfile,
-        color: SajuColor.earth,
-        size: SajuSize.xl,
-        leadingIcon: _isSubmitting ? null : (widget.isEditMode ? Icons.save : Icons.celebration),
+      child: widget.isEditMode
+          ? _buildEditSaveButton()
+          : SajuButton(
+              label: _isSubmitting ? '저장 중...' : '프로필 완성!',
+              onPressed: _isSubmitting ? null : _submitProfile,
+              color: SajuColor.earth,
+              size: SajuSize.xl,
+              leadingIcon: _isSubmitting ? null : Icons.celebration,
+            ),
+    );
+  }
+
+  // =========================================================================
+  // 편집 모드 저장 버튼 (변경분 있을 때만 활성화)
+  // =========================================================================
+
+  Widget _buildEditSaveButton() {
+    final enabled = _hasChanges && !_isSubmitting;
+
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: ElevatedButton(
+        onPressed: enabled ? _submitProfile : null,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: enabled
+              ? AppTheme.earthColor
+              : const Color(0xFFD5D0CB),
+          foregroundColor: enabled
+              ? Colors.white
+              : const Color(0xFFA8A3A0),
+          disabledBackgroundColor: const Color(0xFFD5D0CB),
+          disabledForegroundColor: const Color(0xFFA8A3A0),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+          ),
+        ),
+        child: Text(
+          _isSubmitting ? '저장 중...' : '저장할게요',
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
     );
   }

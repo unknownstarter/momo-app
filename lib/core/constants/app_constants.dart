@@ -113,6 +113,7 @@ abstract final class SupabaseTables {
   static const purchases = 'purchases';
   static const gwansangProfiles = 'gwansang_profiles';
   static const userActions = 'user_actions';
+  static const blockedPhoneHashes = 'blocked_phone_hashes';
 }
 
 /// Supabase Storage 버킷명
@@ -249,7 +250,7 @@ abstract final class FiveElementRelations {
 abstract final class AppLimits {
   // --- 프로필 ---
   static const maxPhotos = 5;
-  static const minPhotos = 3;
+  static const minPhotos = 1;
   static const maxBioLength = 300;
   static const minBioLength = 10;
   static const maxNameLength = 20;
