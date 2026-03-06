@@ -133,6 +133,8 @@ abstract final class SupabaseFunctions {
   static const getDailyMatches = 'get-daily-matches';
   static const resetDailyUsage = 'reset-daily-usage';
   static const generateGwansangReading = 'generate-gwansang-reading';
+  static const batchCalculateCompatibility = 'batch-calculate-compatibility';
+  static const generateDailyRecommendations = 'generate-daily-recommendations';
 }
 
 // =============================================================================
@@ -275,9 +277,13 @@ abstract final class AppLimits {
   static const dailyFreeLikeLimit = 3;
   static const dailyFreeAcceptLimit = 3;
 
+  // --- 사진 열람 ---
+  static const dailyFreePhotoRevealLimit = 3;
+  static const photoRevealCost = 30;
+
   // --- 포인트 비용 ---
-  static const likeCost = 100;
-  static const premiumLikeCost = 300;
+  static const likeCost = 50;
+  static const premiumLikeCost = 100;
   static const acceptCost = 100;
   static const compatibilityReportCost = 500;
   static const sajuDetailedReportCost = 500;

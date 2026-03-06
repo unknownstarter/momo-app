@@ -1,3 +1,5 @@
+import 'package:momo_app/core/constants/app_constants.dart';
+
 /// 포인트 잔액
 class UserPoints {
   const UserPoints({
@@ -69,15 +71,22 @@ class DailyUsage {
     required this.date,
     required this.freeLikesUsed,
     required this.freeAcceptsUsed,
+    this.freePhotoRevealsUsed = 0,
   });
 
   final String userId;
   final DateTime date;
   final int freeLikesUsed;
   final int freeAcceptsUsed;
+  final int freePhotoRevealsUsed;
 
-  bool get hasFreeLikes => freeLikesUsed < 3;
-  bool get hasFreeAccepts => freeAcceptsUsed < 3;
-  int get remainingFreeLikes => 3 - freeLikesUsed;
-  int get remainingFreeAccepts => 3 - freeAcceptsUsed;
+  bool get hasFreeLikes => freeLikesUsed < AppLimits.dailyFreeLikeLimit;
+  bool get hasFreeAccepts => freeAcceptsUsed < AppLimits.dailyFreeAcceptLimit;
+  bool get hasFreePhotoReveals =>
+      freePhotoRevealsUsed < AppLimits.dailyFreePhotoRevealLimit;
+  int get remainingFreeLikes => AppLimits.dailyFreeLikeLimit - freeLikesUsed;
+  int get remainingFreeAccepts =>
+      AppLimits.dailyFreeAcceptLimit - freeAcceptsUsed;
+  int get remainingFreePhotoReveals =>
+      AppLimits.dailyFreePhotoRevealLimit - freePhotoRevealsUsed;
 }
